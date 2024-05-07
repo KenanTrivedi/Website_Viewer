@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generate Your Personal Code</title>
+    <link rel="stylesheet" href="login.css" />
+  </head>
+  <body>
+    <div class="login-container">
+      <a href="index.html">
+        <img
+          src="images/logo.png"
+          alt="Open-Digi Logo"
+          style="max-width: 200px; margin-bottom: 20px"
+        />
+      </a>
+      <h1>Create Your Personal Code</h1>
+      <form id="generateCodeForm" class="code-form">
+        <div class="input-group">
+          <label for="birthplace">Geburtsort</label>
+          <input
+            type="text"
+            id="birthplace"
+            placeholder=""
+            minlength="2"
+            maxlength="2"
+            required
+          />
+          <small
+            >Bitte geben Sie den ersten und letzten Buchstaben Ihres
+            Geburtsortes ein. Bsp.: Bremen = BN</small
+          >
+        </div>
+        <div class="input-group">
+          <label for="motherName"
+            >Vorname der Mutter / Ihrer Erziehungsberechtigten</label
+          >
+          <input
+            type="text"
+            id="motherName"
+            placeholder=""
+            minlength="2"
+            maxlength="2"
+            required
+          />
+          <small
+            >Bitte geben Sie den ersten und letzten Buchstaben des Vornamens
+            Ihrer Mutter ein. Bsp.: Gisela = GA</small
+          >
+        </div>
+        <div class="input-group">
+          <label for="birthday">Geburtstag (TT)</label>
+          <input
+            type="text"
+            id="birthday"
+            placeholder=""
+            pattern="\d{2}"
+            minlength="2"
+            maxlength="2"
+            required
+          />
+          <small
+            >Bitte geben Sie den Tag Ihres Geburtstages in Ziffern ein. Bsp.:
+            06. Dezember = 06</small
+          >
+        </div>
+        <div class="input-group">
+          <label for="school">Ort der Grundschule</label>
+          <input
+            type="text"
+            id="school"
+            placeholder=""
+            minlength="2"
+            maxlength="2"
+            required
+          />
+          <small
+            >Bitte geben Sie den ersten und dritten Buchstaben des Ortes der
+            Grundschule, die Sie als erstes besucht haben, ein. Bsp.: Rostock =
+            RS</small
+          >
+        </div>
+        <button type="submit">Code Generieren</button>
+      </form>
+
+      <a href="login.html">Already have a code? Login here</a>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>

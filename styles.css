@@ -1,0 +1,254 @@
+/* Reset and base styles */
+html,
+body {
+    height: 100%;
+    /* Ensure the full height of the viewport is covered */
+    margin: 0;
+    /* Reset margins */
+    padding: 0;
+    /* Reset padding */
+    font-family: 'Arial', sans-serif;
+    /* Ensures uniform font */
+    background: white;
+    /* Background color set to white */
+    display: flex;
+    /* Enables flexbox */
+    flex-direction: column;
+    /* Stacks content vertically */
+    min-height: 100vh;
+    /* Ensures the minimum height of the viewport */
+}
+
+body {
+    min-height: 100vh;
+    /* Ensures body takes at least the height of the viewport */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Sticky header styles */
+header {
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    position: fixed;
+    /* Keeps header at the top */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 0;
+}
+
+/* Navigation styling */
+nav {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+nav a {
+    color: #004A99;
+    text-decoration: none;
+    padding: 0 20px;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+nav a:hover {
+    color: #007bff;
+    /* Lighter blue on hover */
+}
+
+/* Main content area */
+main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    /* Allows main content to expand and take available space */
+    padding: 20px;
+    margin-top: 70px;
+    /* Adjusts for fixed header */
+}
+
+/* Generic button styles */
+button,
+.button {
+    background-color: #004A99;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+button:hover,
+.button:hover {
+    background-color: #003366;
+}
+
+/* Section-specific button styles */
+.section-button {
+    padding: 8px 16px;
+    /* Smaller padding */
+    font-size: 14px;
+    /* Smaller font size */
+}
+
+.section-button:hover {
+    background-color: #003366;
+    /* Consistent hover effect */
+}
+
+/* Overlay styles for content sections */
+.overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1em;
+    box-sizing: border-box;
+}
+
+.overlay h2,
+.overlay p {
+    width: 100%;
+    margin-bottom: 0.5em;
+    word-wrap: break-word;
+}
+
+/* Footer styles */
+footer {
+    text-align: center;
+    padding: 10px;
+    background: #004A99;
+    color: white;
+    width: 100%;
+    /* Ensures footer stretches across the full width */
+    position: relative;
+    /* Changed from 'absolute' to 'relative' */
+    bottom: 0;
+    /* Ensures footer stays at the bottom */
+    margin-top: auto;
+    /* Pushes footer to the bottom regardless of the content length */
+}
+
+/* Styling for sections with banners */
+.banner-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2em;
+    text-align: center;
+}
+
+.banner-section img {
+    max-width: 200px;
+    /* Max width for consistency */
+    height: auto;
+    /* Maintain aspect ratio */
+    margin-bottom: 1em;
+}
+
+/* Container for banner sections */
+.banner-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .banner-container {
+        flex-direction: column;
+    }
+
+    .banner-section {
+        margin-bottom: 1em;
+    }
+}
+
+/*team webpage*/
+.team-photo {
+    width: 200px;
+    /* Set a specific width */
+    height: 200px;
+    /* Set a specific height */
+    object-fit: cover;
+    /* Ensures the image covers the frame without distorting aspect ratio */
+    border-radius: 50%;
+    /* Optional: makes the images circular */
+    margin-bottom: 1em;
+    /* Space below each image */
+}
+
+.team-section {
+    text-align: center;
+    background: #e0f0ff;
+    padding: 20px;
+}
+
+.team-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.team-member {
+    flex-basis: 300px;
+    background: white;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    border: 2px solid #003366;
+    /* Adds a subtle border */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.3s ease-in-out;
+}
+
+.team-member:hover {
+    transform: translateY(-10px);
+    /* Adds a hover effect to lift the card */
+}
+
+.team-photo {
+    width: 150px;
+    /* Adjusted for proper fit */
+    height: 150px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #004A99;
+    /* Adds a blue border around the image */
+    margin-bottom: 1em;
+}
+
+.role {
+    font-weight: bold;
+    color: #0056b3;
+    /* A deeper blue for professional roles */
+    margin-bottom: 5px;
+}
+
+.team-member h3 {
+    margin-top: 0;
+    margin-bottom: 2px;
+    /* Reduces space to make it look compact */
+    color: #333;
+}
+
+.team-member p {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.4;
+    text-align: center;
+}

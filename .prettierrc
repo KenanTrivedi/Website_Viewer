@@ -1,0 +1,6 @@
+{
+    "htmlWhitespaceSensitivity": "css",
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2
+}
