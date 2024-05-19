@@ -73,6 +73,11 @@ main {
 }
 
 /* Generic button styles */
+.overlay button {
+    margin-top: 20px;
+    /* Adjust the value as needed */
+}
+
 button,
 .button {
     background-color: #004A99;
@@ -92,12 +97,17 @@ button:hover,
     background-color: #003366;
 }
 
-/* Section-specific button styles */
 .section-button {
-    padding: 8px 16px;
-    /* Smaller padding */
-    font-size: 14px;
-    /* Smaller font size */
+    display: block;
+    /* Makes the button a block element */
+    width: auto;
+    /* Default width to fit content */
+    margin-bottom: 0;
+    /* Remove any bottom margin if present */
+    padding: 10px 20px;
+    /* Padding inside the button */
+    font-size: 16px;
+    /* Text size within the button */
 }
 
 .section-button:hover {
@@ -110,10 +120,39 @@ button:hover,
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     text-align: center;
     padding: 1em;
     box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+}
+
+.overlay img {
+    height: auto;
+    /* Adjust based on your design needs */
+    width: auto;
+    /* Maintains aspect ratio */
+}
+
+.banner-section h2 {
+    font-size: 20px;
+    /* Adjust size as needed */
+    font-weight: bold;
+    /* Ensures all titles are bold */
+    text-align: center;
+    /* Centers the titles */
+    margin-bottom: 10px;
+}
+
+.banner-section p {
+    text-align: center;
+    /* Aligns text centrally */
+    font-size: 16px;
+    /* Ensures text size is consistent */
+    margin-bottom: 20px;
+    /* Space below the paragraph */
+
 }
 
 .overlay h2,
@@ -145,16 +184,23 @@ footer {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    min-height: 0%;
+    /* Adjust this value based on your content */
     padding: 2em;
     text-align: center;
+    padding: 20px;
+    margin: auto;
+    box-sizing: border-box;
 }
 
 .banner-section img {
     max-width: 200px;
     /* Max width for consistency */
-    height: auto;
+    width: 100%;
+    /* Adjusts image width to fit the container */
+    height: 120px;
     /* Maintain aspect ratio */
-    margin-bottom: 1em;
+    margin-bottom: 10px;
 }
 
 /* Container for banner sections */
