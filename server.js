@@ -52,3 +52,12 @@ app.get("*", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+app.get("/codes", async (req, res) => {
+  try {
+    const codes = await User.find().select("code -_id"); // Fetch all codes, excluding MongoDB _id field
+    res.status(200).send(codes);
+  } catch (err) {
+    res.status(500).send("Server error");
+  }
+});
