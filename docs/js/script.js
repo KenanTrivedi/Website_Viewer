@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
 // Handle code generation form submission
 const form = document.getElementById('generateCodeForm')
 if (form) {
-  form.addEventListener('submit', function (event) {
+  form.addEventListener('submit', async function (event) {
     event.preventDefault()
     let isValid = true
     const inputs = document.querySelectorAll(
@@ -44,8 +44,23 @@ if (form) {
       const birthday = document.getElementById('birthday').value
       const school = document.getElementById('school').value.toUpperCase()
       const code = `${birthplace}-${motherName}-${birthday}-${school}`
-      sessionStorage.setItem('generatedCode', code)
-      window.location.href = 'codeConfirmation.html'
+
+      try {
+        const response = await fetch('/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code }),
+        })
+
+        if (response.ok) {
+          sessionStorage.setItem('generatedCode', code)
+          window.location.href = 'codeConfirmation.html'
+        } else {
+          alert('Error registering code.')
+        }
+      } catch (error) {
+        alert('Error registering code.')
+      }
     }
   })
 }
@@ -76,21 +91,26 @@ if (personalCodeDisplay) {
 }
 
 // Handle Login Form Submission
-document
-  .getElementById('loginForm')
-  ?.addEventListener('submit', async function (event) {
+const loginForm = document.getElementById('loginForm')
+if (loginForm) {
+  loginForm.addEventListener('submit', async function (event) {
     event.preventDefault()
     const loginCode = document.getElementById('loginCode').value
 
-    const response = await fetch('/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: loginCode }),
-    })
+    try {
+      const response = await fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: loginCode }),
+      })
 
-    if (response.ok) {
-      window.location.href = 'survey.html'
-    } else {
-      alert('Invalid code')
+      if (response.ok) {
+        window.location.href = 'survey.html' // Redirect to the survey page upon successful login
+      } else {
+        alert('Invalid code')
+      }
+    } catch (error) {
+      alert('Error logging in.')
     }
   })
+}

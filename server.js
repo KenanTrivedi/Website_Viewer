@@ -1,22 +1,31 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
+// Middleware
 app.use(bodyParser.json());
+app.use(cors());
 app.use(express.static("docs"));
 
+// Connect to MongoDB
 mongoose
-  .connect(process.env.MONGODB_URI, {
+  .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("Could not connect to MongoDB...", err));
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((err) => {
+    console.error("Could not connect to MongoDB...", err);
+  });
 
+// Define a schema and model for user codes
 const userSchema = new mongoose.Schema({
   code: String,
 });
@@ -26,38 +35,41 @@ const User = mongoose.model("User", userSchema);
 // Register route
 app.post("/register", async (req, res) => {
   const { code } = req.body;
-  if (!code) return res.status(400).send("Code is required");
 
-  let user = await User.findOne({ code });
-  if (user) return res.status(400).send("Code already registered");
+  try {
+    let user = await User.findOne({ code });
 
-  user = new User({ code });
-  await user.save();
-  res.status(200).send({ message: "Code registered successfully" });
+    if (!user) {
+      user = new User({ code });
+      await user.save();
+    }
+
+    res.status(200).send("Code registered successfully");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error registering code");
+  }
 });
 
 // Login route
 app.post("/login", async (req, res) => {
   const { code } = req.body;
-  const user = await User.findOne({ code });
-  if (!user) return res.status(400).send("Invalid code");
 
-  res.status(200).send({ message: "Login successful" });
-});
-
-app.get("*", (req, res) => {
-  res.sendFile(__dirname + "/docs/index.html");
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-
-app.get("/codes", async (req, res) => {
   try {
-    const codes = await User.find().select("code -_id"); // Fetch all codes, excluding MongoDB _id field
-    res.status(200).send(codes);
-  } catch (err) {
-    res.status(500).send("Server error");
+    const user = await User.findOne({ code });
+
+    if (user) {
+      res.status(200).send("Login successful");
+    } else {
+      res.status(400).send("Invalid code");
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error logging in");
   }
+});
+
+// Start server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
