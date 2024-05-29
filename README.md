@@ -21,7 +21,8 @@ The Open-Digi project at the University of Rostock is a research initiative that
 
 ## Getting Started
 
-To view the project, visit the [hosted website](https://website-viewer.onrender.com).
+To view the project, visit the [hosted website](https://website-viewer.onrender.com). with backend
+or [click here](https://kenantrivedi.github.io/Website_Viewer/). - Only for the frontend
 
 ### Prerequisites
 
