@@ -7,7 +7,7 @@ const path = require("path");
 
 const app = express();
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "docs")));
 
 mongoose
   .connect(process.env.MONGO_URI, {
@@ -27,7 +27,7 @@ const User = mongoose.model("User", UserSchema);
 
 // Route for the root URL
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "docs", "index.html"));
 });
 
 app.post("/register", async (req, res) => {
