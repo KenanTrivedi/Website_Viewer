@@ -3,9 +3,11 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 require('dotenv').config()
+const path = require('path')
 
 const app = express()
 app.use(bodyParser.json())
+app.use(express.static(path.join(__dirname, 'public')))
 
 mongoose
   .connect(process.env.MONGO_URI, {
@@ -22,6 +24,14 @@ const UserSchema = new mongoose.Schema({
 })
 
 const User = mongoose.model('User', UserSchema)
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')))
+
+// Route for the root URL
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'))
+})
 
 app.post('/register', async (req, res) => {
   const { username, password } = req.body
@@ -41,6 +51,7 @@ app.post('/login', async (req, res) => {
   res.send('Login successful')
 })
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000')
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`)
 })
