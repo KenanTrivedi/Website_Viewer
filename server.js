@@ -1,18 +1,15 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
+const dotenv = require("dotenv");
+const bodyParser = require("body-parser");
+
+dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
-
-// Middleware
-app.use(bodyParser.json());
 app.use(cors());
-app.use(express.static("docs"));
+app.use(bodyParser.json());
 
-// Connect to MongoDB
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
@@ -22,54 +19,42 @@ mongoose
     console.log("Connected to MongoDB");
   })
   .catch((err) => {
-    console.error("Could not connect to MongoDB...", err);
+    console.error("Failed to connect to MongoDB", err);
   });
 
-// Define a schema and model for user codes
 const userSchema = new mongoose.Schema({
-  code: String,
+  code: { type: String, unique: true, required: true },
 });
-
 const User = mongoose.model("User", userSchema);
 
-// Register route
 app.post("/register", async (req, res) => {
   const { code } = req.body;
-
   try {
-    let user = await User.findOne({ code });
-
-    if (!user) {
-      user = new User({ code });
-      await user.save();
-    }
-
-    res.status(200).send("Code registered successfully");
-  } catch (error) {
-    console.error(error);
+    const newUser = new User({ code });
+    await newUser.save();
+    res.status(201).send("Code registered successfully");
+  } catch (err) {
+    console.error("Error registering code:", err);
     res.status(500).send("Error registering code");
   }
 });
 
-// Login route
 app.post("/login", async (req, res) => {
   const { code } = req.body;
-
   try {
     const user = await User.findOne({ code });
-
     if (user) {
       res.status(200).send("Login successful");
     } else {
       res.status(400).send("Invalid code");
     }
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error("Error logging in:", err);
     res.status(500).send("Error logging in");
   }
 });
 
-// Start server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
