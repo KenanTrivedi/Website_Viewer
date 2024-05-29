@@ -1,19 +1,19 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Redirect handlers for buttons on the initial page
-  const letsGetStartedBtn = document.getElementById('letsGetStarted')
-  const startSurveyBtn = document.getElementById('startSurvey')
+  const letsGetStartedBtn = document.getElementById('letsGetStarted');
+  const startSurveyBtn = document.getElementById('startSurvey');
 
   if (letsGetStartedBtn) {
     letsGetStartedBtn.addEventListener('click', function () {
-      window.location.href = 'login.html' // Redirect to the login page
-    })
+      window.location.href = 'login.html'; // Redirect to the login page
+    });
   }
 
   if (startSurveyBtn) {
     startSurveyBtn.addEventListener('click', function () {
-      window.location.href = 'login.html' // Also redirect to the login page to start the survey
-    })
+      window.location.href = 'login.html'; // Also redirect to the login page to start the survey
+    });
   }
+});
 
   // Handle code generation form submission
   const form = document.getElementById('generateCodeForm')
