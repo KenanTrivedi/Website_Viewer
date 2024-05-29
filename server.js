@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const { MongoClient, ServerApiVersion } = require("mongodb");
 require("dotenv").config();
 
 const app = express();
@@ -12,19 +13,28 @@ app.use(express.json());
 app.use(express.static("docs"));
 
 // MongoDB connection
-mongoose
-  .connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("Connected to MongoDB");
-  })
-  .catch((error) => {
-    console.error("Failed to connect to MongoDB", error);
-  });
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
 
-// Schema and Model
+async function connectToMongo() {
+  try {
+    await client.connect();
+    await client.db("admin").command({ ping: 1 });
+    console.log("Connected to MongoDB!");
+  } catch (error) {
+    console.error("Failed to connect to MongoDB", error);
+  }
+}
+
+connectToMongo();
+
+// Define a schema and model for storing user codes
 const userSchema = new mongoose.Schema({
   code: String,
 });
