@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const bodyParser = require("body-parser");
 require("dotenv").config();
 
 const app = express();
@@ -8,31 +9,31 @@ const port = process.env.PORT || 10000;
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.static("docs"));
+app.use(bodyParser.json());
 
 // MongoDB connection
+const mongoURI = process.env.MONGO_URI;
 mongoose
-  .connect(process.env.MONGODB_URI, {
+  .connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Failed to connect to MongoDB", err));
 
-// Define a schema and model for storing user codes
-const userSchema = new mongoose.Schema({
+// Mongoose schema and model for user codes
+const codeSchema = new mongoose.Schema({
   code: String,
 });
 
-const User = mongoose.model("User", userSchema);
+const Code = mongoose.model("Code", codeSchema);
 
 // Routes
 app.post("/register", async (req, res) => {
   const { code } = req.body;
   try {
-    const newUser = new User({ code });
-    await newUser.save();
+    const newCode = new Code({ code });
+    await newCode.save();
     res.status(201).send("Code registered successfully");
   } catch (error) {
     res.status(500).send("Error registering code");
@@ -42,8 +43,8 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
   const { code } = req.body;
   try {
-    const user = await User.findOne({ code });
-    if (user) {
+    const existingCode = await Code.findOne({ code });
+    if (existingCode) {
       res.status(200).send("Login successful");
     } else {
       res.status(401).send("Invalid code");
@@ -53,7 +54,12 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// Start the server
+app.use(express.static("docs"));
+
+app.get("*", (req, res) => {
+  res.sendFile(__dirname + "/docs/index.html");
+});
+
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
