@@ -65,7 +65,6 @@ if (form) {
   })
 }
 
-// Immediate feedback for inputs within the generate code form
 if (form) {
   const inputs = form.querySelectorAll('input[type="text"]')
   inputs.forEach((input) => {
@@ -77,20 +76,18 @@ if (form) {
   })
 }
 
-// Display the generated code on the codeConfirmation.html page
 const personalCodeDisplay = document.getElementById('personalCodeDisplay')
 if (personalCodeDisplay) {
   const generatedCode = sessionStorage.getItem('generatedCode')
   if (generatedCode) {
     personalCodeDisplay.textContent = `Ihr persönlicher Code ist: ${generatedCode}`
-    sessionStorage.removeItem('generatedCode') // Clean up session storage
+    sessionStorage.removeItem('generatedCode')
   } else {
     personalCodeDisplay.textContent =
       'Es wurde kein Code generiert oder der Code ist abgelaufen.'
   }
 }
 
-// Handle Login Form Submission
 const loginForm = document.getElementById('loginForm')
 if (loginForm) {
   loginForm.addEventListener('submit', async function (event) {
@@ -105,7 +102,7 @@ if (loginForm) {
       })
 
       if (response.ok) {
-        window.location.href = 'survey.html' // Redirect to the survey page upon successful login
+        window.location.href = 'survey.html'
       } else {
         alert('Invalid code')
       }
