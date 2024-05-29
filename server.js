@@ -1,21 +1,22 @@
-require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
-app.use(express.static("public"));
+app.use(express.static("docs"));
 
-const mongoUri = process.env.MONGODB_URI;
 mongoose
-  .connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Could not connect to MongoDB...", err));
 
-// Example schema and model
 const userSchema = new mongoose.Schema({
   code: String,
 });
@@ -42,6 +43,10 @@ app.post("/login", async (req, res) => {
   if (!user) return res.status(400).send("Invalid code");
 
   res.status(200).send({ message: "Login successful" });
+});
+
+app.get("*", (req, res) => {
+  res.sendFile(__dirname + "/docs/index.html");
 });
 
 app.listen(PORT, () => {
