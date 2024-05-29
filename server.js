@@ -1,57 +1,49 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
-const dotenv = require("dotenv");
-
-dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(bodyParser.json());
-app.use(express.static("public")); // Serve static files
+app.use(express.static("public"));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+const mongoUri = process.env.MONGODB_URI;
+mongoose
+  .connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("Could not connect to MongoDB...", err));
+
+// Example schema and model
+const userSchema = new mongoose.Schema({
+  code: String,
 });
 
-const UserSchema = new mongoose.Schema({
-  code: { type: String, required: true, unique: true },
-});
+const User = mongoose.model("User", userSchema);
 
-const User = mongoose.model("User", UserSchema);
-
-// Register new user
+// Register route
 app.post("/register", async (req, res) => {
   const { code } = req.body;
+  if (!code) return res.status(400).send("Code is required");
 
-  // Check if user already exists
-  const userExists = await User.findOne({ code });
-  if (userExists) {
-    return res.status(400).json({ message: "Code already exists" });
-  }
+  let user = await User.findOne({ code });
+  if (user) return res.status(400).send("Code already registered");
 
-  // Create new user
-  const newUser = new User({ code });
-  await newUser.save();
-  res.status(201).json({ message: "User created successfully" });
+  user = new User({ code });
+  await user.save();
+  res.status(200).send({ message: "Code registered successfully" });
 });
 
-// Login user
+// Login route
 app.post("/login", async (req, res) => {
   const { code } = req.body;
-
-  // Check if user exists
   const user = await User.findOne({ code });
-  if (!user) {
-    return res.status(400).json({ message: "Invalid code" });
-  }
+  if (!user) return res.status(400).send("Invalid code");
 
-  res.status(200).json({ message: "Login successful" });
+  res.status(200).send({ message: "Login successful" });
 });
 
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Server is running");
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
