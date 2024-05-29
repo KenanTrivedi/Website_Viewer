@@ -1,54 +1,57 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
-require("dotenv").config();
-const path = require("path");
+const bodyParser = require("body-parser");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const app = express();
-app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, "docs")));
 
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((err) => console.error("Could not connect to MongoDB...", err));
+// Middleware
+app.use(bodyParser.json());
+app.use(express.static("public")); // Serve static files
+
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 const UserSchema = new mongoose.Schema({
-  username: { type: String, unique: true },
-  password: String,
-  surveyResponses: [String],
+  code: { type: String, required: true, unique: true },
 });
 
 const User = mongoose.model("User", UserSchema);
 
-// Route for the root URL
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "docs", "index.html"));
-});
-
+// Register new user
 app.post("/register", async (req, res) => {
-  const { username, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const newUser = new User({ username, password: hashedPassword });
+  const { code } = req.body;
+
+  // Check if user already exists
+  const userExists = await User.findOne({ code });
+  if (userExists) {
+    return res.status(400).json({ message: "Code already exists" });
+  }
+
+  // Create new user
+  const newUser = new User({ code });
   await newUser.save();
-  res.status(201).send("User registered successfully");
+  res.status(201).json({ message: "User created successfully" });
 });
 
+// Login user
 app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-  const user = await User.findOne({ username });
-  if (!user) return res.status(400).send("Invalid username or password");
-  const validPassword = await bcrypt.compare(password, user.password);
-  if (!validPassword)
-    return res.status(400).send("Invalid username or password");
-  res.send("Login successful");
+  const { code } = req.body;
+
+  // Check if user exists
+  const user = await User.findOne({ code });
+  if (!user) {
+    return res.status(400).json({ message: "Invalid code" });
+  }
+
+  res.status(200).json({ message: "Login successful" });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(process.env.PORT || 3000, () => {
+  console.log("Server is running");
 });
