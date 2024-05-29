@@ -1,27 +1,25 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
+require('dotenv').config()
 
 const app = express()
 app.use(bodyParser.json())
 
-// Connect to MongoDB (you can use MongoDB Atlas for a free tier)
-mongoose.connect('your_mongodb_connection_string', {
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
 
-// Define a simple User model
 const User = mongoose.model(
   'User',
   new mongoose.Schema({
     username: String,
-    password: String, // Hash passwords in a real app
+    password: String,
     surveyResponses: [String],
   })
 )
 
-// Example route
 app.get('/', (req, res) => {
   res.send('Hello World')
 })
