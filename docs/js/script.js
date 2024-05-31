@@ -102,8 +102,7 @@ if (loginForm) {
       })
 
       if (response.ok) {
-        sessionStorage.setItem('userCode', loginCode) // Store user code in session
-        window.location.href = 'survey.html' // Redirect to the survey page upon successful login
+        window.location.href = 'survey.html'
       } else {
         alert('Invalid code')
       }
@@ -112,33 +111,3 @@ if (loginForm) {
     }
   })
 }
-
-// Display user code on survey.html and handle logout
-document.addEventListener('DOMContentLoaded', function () {
-  const userCodeDisplay = document.getElementById('userCodeDisplay')
-  const userCode = sessionStorage.getItem('userCode')
-  if (userCodeDisplay && userCode) {
-    userCodeDisplay.textContent = `Code: ${userCode}`
-  }
-
-  const logoutButton = document.getElementById('logoutButton')
-  if (logoutButton) {
-    logoutButton.addEventListener('click', function () {
-      sessionStorage.removeItem('userCode')
-      window.location.href = 'login.html'
-    })
-  }
-
-  const nextButton = document.getElementById('nextButton')
-  const progressBar = document.getElementById('progressBar')
-  let progress = 10 // Initial progress
-
-  if (nextButton) {
-    nextButton.addEventListener('click', function () {
-      // Logic to move to the next part of the survey
-      progress += 10 // Increment progress
-      if (progress > 100) progress = 100 // Ensure it doesn't exceed 100%
-      progressBar.style.width = `${progress}%`
-    })
-  }
-})
