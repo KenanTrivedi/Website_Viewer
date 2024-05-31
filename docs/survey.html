@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Survey</title>
+    <link rel="stylesheet" href="login.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .progress-container {
+        width: 100%;
+        background-color: #f3f3f3;
+        margin-top: 20px;
+      }
+
+      .progress-bar {
+        width: 10%; /* Default value, will be updated dynamically */
+        height: 30px;
+        background-color: #4caf50;
+      }
+
+      .survey-container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .top-bar img {
+        max-height: 50px;
+      }
+
+      .logout-button {
+        background-color: #004a99;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+
+      .logout-button:hover {
+        background-color: #003366;
+      }
+
+      .user-code {
+        margin-right: 20px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="survey-container">
+      <div class="top-bar">
+        <a href="index.html">
+          <img src="images/logo.png" alt="Open-Digi Logo" />
+        </a>
+        <div>
+          <span class="user-code" id="userCodeDisplay"></span>
+          <button class="logout-button" id="logoutButton">Logout</button>
+        </div>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div class="survey-content">
+        <!-- Survey questions go here -->
+      </div>
+      <button class="next-button" id="nextButton">Next</button>
+    </div>
+    <script src="js/script.js"></script>
+  </body>
+</html>

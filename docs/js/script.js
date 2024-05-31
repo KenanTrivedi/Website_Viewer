@@ -65,6 +65,7 @@ if (form) {
   })
 }
 
+// Immediate feedback for inputs within the generate code form
 if (form) {
   const inputs = form.querySelectorAll('input[type="text"]')
   inputs.forEach((input) => {
@@ -76,6 +77,7 @@ if (form) {
   })
 }
 
+// Display the generated code on the codeConfirmation.html page
 const personalCodeDisplay = document.getElementById('personalCodeDisplay')
 if (personalCodeDisplay) {
   const generatedCode = sessionStorage.getItem('generatedCode')
@@ -88,6 +90,7 @@ if (personalCodeDisplay) {
   }
 }
 
+// Handle Login Form Submission
 const loginForm = document.getElementById('loginForm')
 if (loginForm) {
   loginForm.addEventListener('submit', async function (event) {
@@ -102,7 +105,8 @@ if (loginForm) {
       })
 
       if (response.ok) {
-        window.location.href = 'survey.html'
+        sessionStorage.setItem('userCode', loginCode) // Store user code in session
+        window.location.href = 'survey.html' // Redirect to the survey page upon successful login
       } else {
         alert('Invalid code')
       }
@@ -111,3 +115,33 @@ if (loginForm) {
     }
   })
 }
+
+// Display user code on survey.html and handle logout
+document.addEventListener('DOMContentLoaded', function () {
+  const userCodeDisplay = document.getElementById('userCodeDisplay')
+  const userCode = sessionStorage.getItem('userCode')
+  if (userCodeDisplay && userCode) {
+    userCodeDisplay.textContent = `Code: ${userCode}`
+  }
+
+  const logoutButton = document.getElementById('logoutButton')
+  if (logoutButton) {
+    logoutButton.addEventListener('click', function () {
+      sessionStorage.removeItem('userCode')
+      window.location.href = 'login.html'
+    })
+  }
+
+  const nextButton = document.getElementById('nextButton')
+  const progressBar = document.getElementById('progressBar')
+  let progress = 10 // Initial progress
+
+  if (nextButton) {
+    nextButton.addEventListener('click', function () {
+      // Logic to move to the next part of the survey
+      progress += 10 // Increment progress
+      if (progress > 100) progress = 100 // Ensure it doesn't exceed 100%
+      progressBar.style.width = `${progress}%`
+    })
+  }
+})
