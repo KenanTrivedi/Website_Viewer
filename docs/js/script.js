@@ -65,7 +65,6 @@ if (form) {
   })
 }
 
-// Immediate feedback for inputs within the generate code form
 if (form) {
   const inputs = form.querySelectorAll('input[type="text"]')
   inputs.forEach((input) => {
@@ -77,7 +76,6 @@ if (form) {
   })
 }
 
-// Display the generated code on the codeConfirmation.html page
 const personalCodeDisplay = document.getElementById('personalCodeDisplay')
 if (personalCodeDisplay) {
   const generatedCode = sessionStorage.getItem('generatedCode')
@@ -90,7 +88,6 @@ if (personalCodeDisplay) {
   }
 }
 
-// Handle Login Form Submission
 const loginForm = document.getElementById('loginForm')
 if (loginForm) {
   loginForm.addEventListener('submit', async function (event) {
