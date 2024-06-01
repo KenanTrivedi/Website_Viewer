@@ -1,61 +1,54 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const cors = require("cors");
+const bodyParser = require("body-parser");
+const path = require("path");
+const app = express();
 require("dotenv").config();
 
-const app = express();
-const port = process.env.PORT || 3000;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 app.use(express.static("docs"));
 
-// MongoDB connection
-const mongoURI = process.env.MONGO_URI;
 mongoose
-  .connect(mongoURI, {
+  .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("Connected to MongoDB"))
-  .catch((error) => console.error("Failed to connect to MongoDB", error));
+  .then(() => {
+    console.log("MongoDB connected");
+  })
+  .catch((err) => {
+    console.log("MongoDB connection error:", err);
+  });
 
-// Schema and Model
-const userSchema = new mongoose.Schema({
-  code: { type: String, required: true, unique: true },
-});
-const User = mongoose.model("User", userSchema);
+const codeSchema = new mongoose.Schema({ code: String });
+const Code = mongoose.model("Code", codeSchema);
 
-// Routes
 app.post("/register", async (req, res) => {
-  try {
-    const { code } = req.body;
-    const newUser = new User({ code });
-    await newUser.save();
-    res.status(201).send("User registered");
-  } catch (error) {
-    console.error("Error registering user:", error);
-    res.status(500).send("Error registering code");
-  }
+  const { code } = req.body;
+  const newCode = new Code({ code });
+  await newCode.save();
+  console.log("Code saved:", code);
+  res.send("Code saved");
 });
 
 app.post("/login", async (req, res) => {
-  try {
-    const { code } = req.body;
-    const user = await User.findOne({ code });
-    if (user) {
-      res.status(200).send("Login successful");
-    } else {
-      res.status(401).send("Invalid code");
-    }
-  } catch (error) {
-    console.error("Error during login:", error);
-    res.status(500).send("Error during login");
+  const { code } = req.body;
+  console.log("Login attempt with code:", code); // Log the incoming code
+  const validCode = await Code.findOne({ code });
+  if (validCode) {
+    console.log("Code found:", validCode); // Log if the code is found
+    res.redirect("/survey.html");
+  } else {
+    console.log("Invalid code"); // Log if the code is not found
+    res.status(401).send("Invalid code");
   }
 });
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "docs", "index.html"));
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
