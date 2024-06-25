@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })
 
     // Limit input length dynamically
+    const inputs = form.querySelectorAll('input[type="text"]')
     inputs.forEach((input) => {
       input.addEventListener('input', () => {
         if (input.value.length > 2) {
