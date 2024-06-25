@@ -10,8 +10,16 @@ app.use(bodyParser.json());
 app.use(express.static("docs"));
 
 // MongoDB Connection
+const mongoUri = process.env.MONGODB_URI;
+if (!mongoUri) {
+  console.error(
+    "MongoDB URI is not defined. Set the MONGODB_URI environment variable."
+  );
+  process.exit(1);
+}
+
 mongoose
-  .connect(process.env.MONGODB_URI, {
+  .connect(mongoUri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
