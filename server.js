@@ -16,7 +16,7 @@ mongoose
     useUnifiedTopology: true,
   })
   .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.log("MongoDB connection error:", err));
+  .catch((err) => console.error("MongoDB connection error:", err));
 
 // Schema and Model for Code
 const codeSchema = new mongoose.Schema({ code: String });
@@ -25,6 +25,9 @@ const Code = mongoose.model("Code", codeSchema);
 // Route for registering a new code
 app.post("/register", async (req, res) => {
   const { code } = req.body;
+  if (!code) {
+    return res.status(400).send("Code is required");
+  }
   const newCode = new Code({ code });
   try {
     await newCode.save();
