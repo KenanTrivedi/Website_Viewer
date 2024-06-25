@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Handle button clicks for navigation
+  // Navigation Button Handlers
   const letsGetStartedBtn = document.getElementById('letsGetStarted')
   const startSurveyBtn = document.getElementById('startSurvey')
 
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })
   }
 
-  // Handle code generation form submission
+  // Form Submission for Code Generation
   const form = document.getElementById('generateCodeForm')
   if (form) {
     form.addEventListener('submit', async function (event) {
@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
         '#generateCodeForm input[type="text"]'
       )
 
+      // Validate input length
       inputs.forEach((input) => {
         if (input.value.length !== 2) {
           alert(
@@ -59,13 +60,13 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('Error registering code.')
           }
         } catch (error) {
+          console.error('Fetch error:', error)
           alert('Error registering code.')
         }
       }
     })
 
-    // Limit input length to 2 characters
-    const inputs = form.querySelectorAll('input[type="text"]')
+    // Limit input length dynamically
     inputs.forEach((input) => {
       input.addEventListener('input', () => {
         if (input.value.length > 2) {
@@ -75,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })
   }
 
-  // Display generated code on confirmation page
+  // Display Generated Code on Confirmation Page
   const personalCodeDisplay = document.getElementById('personalCodeDisplay')
   if (personalCodeDisplay) {
     const generatedCode = sessionStorage.getItem('generatedCode')
@@ -88,28 +89,29 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Handle login form submission
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-      loginForm.addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const loginCode = document.getElementById('loginCode').value;
+  // Login Form Submission
+  const loginForm = document.getElementById('loginForm')
+  if (loginForm) {
+    loginForm.addEventListener('submit', async function (event) {
+      event.preventDefault()
+      const loginCode = document.getElementById('loginCode').value
 
-        try {
-          const response = await fetch('/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: loginCode }),
-          });
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: loginCode }),
+        })
 
-          if (response.ok) {
-            window.location.href = 'survey.html';
-          } else {
-            alert('Invalid code');
-          }
-        } catch (error) {
-          alert('Error logging in.');
+        if (response.ok) {
+          window.location.href = 'survey.html'
+        } else {
+          alert('Invalid code')
         }
-      });
-    }
-  });
+      } catch (error) {
+        console.error('Login error:', error)
+        alert('Error logging in.')
+      }
+    })
+  }
+})
