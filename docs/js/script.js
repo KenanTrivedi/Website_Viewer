@@ -1,58 +1,40 @@
 document.addEventListener('DOMContentLoaded', function () {
   // Navigation Button Handlers
-  const letsGetStartedBtn = document.getElementById('letsGetStarted')
-  const startSurveyBtn = document.getElementById('startSurvey')
+  setupNavigationButtons()
 
-  if (letsGetStartedBtn) {
-    letsGetStartedBtn.addEventListener('click', function () {
-      window.location.href = 'login.html'
-    })
-  }
+  // Form Submissions
+  handleCodeGenerationFormSubmission()
+  handleLoginFormSubmission()
 
-  if (startSurveyBtn) {
-    startSurveyBtn.addEventListener('click', function () {
-      window.location.href = 'login.html'
-    })
-  }
+  // Logout Functionality
+  setupLogoutFunctionality()
 
-  // Form Submission for Code Generation
+  // Survey Data Management
+  loadStoredSurveyData()
+  setupSurveyDataPersistence()
+})
+
+function setupNavigationButtons() {
+  const buttons = ['letsGetStarted', 'startSurvey']
+  buttons.forEach((buttonId) => {
+    const button = document.getElementById(buttonId)
+    if (button) {
+      button.addEventListener('click', () => {
+        window.location.href = 'login.html'
+      })
+    }
+  })
+}
+
+function handleCodeGenerationFormSubmission() {
   const form = document.getElementById('generateCodeForm')
   if (form) {
     form.addEventListener('submit', async function (event) {
       event.preventDefault()
-      let isValid = true
-      const inputs = document.querySelectorAll(
-        '#generateCodeForm input[type="text"]'
-      )
-
-      // Validate input length
-      inputs.forEach((input) => {
-        if (input.value.length !== 2) {
-          alert(
-            `Bitte geben Sie genau zwei Zeichen für ${input.previousElementSibling.textContent} ein.`
-          )
-          isValid = false
-        }
-      })
-
-      if (isValid) {
-        const birthplace = document
-          .getElementById('birthplace')
-          .value.toUpperCase()
-        const motherName = document
-          .getElementById('motherName')
-          .value.toUpperCase()
-        const birthday = document.getElementById('birthday').value
-        const school = document.getElementById('school').value.toUpperCase()
-        const code = `${birthplace}-${motherName}-${birthday}-${school}`
-
+      if (validateFormInputs(form)) {
+        const code = generateCodeFromForm(form)
         try {
-          const response = await fetch('/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code }),
-          })
-
+          const response = await submitForm('/register', { code })
           if (response.ok) {
             sessionStorage.setItem('generatedCode', code)
             window.location.href = 'codeConfirmation.html'
@@ -65,46 +47,49 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }
     })
-
-    // Limit input length dynamically
-    const inputs = form.querySelectorAll('input[type="text"]')
-    inputs.forEach((input) => {
-      input.addEventListener('input', () => {
-        if (input.value.length > 2) {
-          input.value = input.value.slice(0, 2)
-        }
-      })
-    })
   }
+}
 
-  // Display Generated Code on Confirmation Page
-  const personalCodeDisplay = document.getElementById('personalCodeDisplay')
-  if (personalCodeDisplay) {
-    const generatedCode = sessionStorage.getItem('generatedCode')
-    if (generatedCode) {
-      personalCodeDisplay.textContent = `Ihr persönlicher Code ist: ${generatedCode}`
-      sessionStorage.removeItem('generatedCode')
-    } else {
-      personalCodeDisplay.textContent =
-        'Es wurde kein Code generiert oder der Code ist abgelaufen.'
+function validateFormInputs(form) {
+  const inputs = form.querySelectorAll('input[type="text"]')
+  let isValid = true
+  inputs.forEach((input) => {
+    if (input.value.length !== 2) {
+      alert(
+        `Bitte geben Sie genau zwei Zeichen für ${input.previousElementSibling.textContent} ein.`
+      )
+      isValid = false
     }
-  }
+  })
+  return isValid
+}
 
-  // Login Form Submission
+function generateCodeFromForm(form) {
+  const birthplace = form.birthplace.value.toUpperCase()
+  const motherName = form.motherName.value.toUpperCase()
+  const birthday = form.birthday.value
+  const school = form.school.value.toUpperCase()
+  return `${birthplace}-${motherName}-${birthday}-${school}`
+}
+
+async function submitForm(url, data) {
+  return fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+}
+
+function handleLoginFormSubmission() {
   const loginForm = document.getElementById('loginForm')
   if (loginForm) {
     loginForm.addEventListener('submit', async function (event) {
       event.preventDefault()
-      const loginCode = document.getElementById('loginCode').value
-
+      const loginCode = loginForm.loginCode.value
       try {
-        const response = await fetch('/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: loginCode }),
-        })
-
+        const response = await submitForm('/login', { code: loginCode })
         if (response.ok) {
+          sessionStorage.setItem('loginCode', loginCode)
           window.location.href = 'survey.html'
         } else {
           alert('Invalid code')
@@ -115,4 +100,46 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     })
   }
-})
+}
+
+function setupLogoutFunctionality() {
+  const logoutButton = document.getElementById('logoutButton')
+  if (logoutButton) {
+    logoutButton.addEventListener('click', () => {
+      sessionStorage.clear()
+      window.location.href = 'login.html'
+    })
+  }
+}
+
+function loadStoredSurveyData() {
+  const surveyForm = document.getElementById('surveyForm')
+  if (surveyForm) {
+    const storedData = JSON.parse(localStorage.getItem('surveyData'))
+    if (storedData) {
+      populateFormFields(surveyForm, storedData)
+    }
+  }
+}
+
+function populateFormFields(form, data) {
+  for (const key in data) {
+    const field = form.querySelector(`[name="${key}"]`)
+    if (field) {
+      field.value = data[key]
+      if (field.type === 'radio' && field.value === data[key]) {
+        field.checked = true
+      }
+    }
+  }
+}
+
+function setupSurveyDataPersistence() {
+  const surveyForm = document.getElementById('surveyForm')
+  if (surveyForm) {
+    surveyForm.addEventListener('input', () => {
+      const data = Object.fromEntries(new FormData(surveyForm))
+      localStorage.setItem('surveyData', JSON.stringify(data))
+    })
+  }
+}
