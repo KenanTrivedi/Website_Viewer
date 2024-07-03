@@ -1,116 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Survey</title>
+    <title>Open-Digi Umfrage</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/survey.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.css"
-    />
   </head>
   <body>
     <header>
-      <a href="index.html">
-        <img src="images/logo.png" alt="Open-Digi Logo" class="logo" />
-      </a>
-      <div class="user-menu">
-        <i class="fas fa-user-circle fa-2x"></i>
-        <div class="dropdown">
+      <div class="header-content">
+        <a href="index.html" class="logo-link">
+          <img src="images/logo.png" alt="Open-Digi Logo" class="logo" />
+        </a>
+        <div class="user-menu">
+          <i class="fas fa-user-circle"></i>
           <button id="logoutButton">Logout</button>
         </div>
       </div>
     </header>
     <main>
       <div class="container">
-        <h1>Welcome to the Survey</h1>
-        <p>Please follow the guidelines below before starting the survey:</p>
-        <ul>
-          <li>
-            Make sure to answer all questions to the best of your knowledge.
-          </li>
-          <li>
-            Your responses will be saved and you can return to complete the
-            survey later.
-          </li>
-        </ul>
-        <div id="progressContainer">
-          <div id="progressBar"></div>
+        <div class="survey-header">
+          <h2>Open-Digi Umfrage</h2>
+          <div class="progress-container">
+            <div id="progressBar">
+              <div id="progressFill"></div>
+            </div>
+            <div id="progressText"></div>
+          </div>
+        </div>
+        <div class="section-nav">
+          <label for="section-select">Springen zu Abschnitt:</label>
+          <select id="section-select">
+            <option value="">Wählen Sie einen Abschnitt</option>
+          </select>
         </div>
         <form id="surveyForm">
-          <div class="section">
-            <h2>Persönliche Angaben</h2>
-            <fieldset>
-              <legend>Welches Geschlecht haben Sie?</legend>
-              <label
-                ><input
-                  type="radio"
-                  name="gender"
-                  value="weiblich"
-                />Weiblich</label
-              >
-              <label
-                ><input
-                  type="radio"
-                  name="gender"
-                  value="männlich"
-                />Männlich</label
-              >
-              <label
-                ><input
-                  type="radio"
-                  name="gender"
-                  value="divers"
-                />Divers</label
-              >
-              <label
-                ><input type="radio" name="gender" value="keine Angabe" />Keine
-                Angabe</label
-              >
-            </fieldset>
-            <fieldset>
-              <legend>In welchem Jahr sind Sie geboren?</legend>
-              <input
-                type="text"
-                id="birthyear"
-                name="birthyear"
-                placeholder="YYYY"
-              />
-            </fieldset>
-          </div>
-          <button type="button" id="nextButton">Next</button>
+          <!-- Survey content will be dynamically inserted here -->
         </form>
+        <div class="navigation-buttons">
+          <button type="button" id="prevButton" class="btn btn-secondary">
+            <i class="fas fa-chevron-left"></i> Zurück
+          </button>
+          <button type="button" id="saveProgressButton" class="btn btn-primary">
+            <i class="fas fa-save"></i> Fortschritt speichern
+          </button>
+          <button type="button" id="nextButton" class="btn btn-primary">
+            Weiter <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
       </div>
     </main>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.9/flatpickr.min.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        flatpickr('#birthyear', {
-          dateFormat: 'Y', // Set the format to Year only
-          defaultDate: '2000', // Set a sensible default or pre-selected year
-          minDate: '1900', // Earliest year selectable
-          maxDate: new Date().getFullYear().toString(), // Latest year selectable as the current year
-          viewMode: 'years', // Show the year view by default
-          onChange: function (selectedDates, dateStr, instance) {
-            console.log('Year selected:', dateStr)
-          },
-        })
-
-        document
-          .getElementById('logoutButton')
-          .addEventListener('click', function () {
-            // Clear session storage or any authentication state
-            sessionStorage.clear()
-            // Redirect to login page
-            window.location.href = 'login.html'
-          })
-      })
-    </script>
-    <script src="js/script.js"></script>
+    <footer>
+      <div class="footer-content">
+        <p>&copy; 2024 Open-Digi. Alle Rechte vorbehalten.</p>
+      </div>
+    </footer>
+    <script src="js/survey-data.js"></script>
+    <script src="js/survey.js"></script>
   </body>
 </html>

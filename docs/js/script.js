@@ -1,15 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Navigation Button Handlers
   setupNavigationButtons()
-
-  // Form Submissions
   handleCodeGenerationFormSubmission()
   handleLoginFormSubmission()
-
-  // Logout Functionality
+  displayGeneratedCode()
   setupLogoutFunctionality()
-
-  // Survey Data Management
+  initializeFlatpickr()
   loadStoredSurveyData()
   setupSurveyDataPersistence()
 })
@@ -19,7 +14,7 @@ function setupNavigationButtons() {
   buttons.forEach((buttonId) => {
     const button = document.getElementById(buttonId)
     if (button) {
-      button.addEventListener('click', () => {
+      button.addEventListener('click', function () {
         window.location.href = 'login.html'
       })
     }
@@ -33,16 +28,11 @@ function handleCodeGenerationFormSubmission() {
       event.preventDefault()
       if (validateFormInputs(form)) {
         const code = generateCodeFromForm(form)
-        try {
-          const response = await submitForm('/register', { code })
-          if (response.ok) {
-            sessionStorage.setItem('generatedCode', code)
-            window.location.href = 'codeConfirmation.html'
-          } else {
-            alert('Error registering code.')
-          }
-        } catch (error) {
-          console.error('Fetch error:', error)
+        const response = await submitForm('/register', { code })
+        if (response.ok) {
+          sessionStorage.setItem('generatedCode', code)
+          window.location.href = 'codeConfirmation.html'
+        } else {
           alert('Error registering code.')
         }
       }
@@ -65,15 +55,15 @@ function validateFormInputs(form) {
 }
 
 function generateCodeFromForm(form) {
-  const birthplace = form.birthplace.value.toUpperCase()
-  const motherName = form.motherName.value.toUpperCase()
-  const birthday = form.birthday.value
-  const school = form.school.value.toUpperCase()
+  const birthplace = document.getElementById('birthplace').value.toUpperCase()
+  const motherName = document.getElementById('motherName').value.toUpperCase()
+  const birthday = document.getElementById('birthday').value
+  const school = document.getElementById('school').value.toUpperCase()
   return `${birthplace}-${motherName}-${birthday}-${school}`
 }
 
 async function submitForm(url, data) {
-  return fetch(url, {
+  return await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -89,7 +79,8 @@ function handleLoginFormSubmission() {
       try {
         const response = await submitForm('/login', { code: loginCode })
         if (response.ok) {
-          sessionStorage.setItem('loginCode', loginCode)
+          const data = await response.json()
+          sessionStorage.setItem('userId', data.userId)
           window.location.href = 'survey.html'
         } else {
           alert('Invalid code')
@@ -105,10 +96,30 @@ function handleLoginFormSubmission() {
 function setupLogoutFunctionality() {
   const logoutButton = document.getElementById('logoutButton')
   if (logoutButton) {
-    logoutButton.addEventListener('click', () => {
+    logoutButton.addEventListener('click', function () {
       sessionStorage.clear()
       window.location.href = 'login.html'
     })
+  }
+}
+
+function initializeFlatpickr() {
+  flatpickr('#birthyear', {
+    dateFormat: 'Y',
+    maxDate: new Date().getFullYear().toString(),
+    minDate: '1900',
+    defaultDate: '2000',
+  })
+}
+
+function displayGeneratedCode() {
+  const codeDisplayElement = document.getElementById('personalCodeDisplay')
+  const generatedCode = sessionStorage.getItem('generatedCode')
+
+  if (codeDisplayElement && generatedCode) {
+    codeDisplayElement.textContent = `Your generated code is: ${generatedCode}`
+  } else if (codeDisplayElement) {
+    codeDisplayElement.textContent = 'No code available or session expired.'
   }
 }
 
@@ -126,9 +137,10 @@ function populateFormFields(form, data) {
   for (const key in data) {
     const field = form.querySelector(`[name="${key}"]`)
     if (field) {
-      field.value = data[key]
-      if (field.type === 'radio' && field.value === data[key]) {
-        field.checked = true
+      if (field.type === 'radio') {
+        if (field.value === data[key]) field.checked = true
+      } else {
+        field.value = data[key]
       }
     }
   }
@@ -137,7 +149,7 @@ function populateFormFields(form, data) {
 function setupSurveyDataPersistence() {
   const surveyForm = document.getElementById('surveyForm')
   if (surveyForm) {
-    surveyForm.addEventListener('input', () => {
+    surveyForm.addEventListener('input', function () {
       const data = Object.fromEntries(new FormData(surveyForm))
       localStorage.setItem('surveyData', JSON.stringify(data))
     })
