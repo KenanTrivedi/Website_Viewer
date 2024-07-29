@@ -117,7 +117,7 @@ function displayGeneratedCode() {
   const generatedCode = sessionStorage.getItem('generatedCode')
 
   if (codeDisplayElement && generatedCode) {
-    codeDisplayElement.textContent = `Your generated code is: ${generatedCode}`
+    codeDisplayElement.textContent = `Dein generierter Code ist: ${generatedCode}`
   } else if (codeDisplayElement) {
     codeDisplayElement.textContent = 'No code available or session expired.'
   }

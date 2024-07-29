@@ -139,12 +139,22 @@ function saveSectionData() {
 
   const userId = sessionStorage.getItem('userId')
   if (userId) {
+    const data = {
+      userId: userId,
+      data: {
+        responses: userData,
+        overallScore: calculateCompetenzScore(),
+        categoryScores: calculateCategoryScores(),
+      },
+    }
+
     fetch('/api/save-user-data', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ userId, data: userData }),
+      body: JSON.stringify(data),
     })
       .then((response) => response.json())
       .then((data) => console.log('Data saved successfully:', data))
@@ -152,6 +162,25 @@ function saveSectionData() {
   }
 }
 
+function calculateCategoryScores() {
+  let categoryScores = {}
+  surveyData.forEach((section) => {
+    let totalScore = 0
+    let questionCount = 0
+    section.questions.forEach((question, qIndex) => {
+      const questionId = `q${surveyData.indexOf(section)}_${qIndex}`
+      if (userData[questionId] !== undefined && question.type === 'scale') {
+        totalScore += parseInt(userData[questionId])
+        questionCount++
+      }
+    })
+    categoryScores[section.title] =
+      questionCount > 0
+        ? Math.round((totalScore / (questionCount * 6)) * 100)
+        : 0
+  })
+  return categoryScores
+}
 function saveAndResumeLater() {
   saveSectionData()
   const resumeToken = btoa(
@@ -207,8 +236,8 @@ function finishSurvey() {
 
   // Display the score and course suggestions
   const resultHtml = `
-    <h2>Your Competenz Score: ${score}%</h2>
-    <p>Based on your score, we recommend the following courses:</p>
+    <h2>Dein Kompetenzwert: ${score}%</h2>
+    <p>Basierend auf deinem Ergebnis, empfehlen wir dir folgende Kurse:</p>
     <ul>
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
