@@ -1,5 +1,6 @@
 let users = []
 let sections = []
+let currentUser = null
 
 function getAuthToken() {
   return localStorage.getItem('dashboardToken')
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document
     .getElementById('selectAll')
     .addEventListener('change', toggleSelectAll)
+  setupSortingListeners()
 })
 
 async function fetchData() {
@@ -29,14 +31,23 @@ async function fetchData() {
     }
     const data = await response.json()
     console.log('Received data from server:', data)
-    users = data.users
+    users = data.users.map((user) => ({
+      ...user,
+      totalScore: calculateTotalScore(user.scores),
+    }))
     sections = data.sections
     console.log('Users:', users)
     console.log('Sections:', sections)
     renderTable()
+    setupVisualizationSection()
   } catch (error) {
     console.error('Error fetching data:', error)
   }
+}
+
+function calculateTotalScore(scores) {
+  const total = Object.values(scores).reduce((sum, score) => sum + score, 0)
+  return Math.round(total / Object.keys(scores).length)
 }
 
 function renderTable() {
@@ -45,13 +56,15 @@ function renderTable() {
 
   // Clear existing headers and rows
   thead.innerHTML =
-    '<th><input type="checkbox" id="selectAll"></th><th>User Code</th><th>Gender</th><th>Birth Year</th>'
+    '<th><input type="checkbox" id="selectAll"></th><th>User Code</th><th>Gender</th><th>Birth Year</th><th class="sortable" data-section="Total Score">Total Score</th>'
   tbody.innerHTML = ''
 
   // Add section headers
   sections.forEach((section) => {
     const th = document.createElement('th')
     th.textContent = section
+    th.classList.add('sortable')
+    th.dataset.section = section
     thead.appendChild(th)
   })
 
@@ -66,6 +79,7 @@ function renderTable() {
             <td>${user.userCode}</td>
             <td>${user.gender || 'undefined'}</td>
             <td>${user.birthYear || 'undefined'}</td>
+            <td>${user.totalScore}%</td>
             ${sections
               .map((section) => `<td>${user.scores[section] || 0}%</td>`)
               .join('')}
@@ -79,47 +93,80 @@ function renderTable() {
     .addEventListener('change', toggleSelectAll)
 }
 
-function showUserDetails(user) {
-  const modal = new bootstrap.Modal(document.getElementById('userModal'))
-  const ctx = document.getElementById('userChart').getContext('2d')
+function setupSortingListeners() {
+  const thead = document.querySelector('#userTable thead')
+  thead.addEventListener('click', function (e) {
+    if (e.target.classList.contains('sortable')) {
+      const section = e.target.dataset.section
+      sortUsers(section)
+    }
+  })
+}
 
-  new Chart(ctx, {
-    type: 'radar',
+function sortUsers(section) {
+  users.sort((a, b) => {
+    if (section === 'Total Score') {
+      return b.totalScore - a.totalScore
+    }
+    return (b.scores[section] || 0) - (a.scores[section] || 0)
+  })
+  renderTable()
+}
+
+function setupVisualizationSection() {
+  const visualizationSection = document.createElement('div')
+  visualizationSection.id = 'visualizationSection'
+  visualizationSection.style.position = 'fixed'
+  visualizationSection.style.top = '20px'
+  visualizationSection.style.right = '20px'
+  visualizationSection.style.width = '300px'
+  visualizationSection.style.height = '300px'
+  visualizationSection.innerHTML = '<canvas id="userChart"></canvas>'
+  document.body.appendChild(visualizationSection)
+}
+
+function showUserDetails(user) {
+  currentUser = user
+  updateVisualization()
+}
+
+function updateVisualization() {
+  if (!currentUser) return
+
+  const ctx = document.getElementById('userChart').getContext('2d')
+  if (window.userChart) {
+    window.userChart.destroy()
+  }
+
+  window.userChart = new Chart(ctx, {
+    type: 'bar',
     data: {
       labels: sections,
       datasets: [
         {
           label: 'User Scores',
-          data: sections.map((section) => user.scores[section] || 0),
-          fill: true,
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          borderColor: 'rgb(255, 99, 132)',
-          pointBackgroundColor: 'rgb(255, 99, 132)',
-          pointBorderColor: '#fff',
-          pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: 'rgb(255, 99, 132)',
+          data: sections.map((section) => currentUser.scores[section] || 0),
+          backgroundColor: 'rgba(75, 192, 192, 0.6)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1,
         },
       ],
     },
     options: {
-      elements: {
-        line: {
-          borderWidth: 3,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
         },
       },
-      scales: {
-        r: {
-          angleLines: {
-            display: false,
-          },
-          suggestedMin: 0,
-          suggestedMax: 100,
+      plugins: {
+        title: {
+          display: true,
+          text: `Scores for User: ${currentUser.userCode}`,
         },
       },
     },
   })
-
-  modal.show()
 }
 
 function toggleSelectAll(event) {
@@ -145,7 +192,10 @@ function exportToExcel(data) {
       'User Code': user.userCode,
       Gender: user.gender,
       'Birth Year': user.birthYear,
-      ...user.scores,
+      'Total Score': user.totalScore + '%',
+      ...Object.fromEntries(
+        sections.map((section) => [section, user.scores[section] + '%'])
+      ),
     }))
   )
   const workbook = XLSX.utils.book_new()
