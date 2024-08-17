@@ -28,8 +28,11 @@ async function fetchData() {
       return
     }
     const data = await response.json()
+    console.log('Received data from server:', data)
     users = data.users
     sections = data.sections
+    console.log('Users:', users)
+    console.log('Sections:', sections)
     renderTable()
   } catch (error) {
     console.error('Error fetching data:', error)
@@ -39,6 +42,11 @@ async function fetchData() {
 function renderTable() {
   const thead = document.querySelector('#userTable thead tr')
   const tbody = document.querySelector('#userTable tbody')
+
+  // Clear existing headers and rows
+  thead.innerHTML =
+    '<th><input type="checkbox" id="selectAll"></th><th>User ID</th><th>Gender</th><th>Birth Year</th>'
+  tbody.innerHTML = ''
 
   // Add section headers
   sections.forEach((section) => {
@@ -59,12 +67,16 @@ function renderTable() {
             <td>${user.gender}</td>
             <td>${user.birthYear}</td>
             ${sections
-              .map((section) => `<td>${user.scores[section] || 0}</td>`)
+              .map((section) => `<td>${user.scores[section] || 0}%</td>`)
               .join('')}
         `
     tr.addEventListener('click', () => showUserDetails(user))
     tbody.appendChild(tr)
   })
+
+  document
+    .getElementById('selectAll')
+    .addEventListener('change', toggleSelectAll)
 }
 
 function showUserDetails(user) {

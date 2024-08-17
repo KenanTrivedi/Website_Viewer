@@ -37,6 +37,9 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 const DASHBOARD_USER_ID = process.env.DASHBOARD_USER_ID || "admin";
 const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "password";
 
+// Import survey data
+const surveyData = require("./docs/js/survey-data.js");
+
 // Authentication Middleware
 function authenticate(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
@@ -88,7 +91,7 @@ app.post("/api/save-user-data", async (req, res) => {
   try {
     await UserData.findOneAndUpdate(
       { userId },
-      { $set: data },
+      { $set: { data } },
       { upsert: true, new: true }
     );
     await updateCSV();
@@ -130,20 +133,27 @@ app.get("/dashboard-login", (req, res) => {
 app.get("/api/dashboard-data", authenticate, async (req, res) => {
   try {
     const users = await UserData.find().lean();
+    console.log("Found users:", users.length);
+
     const sections = surveyData
       .map((section) => section.title)
       .filter((title) => title !== "Persönliche Angaben");
 
-    const formattedUsers = users.map((user) => ({
-      userId: user.userId,
-      gender: user.data.responses.q0_0, // Assuming this is the gender question
-      birthYear: user.data.responses.q0_1, // Assuming this is the birth year question
-      scores: sections.reduce((acc, section) => {
-        acc[section] = user.data.categoryScores[section] || 0;
-        return acc;
-      }, {}),
-    }));
+    const formattedUsers = users.map((user) => {
+      const categoryScores = calculateCategoryScores(
+        user.data.responses,
+        surveyData
+      );
 
+      return {
+        userId: user.userId,
+        gender: user.data.responses.q0_0,
+        birthYear: user.data.responses.q0_1,
+        scores: categoryScores,
+      };
+    });
+
+    console.log("Formatted users:", formattedUsers.length);
     res.json({ users: formattedUsers, sections });
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
@@ -156,19 +166,44 @@ app.get("*", (req, res) => {
 });
 
 // Helper Functions
+function calculateCategoryScores(responses, surveyData) {
+  const categoryScores = {};
+
+  surveyData.forEach((section, sectionIndex) => {
+    if (section.title !== "Persönliche Angaben") {
+      let totalScore = 0;
+      let questionCount = 0;
+
+      section.questions.forEach((question, questionIndex) => {
+        const questionId = `q${sectionIndex}_${questionIndex}`;
+        if (responses[questionId] && question.type === "scale") {
+          totalScore += parseInt(responses[questionId]);
+          questionCount++;
+        }
+      });
+
+      if (questionCount > 0) {
+        categoryScores[section.title] = Math.round(
+          (totalScore / (questionCount * 6)) * 100
+        );
+      } else {
+        categoryScores[section.title] = 0;
+      }
+    }
+  });
+
+  return categoryScores;
+}
+
 async function updateCSV() {
   const allUserData = await UserData.find().lean();
-  const surveyData = require("./docs/js/survey-data.js"); // Make sure this path is correct
 
   const csvWriter = createCsvWriter({
     path: "survey_data.csv",
     header: [
       { id: "userId", title: "User ID" },
-      { id: "overallScore", title: "Overall Score" },
-      ...surveyData.map((section) => ({
-        id: section.title,
-        title: section.title,
-      })),
+      { id: "gender", title: "Gender" },
+      { id: "birthYear", title: "Birth Year" },
       ...surveyData.flatMap((section) =>
         section.questions.map((q, i) => ({
           id: `q${surveyData.indexOf(section)}_${i}`,
@@ -181,11 +216,13 @@ async function updateCSV() {
   const records = allUserData.map((user) => {
     const record = {
       userId: user.userId,
-      overallScore: user.data.overallScore,
-      ...user.data.categoryScores,
+      gender: user.data.responses.q0_0,
+      birthYear: user.data.responses.q0_1,
     };
     Object.entries(user.data.responses).forEach(([key, value]) => {
-      record[key] = value;
+      if (key !== "q0_0" && key !== "q0_1") {
+        record[key] = value;
+      }
     });
     return record;
   });

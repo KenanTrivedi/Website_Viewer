@@ -203,3 +203,4 @@ const surveyData = [
     ],
   },
 ]
+module.exports = surveyData
