@@ -38,9 +38,13 @@ function loadUserData() {
     fetch(`/api/user-data/${userId}`)
       .then((response) => response.json())
       .then((data) => {
-        if (data.data && Object.keys(data.data).length > 0) {
-          userData = data.data
-          currentSection = userData.currentSection || 0
+        if (
+          data.data &&
+          data.data.responses &&
+          Object.keys(data.data.responses).length > 0
+        ) {
+          userData = data.data.responses
+          currentSection = parseInt(data.data.currentSection) || 0
           isNewUser = false
         } else {
           isNewUser = true
@@ -122,6 +126,7 @@ function renderSection(index) {
   })
 
   updateNavigationButtons()
+  updateSectionDropdown(index)
   window.scrollTo(0, 0)
 }
 
@@ -154,8 +159,6 @@ function saveSectionData() {
     userData[key] = value
   }
   userData.currentSection = currentSection
-  // Save to localStorage
-  localStorage.setItem('surveyData', JSON.stringify(userData))
 
   const userId = sessionStorage.getItem('userId')
   if (userId) {
@@ -163,6 +166,7 @@ function saveSectionData() {
       userId: userId,
       data: {
         responses: userData,
+        currentSection: currentSection,
         overallScore: calculateCompetenzScore(),
         categoryScores: calculateCategoryScores(),
       },
@@ -267,7 +271,6 @@ function highlightQuestion(questionElement) {
 
 function logout() {
   saveSectionData()
-  localStorage.removeItem('surveyData') // Clear stored survey data
   sessionStorage.clear()
   window.location.href = 'login.html'
 }
@@ -280,6 +283,11 @@ function populateSectionDropdown() {
     option.textContent = section.title
     select.appendChild(option)
   })
+}
+
+function updateSectionDropdown(currentIndex) {
+  const select = document.getElementById('section-select')
+  select.value = currentIndex
 }
 
 function handleSectionChange(e) {
@@ -335,7 +343,6 @@ function calculateCompetenzScore() {
 }
 
 function getCoursesSuggestions(score) {
-  // This is a placeholder function. Adjust the logic based on your requirements.
   if (score < 30) {
     return ['Basic Digital Skills', 'Introduction to Online Safety']
   } else if (score < 60) {
@@ -415,8 +422,8 @@ function createCompetencyChart(categoryScores) {
           {
             label: 'Competency Scores (%)',
             data: data,
-            backgroundColor: '#004a99', // Changed to match the blue theme
-            borderColor: '#004a99', // Changed to match the blue theme
+            backgroundColor: '#004a99',
+            borderColor: '#004a99',
             borderWidth: 1,
           },
         ],
@@ -455,7 +462,7 @@ function createCompetencyChart(categoryScores) {
 }
 
 function downloadChart(event) {
-  event.preventDefault() // Prevent default button behavior
+  event.preventDefault()
   const canvas = document.getElementById('competencyChart')
   if (canvas) {
     const image = canvas.toDataURL('image/png')

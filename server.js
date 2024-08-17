@@ -66,7 +66,12 @@ app.post("/api/save-user-data", async (req, res) => {
   try {
     await UserData.findOneAndUpdate(
       { userId },
-      { $set: data },
+      {
+        $set: {
+          "data.responses": data.responses,
+          "data.currentSection": data.currentSection,
+        },
+      },
       { upsert: true, new: true }
     );
     await updateCSV();

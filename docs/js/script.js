@@ -125,11 +125,16 @@ function displayGeneratedCode() {
 
 function loadStoredSurveyData() {
   const surveyForm = document.getElementById('surveyForm')
-  if (surveyForm) {
-    const storedData = JSON.parse(localStorage.getItem('surveyData'))
-    if (storedData) {
-      populateFormFields(surveyForm, storedData)
-    }
+  const userId = sessionStorage.getItem('userId')
+  if (surveyForm && userId) {
+    fetch(`/api/user-data/${userId}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.data && data.data.responses) {
+          populateFormFields(surveyForm, data.data.responses)
+        }
+      })
+      .catch((error) => console.error('Error loading user data:', error))
   }
 }
 
@@ -148,10 +153,22 @@ function populateFormFields(form, data) {
 
 function setupSurveyDataPersistence() {
   const surveyForm = document.getElementById('surveyForm')
-  if (surveyForm) {
+  const userId = sessionStorage.getItem('userId')
+  if (surveyForm && userId) {
     surveyForm.addEventListener('input', function () {
       const data = Object.fromEntries(new FormData(surveyForm))
-      localStorage.setItem('surveyData', JSON.stringify(data))
+      fetch('/api/save-user-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userId,
+          data: {
+            responses: data,
+          },
+        }),
+      }).catch((error) => console.error('Error saving user data:', error))
     })
   }
 }
