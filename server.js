@@ -24,13 +24,13 @@ mongoose
 
 // Schemas and Models
 const codeSchema = new mongoose.Schema({ code: String });
-const Code = mongoose.model("Code", codeSchema);
+const Code = mongoose.model("Code", codeSchema, "codes");
 
 const userDataSchema = new mongoose.Schema({
   userId: String,
   data: Object,
 });
-const UserData = mongoose.model("UserData", userDataSchema);
+const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
 
 // Constants
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
@@ -139,19 +139,24 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
       .map((section) => section.title)
       .filter((title) => title !== "Persönliche Angaben");
 
-    const formattedUsers = users.map((user) => {
-      const categoryScores = calculateCategoryScores(
-        user.data.responses,
-        surveyData
-      );
+    const formattedUsers = await Promise.all(
+      users.map(async (user) => {
+        // Fetch the code document using the user's userId
+        const codeDoc = await Code.findOne({ _id: user.userId });
+        const categoryScores = calculateCategoryScores(
+          user.data.responses,
+          surveyData
+        );
 
-      return {
-        userId: user.userId,
-        gender: user.data.responses.q0_0,
-        birthYear: user.data.responses.q0_1,
-        scores: categoryScores,
-      };
-    });
+        return {
+          userId: user.userId,
+          userCode: codeDoc ? codeDoc.code : "Unknown",
+          gender: user.data.responses.q0_0,
+          birthYear: user.data.responses.q0_1,
+          scores: categoryScores,
+        };
+      })
+    );
 
     console.log("Formatted users:", formattedUsers.length);
     res.json({ users: formattedUsers, sections });

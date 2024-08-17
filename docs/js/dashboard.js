@@ -45,7 +45,7 @@ function renderTable() {
 
   // Clear existing headers and rows
   thead.innerHTML =
-    '<th><input type="checkbox" id="selectAll"></th><th>User ID</th><th>Gender</th><th>Birth Year</th>'
+    '<th><input type="checkbox" id="selectAll"></th><th>User Code</th><th>Gender</th><th>Birth Year</th>'
   tbody.innerHTML = ''
 
   // Add section headers
@@ -63,9 +63,9 @@ function renderTable() {
             <td><input type="checkbox" class="user-select" data-id="${
               user.userId
             }"></td>
-            <td>${user.userId}</td>
-            <td>${user.gender}</td>
-            <td>${user.birthYear}</td>
+            <td>${user.userCode}</td>
+            <td>${user.gender || 'undefined'}</td>
+            <td>${user.birthYear || 'undefined'}</td>
             ${sections
               .map((section) => `<td>${user.scores[section] || 0}%</td>`)
               .join('')}
@@ -142,7 +142,7 @@ function exportAll() {
 function exportToExcel(data) {
   const worksheet = XLSX.utils.json_to_sheet(
     data.map((user) => ({
-      'User ID': user.userId,
+      'User Code': user.userCode,
       Gender: user.gender,
       'Birth Year': user.birthYear,
       ...user.scores,
