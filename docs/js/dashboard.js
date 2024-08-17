@@ -55,8 +55,13 @@ function renderTable() {
   const tbody = document.querySelector('#userTable tbody')
 
   // Clear existing headers and rows
-  thead.innerHTML =
-    '<th><input type="checkbox" id="selectAll"></th><th>User Code</th><th>Gender</th><th>Birth Year</th><th class="sortable" data-section="Total Score">Total Score</th>'
+  thead.innerHTML = `
+        <th><input type="checkbox" id="selectAll"></th>
+        <th>User Code</th>
+        <th>Gender</th>
+        <th>Birth Year</th>
+        <th class="sortable" data-section="Total Score">Total Score</th>
+    `
   tbody.innerHTML = ''
 
   // Add section headers
@@ -96,33 +101,55 @@ function renderTable() {
 function setupSortingListeners() {
   const thead = document.querySelector('#userTable thead')
   thead.addEventListener('click', function (e) {
-    if (e.target.classList.contains('sortable')) {
-      const section = e.target.dataset.section
+    const target = e.target.closest('.sortable')
+    if (target) {
+      const section = target.dataset.section
       sortUsers(section)
     }
   })
 }
 
 function sortUsers(section) {
-  users.sort((a, b) => {
-    if (section === 'Total Score') {
-      return b.totalScore - a.totalScore
-    }
-    return (b.scores[section] || 0) - (a.scores[section] || 0)
-  })
-  renderTable()
+  const sortableSections = [
+    'Total Score',
+    'Suchen, Verarbeiten und Aufbewahren',
+    'Kommunikation und Kollaborieren',
+    'Produzieren und Präsentieren',
+    'Schützen und sicher agieren',
+    'Problemlösen und Handeln',
+    'Analysieren und Reflektieren',
+  ]
+
+  if (sortableSections.includes(section)) {
+    users.sort((a, b) => {
+      if (section === 'Total Score') {
+        return b.totalScore - a.totalScore
+      } else {
+        return (b.scores[section] || 0) - (a.scores[section] || 0)
+      }
+    })
+    renderTable()
+  }
 }
 
 function setupVisualizationSection() {
-  const visualizationSection = document.createElement('div')
-  visualizationSection.id = 'visualizationSection'
+  let visualizationSection = document.getElementById('visualizationSection')
+  if (!visualizationSection) {
+    visualizationSection = document.createElement('div')
+    visualizationSection.id = 'visualizationSection'
+    document.body.appendChild(visualizationSection)
+  }
   visualizationSection.style.position = 'fixed'
-  visualizationSection.style.top = '20px'
+  visualizationSection.style.top = '70px'
   visualizationSection.style.right = '20px'
-  visualizationSection.style.width = '300px'
+  visualizationSection.style.width = '400px'
   visualizationSection.style.height = '300px'
+  visualizationSection.style.backgroundColor = 'white'
+  visualizationSection.style.padding = '10px'
+  visualizationSection.style.border = '1px solid #ddd'
+  visualizationSection.style.borderRadius = '5px'
+  visualizationSection.style.zIndex = '1000'
   visualizationSection.innerHTML = '<canvas id="userChart"></canvas>'
-  document.body.appendChild(visualizationSection)
 }
 
 function showUserDetails(user) {
@@ -153,6 +180,8 @@ function updateVisualization() {
       ],
     },
     options: {
+      responsive: true,
+      maintainAspectRatio: false,
       scales: {
         y: {
           beginAtZero: true,

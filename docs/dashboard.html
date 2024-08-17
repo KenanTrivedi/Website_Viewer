@@ -19,6 +19,18 @@
       .sortable:hover {
         background-color: #e9ecef;
       }
+      #visualizationSection {
+        position: fixed;
+        top: 70px;
+        right: 20px;
+        width: 400px;
+        height: 300px;
+        background-color: white;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        z-index: 1000;
+      }
     </style>
   </head>
   <body>
@@ -47,6 +59,10 @@
           </tbody>
         </table>
       </div>
+    </div>
+
+    <div id="visualizationSection">
+      <canvas id="userChart"></canvas>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
