@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Survey Data Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <h1>Survey Data Dashboard</h1>
+    <canvas id="overallScoresChart"></canvas>
+    <a href="/api/download-csv" download>Download CSV Data</a>
+    <script>
+      const token = 'your_secure_token'
+      fetch('/api/survey-data', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          const ctx = document
+            .getElementById('overallScoresChart')
+            .getContext('2d')
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: data.map((item) => item.userId),
+              datasets: [
+                {
+                  label: 'Overall Scores',
+                  data: data.map((item) => item.data.overallScore),
+                  backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  max: 100,
+                },
+              },
+            },
+          })
+        })
+    </script>
+  </body>
+</html>
