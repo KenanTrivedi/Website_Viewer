@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const path = require("path");
 const csvWriter = require("csv-writer").createObjectCsvWriter;
 const fs = require("fs");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const app = express();
@@ -30,6 +31,27 @@ const userDataSchema = new mongoose.Schema({
   data: Object,
 });
 const UserData = mongoose.model("UserData", userDataSchema);
+
+// Constants
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const DASHBOARD_USER_ID = process.env.DASHBOARD_USER_ID || "admin";
+const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "password";
+
+// Authentication Middleware
+function authenticate(req, res, next) {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (token) {
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      req.userId = decoded.userId;
+      next();
+    });
+  } else {
+    res.status(401).json({ error: "Unauthorized" });
+  }
+}
 
 // Routes
 app.post("/register", async (req, res) => {
@@ -66,12 +88,7 @@ app.post("/api/save-user-data", async (req, res) => {
   try {
     await UserData.findOneAndUpdate(
       { userId },
-      {
-        $set: {
-          "data.responses": data.responses,
-          "data.currentSection": data.currentSection,
-        },
-      },
+      { $set: data },
       { upsert: true, new: true }
     );
     await updateCSV();
@@ -92,33 +109,46 @@ app.get("/api/user-data/:userId", async (req, res) => {
   }
 });
 
-app.get("/dashboard", authenticate, (req, res) => {
-  res.sendFile(path.resolve(__dirname, "docs", "dashboard.html"));
-});
-
-app.get("/api/survey-data", authenticate, async (req, res) => {
-  try {
-    const surveys = await UserData.find().sort({ "data.timestamp": -1 });
-    res.json(surveys);
-  } catch (error) {
-    res.status(500).json({ error: "Error fetching survey data" });
+app.post("/api/dashboard-login", async (req, res) => {
+  const { userId, password } = req.body;
+  if (userId === DASHBOARD_USER_ID && password === DASHBOARD_PASSWORD) {
+    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: "1h" });
+    res.json({ token });
+  } else {
+    res.status(401).json({ error: "Invalid credentials" });
   }
 });
 
-app.get("/api/download-csv", authenticate, (req, res) => {
-  const filePath = path.join(__dirname, "survey_data.csv");
-  fs.access(filePath, fs.constants.F_OK, (err) => {
-    if (err) {
-      console.error("CSV file not found:", err);
-      return res.status(404).send("CSV file not found");
-    }
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=survey_data.csv"
-    );
-    fs.createReadStream(filePath).pipe(res);
-  });
+app.get("/dashboard", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "docs", "dashboard.html"));
+});
+
+app.get("/dashboard-login", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "docs", "dashboard-login.html"));
+});
+
+app.get("/api/dashboard-data", authenticate, async (req, res) => {
+  try {
+    const users = await UserData.find().lean();
+    const sections = surveyData
+      .map((section) => section.title)
+      .filter((title) => title !== "Persönliche Angaben");
+
+    const formattedUsers = users.map((user) => ({
+      userId: user.userId,
+      gender: user.data.responses.q0_0, // Assuming this is the gender question
+      birthYear: user.data.responses.q0_1, // Assuming this is the birth year question
+      scores: sections.reduce((acc, section) => {
+        acc[section] = user.data.categoryScores[section] || 0;
+        return acc;
+      }, {}),
+    }));
+
+    res.json({ users: formattedUsers, sections });
+  } catch (error) {
+    console.error("Error fetching dashboard data:", error);
+    res.status(500).json({ error: "Error fetching dashboard data" });
+  }
 });
 
 app.get("*", (req, res) => {
@@ -126,15 +156,6 @@ app.get("*", (req, res) => {
 });
 
 // Helper Functions
-function authenticate(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (authHeader === "Bearer your_secure_token") {
-    next();
-  } else {
-    res.status(401).json({ error: "Unauthorized" });
-  }
-}
-
 async function updateCSV() {
   const allUserData = await UserData.find().lean();
   const surveyData = require("./docs/js/survey-data.js"); // Make sure this path is correct
