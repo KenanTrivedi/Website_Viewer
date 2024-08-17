@@ -1,6 +1,5 @@
 let currentSection = 0
 let userData = {}
-let isNewUser = true
 
 document.addEventListener('DOMContentLoaded', function () {
   loadUserData()
@@ -38,26 +37,10 @@ function loadUserData() {
     fetch(`/api/user-data/${userId}`)
       .then((response) => response.json())
       .then((data) => {
-        if (data.data && Object.keys(data.data).length > 0) {
-          userData = data.data
-          currentSection = userData.currentSection || 0
-          isNewUser = false
-        } else {
-          isNewUser = true
-          userData = {}
-        }
+        userData = data.data || {}
         renderSection(currentSection)
       })
-      .catch((error) => {
-        console.error('Error loading user data:', error)
-        isNewUser = true
-        userData = {}
-        renderSection(currentSection)
-      })
-  } else {
-    isNewUser = true
-    userData = {}
-    renderSection(currentSection)
+      .catch((error) => console.error('Error loading user data:', error))
   }
 }
 
@@ -67,47 +50,47 @@ function renderSection(index) {
 
   section.questions.forEach((question, qIndex) => {
     const questionId = `q${index}_${qIndex}`
-    let savedValue = isNewUser ? '' : userData[questionId] || ''
+    const savedValue = userData[questionId] || ''
 
     html += `<div class="question"><p>${question.text}</p>`
 
     if (question.type === 'radio') {
       question.options.forEach((option) => {
         html += `<label><input type="radio" name="${questionId}" value="${option}" ${
-          !isNewUser && savedValue === option ? 'checked' : ''
+          savedValue === option ? 'checked' : ''
         } required> ${option}</label><br>`
       })
     } else if (question.type === 'number') {
       html += `
-        <div class="input-container">
-          <input type="number" id="${questionId}" name="${questionId}" value="${savedValue}" min="${question.min}" max="${question.max}" required>
-          <label for="${questionId}" class="floating-label">Enter a number</label>
-        </div>`
+                <div class="input-container">
+                    <input type="number" id="${questionId}" name="${questionId}" value="${savedValue}" min="${question.min}" max="${question.max}" required>
+                    <label for="${questionId}" class="floating-label">Enter a number</label>
+                </div>`
     } else if (question.type === 'scale') {
       html += `<div class="rating-scale" role="group" aria-label="Competency scale from 0 to 6">`
       for (let i = 0; i <= 6; i++) {
         html += `
-          <label class="scale-label">
-            <input type="radio" name="${questionId}" value="${i}" ${
-          !isNewUser && savedValue == i ? 'checked' : ''
+                    <label class="scale-label">
+                        <input type="radio" name="${questionId}" value="${i}" ${
+          savedValue == i ? 'checked' : ''
         } required>
-            <span class="scale-button" role="radio" aria-checked="${
-              !isNewUser && savedValue == i ? 'true' : 'false'
-            }" tabindex="0">${i}</span>
-            <span class="sr-only">${
-              i === 0
-                ? 'gar nicht kompetent'
-                : i === 6
-                ? 'ausgesprochen kompetent'
-                : ''
-            }</span>
-          </label>`
+                        <span class="scale-button" role="radio" aria-checked="${
+                          savedValue == i
+                        }" tabindex="0">${i}</span>
+                        <span class="sr-only">${
+                          i === 0
+                            ? 'gar nicht kompetent'
+                            : i === 6
+                            ? 'ausgesprochen kompetent'
+                            : ''
+                        }</span>
+                    </label>`
       }
       html += `</div>
-        <div class="scale-labels">
-          <span>gar nicht kompetent</span>
-          <span>ausgesprochen kompetent</span>
-        </div>`
+            <div class="scale-labels">
+                <span>gar nicht kompetent</span>
+                <span>ausgesprochen kompetent</span>
+            </div>`
     }
 
     html += `</div>`
@@ -153,9 +136,6 @@ function saveSectionData() {
   for (let [key, value] of formData.entries()) {
     userData[key] = value
   }
-  userData.currentSection = currentSection
-  // Save to localStorage
-  localStorage.setItem('surveyData', JSON.stringify(userData))
 
   const userId = sessionStorage.getItem('userId')
   if (userId) {
@@ -173,6 +153,7 @@ function saveSectionData() {
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ userId, data: userData }),
       body: JSON.stringify(data),
     })
       .then((response) => response.json())
@@ -193,16 +174,13 @@ function calculateCategoryScores() {
         questionCount++
       }
     })
-    if (section.title !== 'Persönliche Angaben') {
-      categoryScores[section.title] =
-        questionCount > 0
-          ? Math.round((totalScore / (questionCount * 6)) * 100)
-          : 0
-    }
+    categoryScores[section.title] =
+      questionCount > 0
+        ? Math.round((totalScore / (questionCount * 6)) * 100)
+        : 0
   })
   return categoryScores
 }
-
 function saveAndResumeLater() {
   saveSectionData()
   const resumeToken = btoa(
@@ -244,30 +222,35 @@ function nextSection() {
 
 function validateSection() {
   const inputs = document.querySelectorAll('#surveyForm input[required]')
-  let isValid = true
-  inputs.forEach((input) => {
-    if (input.type === 'radio') {
-      const name = input.getAttribute('name')
-      if (!document.querySelector(`input[name="${name}"]:checked`)) {
-        isValid = false
-        highlightQuestion(input.closest('.question'))
-      }
-    } else if (input.value.trim() === '') {
-      isValid = false
-      highlightQuestion(input.closest('.question'))
-    }
-  })
-  return isValid
+  return Array.from(inputs).every((input) =>
+    input.type === 'radio'
+      ? document.querySelector(`input[name="${input.name}"]:checked`)
+      : input.value.trim() !== ''
+  )
 }
 
-function highlightQuestion(questionElement) {
-  questionElement.classList.add('unanswered')
-  questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+function finishSurvey() {
+  saveSectionData()
+  const score = calculateCompetenzScore()
+  const courses = getCoursesSuggestions(score)
+
+  // Display the score and course suggestions
+  const resultHtml = `
+    <h2>Dein Kompetenzwert: ${score}%</h2>
+    <p>Basierend auf deinem Ergebnis, empfehlen wir dir folgende Kurse:</p>
+    <ul>
+      ${courses.map((course) => `<li>${course}</li>`).join('')}
+    </ul>
+  `
+
+  document.getElementById('surveyForm').innerHTML = resultHtml
+
+  // Hide navigation buttons
+  document.querySelector('.navigation-buttons').style.display = 'none'
 }
 
 function logout() {
   saveSectionData()
-  localStorage.removeItem('surveyData') // Clear stored survey data
   sessionStorage.clear()
   window.location.href = 'login.html'
 }
@@ -352,9 +335,51 @@ function finishSurvey() {
 
 function showDatenschutz() {
   const datenschutzHtml = `
-    <h1>Datenschutz</h1>
+        <h1>Datenschutz</h1>
     <h2>Projektleitung: Prof.in Dr. Charlott Rubach & Anne-Kathrin Hirsch</h2>
-    
+    <p>Sehr geehrte Lehramtsstudierende,</p>
+    <p>
+        die Digitalisierung und Digitalität im Bildungsbereich erhielten in den letzten Jahren große Aufmerksamkeit. Der kompetente Umgang mit digitalen Medien gehört zum Aufgabenbereich von Lehrkräften. Daher ist es bedeutsam, dass Lehramtsstudierende während ihrer Ausbildung auf diesen Umgang vorbereitet werden. Wir interessieren uns im Rahmen dieser Studie „Open-Digi“ dafür, inwieweit die von uns erstellten Lernerfahrung zur Förderung digitaler Kompetenzen beitragen.
+    </p>
+    <h3>Wer sind wir?</h3>
+    <p>
+        Wir sind Prof. Dr. Charlott Rubach und Anne-Kathrin Hirsch, Bildungsforscherinnen an der Universität Rostock. Unsere Forschungsschwerpunkte sind Digitalisierung, Förderung digitaler Kompetenzen und Gestaltungsmöglichkeiten einer bedarfsorientierten Lehrkräftebildung.
+    </p>
+    <h3>Worum geht es in diesem Projekt?</h3>
+    <p>
+        Ziel des Projektes ist die Untersuchung von effektiven Lernerfahrungen für die Entwicklung digitaler Kompetenzen. Das Projekt besteht aus mehreren Schritten:
+    </p>
+    <ol>
+        <li>Sie füllen die Befragung zum Open-Digi Projekt aus, welcher der Pre-Diagnostik gilt und zirka X Minuten dauert. Alle Befragungen thematisieren ausschließlich Aspekte von digitaler Kompetenz.</li>
+        <li>Ihnen werden auf Grundlage der Diagnostik 2-3 Kurse vorgeschlagen, die Sie bearbeiten sollen.</li>
+        <li>Sie bearbeiten die Kurse in einer Dauer von zirka einer Stunde.</li>
+        <li>Sie durchlaufen die Post-Diagnostik direkt nach Bearbeitung der Kurse.</li>
+        <li>Sie machen eine dritte Befragung, 1 Monat nach Bearbeitung der Kurse.</li>
+    </ol>
+    <h3>Was bedeutet die Teilnahme für mich und meinen Daten?</h3>
+    <ul>
+        <li>Ihre Teilnahme an unserer Studie ist freiwillig. Wenn Sie an der Studie teilnehmen, können Sie einzelne Fragen überspringen oder die gesamte Befragung jederzeit ganz abbrechen. In letzterem Falle, vernichten wir die Daten.</li>
+        <li>Die Befragung ist anonym. Das heißt, es werden auch ausschließlich anonymisierte Informationen analysiert und im Rahmen wissenschaftlicher Arbeiten veröffentlicht. Es werden keine Informationen gespeichert, die es uns möglich machen, Sie als Person zu identifizieren. Eine Rücknahme Ihres Einverständnisses und damit Löschung Ihrer Daten, nachdem Sie den Fragebogen ausgefüllt und abgegeben haben, ist demnach nicht möglich. Anonymisierung ist das Verändern personenbezogener Daten in der Weise, dass Informationen nicht mehr oder nur mit einem unverhältnismäßig großen Aufwand an Zeit, Kosten und Arbeitskraft einer bestimmten Person zugeordnet werden können. Anonymisiert sind auch Daten, die keine persönliche Information mehr enthalten, bspw. Alter, Geschlecht, Lehramtstyp, Fächer und Hochschulsemester.</li>
+        <li>Wir speichern Ihre Antworten und Ihre Angaben (z. B. Alter und Geschlecht). Diese werden bis zum Abschluss der Untersuchung und maximal 10 Jahre auf den Dienstrechnern der Wissenschaftlerinnen aus dem Projekt gespeichert und danach gelöscht.</li>
+        <li>Es erfolgt keine Weitergabe Ihrer Daten an Dritte außerhalb des Forschungsprojektes.</li>
+        <li>Unter folgendem Link finden Sie ausführliche Hinweise zum Schutz Ihrer Daten.</li>
+        <li>Zur Erhebung und Verarbeitung der Daten benötigen wir Ihr Einverständnis:</li>
+    </ul>
+    <p>
+        Ich versichere mit meiner Zustimmung, dass mir die Datenschutzhinweise zur Befragung „Open-Digi“ zur Kenntnis gegeben worden. Ich willige in die darin näher beschriebene Verarbeitung meiner personenbezogenen Daten ein.
+    </p>
+    <div class="signature">
+        <div>
+            <strong>Datum, Ort</strong><br>
+            ___________________________
+        </div>
+        <div>
+            <strong>Unterschrift</strong><br>
+            ___________________________
+        </div>
+    </div>
+    <p>Ansprechperson für weitere Fragen ist Prof.in Dr. Charlott Rubach (<a href="mailto:charlott.rubach@uni-rostock.de">charlott.rubach@uni-rostock.de</a>).</p>
+
     <button id="acceptDatenschutz">Akzeptieren und fortfahren</button>
   `
 
@@ -371,7 +396,6 @@ function showDatenschutz() {
 function showResults() {
   const score = calculateCompetenzScore()
   const courses = getCoursesSuggestions(score)
-  const categoryScores = calculateCategoryScores()
 
   const resultHtml = `
     <h2>Your Competenz Score: ${score}%</h2>
@@ -379,91 +403,7 @@ function showResults() {
     <ul>
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
-    <canvas id="competencyChart" width="600" height="400"></canvas>
-    <button id="downloadChart" class="btn btn-primary">Download Chart</button>
   `
 
   document.getElementById('surveyForm').innerHTML = resultHtml
-
-  createCompetencyChart(categoryScores)
-
-  const downloadButton = document.getElementById('downloadChart')
-  if (downloadButton) {
-    downloadButton.addEventListener('click', downloadChart)
-  } else {
-    console.error('Download button not found')
-  }
-}
-
-function createCompetencyChart(categoryScores) {
-  const canvas = document.getElementById('competencyChart')
-  if (!canvas) {
-    console.error('Chart canvas not found')
-    return
-  }
-
-  const ctx = canvas.getContext('2d')
-  const labels = Object.keys(categoryScores)
-  const data = Object.values(categoryScores)
-
-  try {
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: 'Competency Scores (%)',
-            data: data,
-            backgroundColor: '#004a99', // Changed to match the blue theme
-            borderColor: '#004a99', // Changed to match the blue theme
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 100,
-            title: {
-              display: true,
-              text: 'Score (%)',
-            },
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Competencies',
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: false,
-          },
-          title: {
-            display: true,
-            text: 'Your Competency Scores',
-          },
-        },
-      },
-    })
-  } catch (error) {
-    console.error('Error creating chart:', error)
-  }
-}
-
-function downloadChart(event) {
-  event.preventDefault() // Prevent default button behavior
-  const canvas = document.getElementById('competencyChart')
-  if (canvas) {
-    const image = canvas.toDataURL('image/png')
-    const link = document.createElement('a')
-    link.download = 'competency-chart.png'
-    link.href = image
-    link.click()
-  } else {
-    console.error('Chart canvas not found')
-  }
 }

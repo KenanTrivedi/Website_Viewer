@@ -2,13 +2,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const path = require("path");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const app = express();
 require("dotenv").config();
 
-const app = express();
-
-// Middleware
+// Middleware for parsing JSON and serving static files
 app.use(bodyParser.json());
 app.use(express.static("docs"));
 
@@ -21,92 +18,97 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// Schemas and Models
-const dashboardUserSchema = new mongoose.Schema({
-  username: String,
-  password: String,
+// Schema and Model for Code
+const codeSchema = new mongoose.Schema({ code: String });
+const Code = mongoose.model("Code", codeSchema);
+
+// Schema and Model for User Data
+const userDataSchema = new mongoose.Schema({
+  userId: String,
+  data: Object,
 });
-const DashboardUser = mongoose.model("DashboardUser", dashboardUserSchema);
+const UserData = mongoose.model("UserData", userDataSchema);
 
-// Create initial dashboard user
-async function createInitialDashboardUser() {
+// Route for registering a new code
+app.post("/register", async (req, res) => {
+  const { code } = req.body;
+  const newCode = new Code({ code });
   try {
-    const existingUser = await DashboardUser.findOne({ username: "admin" });
-    if (!existingUser) {
-      const hashedPassword = await bcrypt.hash("your_secure_password", 10);
-      const newUser = new DashboardUser({
-        username: "admin",
-        password: hashedPassword,
-      });
-      await newUser.save();
-      console.log("Initial dashboard user created");
-    }
-  } catch (error) {
-    console.error("Error creating initial dashboard user:", error);
+    await newCode.save();
+    res.status(201).send({ message: "Code saved", codeId: newCode._id });
+  } catch (err) {
+    console.error("Failed to save code:", err);
+    res.status(500).send("Error saving code");
   }
-}
+});
 
-createInitialDashboardUser();
-
-// Routes
-app.post("/api/dashboard-login", async (req, res) => {
-  const { username, password } = req.body;
+// Route for login
+app.post("/login", async (req, res) => {
+  const { code } = req.body;
   try {
-    const user = await DashboardUser.findOne({ username });
-    if (user && (await bcrypt.compare(password, user.password))) {
-      const token = jwt.sign(
-        { userId: user._id, isDashboardUser: true },
-        process.env.JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-      res.json({ token }); // Send this token to the client
+    const validCode = await Code.findOne({ code });
+    if (validCode) {
+      res
+        .status(200)
+        .send({ message: "Login successful", userId: validCode._id });
     } else {
-      res.status(401).json({ error: "Invalid credentials" });
+      res.status(401).send("Invalid code");
     }
-  } catch (error) {
-    res.status(500).json({ error: "Login error" });
+  } catch (err) {
+    console.error("Error during login:", err);
+    res.status(500).send("Error processing login request");
   }
 });
 
-app.delete(
-  "/api/delete-dashboard-user",
-  authenticateDashboardUser,
-  async (req, res) => {
-    const { username } = req.body;
-    try {
-      const result = await DashboardUser.findOneAndDelete({ username });
-      if (!result) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      res.json({ message: "User deleted successfully" });
-    } catch (error) {
-      console.error("Error deleting user:", error);
-      res.status(500).json({ error: "Error deleting user" });
-    }
+// Route for saving user data
+app.post("/api/save-user-data", async (req, res) => {
+  const { userId, data } = req.body;
+  try {
+    await UserData.findOneAndUpdate(
+      { userId },
+      { data },
+      { upsert: true, new: true }
+    );
+    res.status(200).send({ message: "Data saved successfully" });
+  } catch (err) {
+    console.error("Failed to save user data:", err);
+    res.status(500).send("Error saving user data");
   }
-);
+});
 
-// Authentication Middleware
-function authenticateDashboardUser(req, res, next) {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (token) {
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-      if (decoded.isDashboardUser) {
-        next();
-      } else {
-        res.status(403).json({ error: "Access denied" });
-      }
-    });
+// Route for loading user data
+app.get("/api/user-data/:userId", async (req, res) => {
+  const { userId } = req.params;
+  const userData = await UserData.findOne({ userId });
+  if (userData) {
+    res.status(200).json({ data: userData.data });
   } else {
-    res.status(401).json({ error: "Unauthorized" });
+    res.status(404).send("User data not found");
   }
-}
+});
+
+// Route to serve the main page if no other route handles the HTTP request
+app.get("*", (req, res) => {
+  res.sendFile(path.resolve(__dirname, "docs", "index.html"));
+});
 
 // Start the server
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+app.post("/survey", async (req, res) => {
+  const { userId, surveyData } = req.body;
+  // Assume `SurveyResponse` is a model connected to your database
+  try {
+    const newSurvey = new SurveyResponse({ userId, surveyData });
+    await newSurvey.save();
+    res
+      .status(201)
+      .send({ message: "Survey data saved successfully", data: newSurvey });
+  } catch (error) {
+    console.error("Error saving survey data:", error);
+    res.status(500).send({ message: "Failed to save survey data" });
+  }
 });
