@@ -21,6 +21,13 @@ document.addEventListener('DOMContentLoaded', function () {
     .getElementById('toggleVisualization')
     .addEventListener('click', toggleVisualizationSidebar)
   setupSortingListeners()
+  document
+    .getElementById('closeVisualization')
+    .addEventListener('click', closeVisualizationSidebar)
+  document
+    .getElementById('downloadChart')
+    .addEventListener('click', downloadChart)
+  document.getElementById('userSearch').addEventListener('input', searchUsers)
 })
 
 async function fetchData() {
@@ -54,7 +61,7 @@ function calculateTotalScore(scores) {
   return Math.round(total / Object.keys(scores).length)
 }
 
-function renderTable() {
+function renderTable(usersToRender = users) {
   const thead = document.querySelector('#userTable thead tr')
   const tbody = document.querySelector('#userTable tbody')
 
@@ -312,4 +319,35 @@ function openVisualizationSidebar() {
   sidebar.classList.add('open')
   mainContent.classList.add('shifted')
   toggleBtn.textContent = 'Hide Visualization'
+}
+
+function closeVisualizationSidebar() {
+  const sidebar = document.getElementById('visualizationSidebar')
+  const mainContent = document.getElementById('mainContent')
+  const toggleBtn = document.getElementById('toggleVisualization')
+  sidebar.classList.remove('open')
+  mainContent.classList.remove('shifted')
+  toggleBtn.textContent = 'Show Visualization'
+}
+
+function downloadChart() {
+  if (!chart) return
+
+  const canvas = document.getElementById('userChart')
+  const imageData = canvas.toDataURL('image/png')
+  const link = document.createElement('a')
+  link.href = imageData
+  link.download = `${currentUser.userCode}_chart.png`
+  link.click()
+}
+
+function searchUsers() {
+  const searchTerm = document.getElementById('userSearch').value.toLowerCase()
+  const filteredUsers = users.filter(
+    (user) =>
+      user.userCode.toLowerCase().includes(searchTerm) ||
+      user.gender.toLowerCase().includes(searchTerm) ||
+      user.birthYear.toString().includes(searchTerm)
+  )
+  renderTable(filteredUsers)
 }
