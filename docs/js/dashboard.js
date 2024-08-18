@@ -167,7 +167,7 @@ function showUserDetails(user) {
 function updateVisualization() {
   if (!currentUser) return
 
-  const ctx = document.getElementById('userChart').getContext('2d')
+  const ctx = document.getElementById('userChart')
   if (window.userChart) {
     window.userChart.destroy()
   }
