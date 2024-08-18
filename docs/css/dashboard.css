@@ -1,0 +1,42 @@
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    background-color: #f8f9fa;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar.open {
+    width: 400px;
+}
+
+#mainContent {
+    transition: margin-right 0.5s;
+}
+
+#mainContent.shifted {
+    margin-right: 400px;
+}
+
+.user-row:hover {
+    background-color: #e9ecef;
+    cursor: pointer;
+}
+
+.sortable {
+    cursor: pointer;
+}
+
+.sort-icon {
+    margin-left: 5px;
+}
+
+.selected-row {
+    background-color: #cce5ff !important;
+}

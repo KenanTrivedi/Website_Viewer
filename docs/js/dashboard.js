@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function () {
   document
     .getElementById('selectAll')
     .addEventListener('change', toggleSelectAll)
+  document
+    .getElementById('toggleVisualization')
+    .addEventListener('click', toggleVisualizationSidebar)
   setupSortingListeners()
 })
 
@@ -89,8 +92,22 @@ function renderTable() {
               .map((section) => `<td>${user.scores[section] || 0}%</td>`)
               .join('')}
         `
-    tr.addEventListener('click', () => showUserDetails(user))
+    tr.addEventListener('click', (event) => {
+      if (!event.target.classList.contains('user-select')) {
+        showUserDetails(user)
+      }
+    })
     tbody.appendChild(tr)
+  })
+
+  document.querySelectorAll('.user-select').forEach((checkbox) => {
+    checkbox.addEventListener('change', function () {
+      const userId = this.dataset.id
+      const user = users.find((u) => u.userId === userId)
+      if (this.checked) {
+        showUserDetails(user)
+      }
+    })
   })
 
   document
@@ -161,7 +178,15 @@ function updateSortIcons() {
 
 function showUserDetails(user) {
   currentUser = user
+  document
+    .querySelectorAll('.user-row')
+    .forEach((row) => row.classList.remove('selected-row'))
+  document
+    .querySelector(`.user-select[data-id="${user.userId}"]`)
+    .closest('.user-row')
+    .classList.add('selected-row')
   updateVisualization()
+  openVisualizationSidebar()
 }
 
 function updateVisualization() {
@@ -250,4 +275,18 @@ function exportToExcel(data) {
   const workbook = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Users')
   XLSX.writeFile(workbook, 'survey_data.xlsx')
+}
+
+function toggleVisualizationSidebar() {
+  const sidebar = document.getElementById('visualizationSidebar')
+  const mainContent = document.getElementById('mainContent')
+  sidebar.classList.toggle('open')
+  mainContent.classList.toggle('shifted')
+}
+
+function openVisualizationSidebar() {
+  const sidebar = document.getElementById('visualizationSidebar')
+  const mainContent = document.getElementById('mainContent')
+  sidebar.classList.add('open')
+  mainContent.classList.add('shifted')
 }
