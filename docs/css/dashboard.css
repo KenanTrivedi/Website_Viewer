@@ -40,3 +40,18 @@
 .selected-row {
     background-color: #cce5ff !important;
 }
+
+#visualizationSidebar {
+    padding: 20px;
+    width: 0;
+    transition: width 0.3s ease;
+}
+
+#visualizationSidebar.open {
+    width: 400px;
+}
+
+#userChart {
+    width: 100% !important;
+    height: 100% !important;
+}

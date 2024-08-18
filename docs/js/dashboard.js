@@ -2,6 +2,7 @@ let users = []
 let sections = []
 let currentUser = null
 let currentSort = { section: null, ascending: true }
+let chart = null
 
 function getAuthToken() {
   return localStorage.getItem('dashboardToken')
@@ -193,11 +194,13 @@ function updateVisualization() {
   if (!currentUser) return
 
   const ctx = document.getElementById('userChart')
-  if (window.userChart) {
-    window.userChart.destroy()
-  }
 
-  window.userChart = new Chart(ctx, {
+  if (chart) {
+    chart.destroy()
+  }
+  ctx.style.display = 'block'
+
+  chart = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: sections,
@@ -241,6 +244,8 @@ function updateVisualization() {
       },
     },
   })
+  // Force a resize to ensure proper rendering
+  chart.resize()
 }
 
 function toggleSelectAll(event) {
@@ -280,13 +285,31 @@ function exportToExcel(data) {
 function toggleVisualizationSidebar() {
   const sidebar = document.getElementById('visualizationSidebar')
   const mainContent = document.getElementById('mainContent')
-  sidebar.classList.toggle('open')
-  mainContent.classList.toggle('shifted')
+  const toggleBtn = document.getElementById('toggleVisualization')
+
+  if (sidebar.classList.contains('open')) {
+    sidebar.classList.remove('open')
+    mainContent.classList.remove('shifted')
+    toggleBtn.textContent = 'Show Visualization'
+  } else {
+    sidebar.classList.add('open')
+    mainContent.classList.add('shifted')
+    toggleBtn.textContent = 'Hide Visualization'
+    if (currentUser) {
+      updateVisualization()
+    } else {
+      // Clear the chart if no user is selected
+      const ctx = document.getElementById('userChart')
+      ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height)
+    }
+  }
 }
 
 function openVisualizationSidebar() {
   const sidebar = document.getElementById('visualizationSidebar')
   const mainContent = document.getElementById('mainContent')
+  const toggleBtn = document.getElementById('toggleVisualization')
   sidebar.classList.add('open')
   mainContent.classList.add('shifted')
+  toggleBtn.textContent = 'Hide Visualization'
 }
