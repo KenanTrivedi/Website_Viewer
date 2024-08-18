@@ -1,6 +1,7 @@
 let users = []
 let sections = []
 let currentUser = null
+let currentSort = { section: null, ascending: true }
 
 function getAuthToken() {
   return localStorage.getItem('dashboardToken')
@@ -39,7 +40,6 @@ async function fetchData() {
     console.log('Users:', users)
     console.log('Sections:', sections)
     renderTable()
-    setupVisualizationSection()
   } catch (error) {
     console.error('Error fetching data:', error)
   }
@@ -60,14 +60,14 @@ function renderTable() {
         <th>User Code</th>
         <th>Gender</th>
         <th>Birth Year</th>
-        <th class="sortable" data-section="Total Score">Total Score</th>
+        <th class="sortable" data-section="Total Score">Total Score <i class="sort-icon fas fa-sort"></i></th>
     `
   tbody.innerHTML = ''
 
   // Add section headers
   sections.forEach((section) => {
     const th = document.createElement('th')
-    th.textContent = section
+    th.innerHTML = `${section} <i class="sort-icon fas fa-sort"></i>`
     th.classList.add('sortable')
     th.dataset.section = section
     thead.appendChild(th)
@@ -96,6 +96,7 @@ function renderTable() {
   document
     .getElementById('selectAll')
     .addEventListener('change', toggleSelectAll)
+  updateSortIcons()
 }
 
 function setupSortingListeners() {
@@ -104,12 +105,17 @@ function setupSortingListeners() {
     const target = e.target.closest('.sortable')
     if (target) {
       const section = target.dataset.section
-      sortUsers(section)
+      if (currentSort.section === section) {
+        currentSort.ascending = !currentSort.ascending
+      } else {
+        currentSort = { section, ascending: true }
+      }
+      sortUsers()
     }
   })
 }
 
-function sortUsers(section) {
+function sortUsers() {
   const sortableSections = [
     'Total Score',
     'Suchen, Verarbeiten und Aufbewahren',
@@ -120,36 +126,37 @@ function sortUsers(section) {
     'Analysieren und Reflektieren',
   ]
 
-  if (sortableSections.includes(section)) {
+  if (sortableSections.includes(currentSort.section)) {
     users.sort((a, b) => {
-      if (section === 'Total Score') {
-        return b.totalScore - a.totalScore
+      let valueA, valueB
+      if (currentSort.section === 'Total Score') {
+        valueA = a.totalScore
+        valueB = b.totalScore
       } else {
-        return (b.scores[section] || 0) - (a.scores[section] || 0)
+        valueA = a.scores[currentSort.section] || 0
+        valueB = b.scores[currentSort.section] || 0
       }
+      return currentSort.ascending ? valueA - valueB : valueB - valueA
     })
     renderTable()
   }
 }
 
-function setupVisualizationSection() {
-  let visualizationSection = document.getElementById('visualizationSection')
-  if (!visualizationSection) {
-    visualizationSection = document.createElement('div')
-    visualizationSection.id = 'visualizationSection'
-    document.body.appendChild(visualizationSection)
+function updateSortIcons() {
+  document.querySelectorAll('.sort-icon').forEach((icon) => {
+    icon.classList.remove('fa-sort-up', 'fa-sort-down', 'fa-sort')
+    icon.classList.add('fa-sort')
+  })
+
+  if (currentSort.section) {
+    const currentIcon = document.querySelector(
+      `.sortable[data-section="${currentSort.section}"] .sort-icon`
+    )
+    currentIcon.classList.remove('fa-sort')
+    currentIcon.classList.add(
+      currentSort.ascending ? 'fa-sort-up' : 'fa-sort-down'
+    )
   }
-  visualizationSection.style.position = 'fixed'
-  visualizationSection.style.top = '70px'
-  visualizationSection.style.right = '20px'
-  visualizationSection.style.width = '400px'
-  visualizationSection.style.height = '300px'
-  visualizationSection.style.backgroundColor = 'white'
-  visualizationSection.style.padding = '10px'
-  visualizationSection.style.border = '1px solid #ddd'
-  visualizationSection.style.borderRadius = '5px'
-  visualizationSection.style.zIndex = '1000'
-  visualizationSection.innerHTML = '<canvas id="userChart"></canvas>'
 }
 
 function showUserDetails(user) {
@@ -173,8 +180,8 @@ function updateVisualization() {
         {
           label: 'User Scores',
           data: sections.map((section) => currentUser.scores[section] || 0),
-          backgroundColor: 'rgba(75, 192, 192, 0.6)',
-          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: '#004a99',
+          borderColor: '#004a99',
           borderWidth: 1,
         },
       ],
@@ -186,9 +193,22 @@ function updateVisualization() {
         y: {
           beginAtZero: true,
           max: 100,
+          title: {
+            display: true,
+            text: 'Score (%)',
+          },
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Competencies',
+          },
         },
       },
       plugins: {
+        legend: {
+          display: false,
+        },
         title: {
           display: true,
           text: `Scores for User: ${currentUser.userCode}`,
