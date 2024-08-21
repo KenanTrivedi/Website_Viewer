@@ -401,10 +401,10 @@ function showResults() {
     </div>
     <div id="descriptionBox1" style="height: 200px; overflow-y: auto;"></div>
     <h3>Diagramm 2: Klicken für detaillierte Informationen</h3>
-    <div style="height: 400px;">
-      <canvas id="competencyChart2"></canvas>
-    </div>
-    <div id="descriptionBox2" style="height: 200px; overflow-y: auto;"></div>
+<div style="position: relative; height: 400px;">
+  <canvas id="competencyChart2"></canvas>
+  <div id="descriptionBox2" style="position: absolute; display: none;"></div>
+</div>
     <button id="downloadChart" class="btn btn-primary">Diagramme herunterladen</button>
   `
 
@@ -596,14 +596,16 @@ function createCompetencyChart2(categoryScores) {
       onClick: (event, elements) => {
         if (elements.length > 0) {
           const index = elements[0].index
+          const element = elements[0].element
           updateDescriptionBox2(
             descriptionBox,
             labels[index],
             data[index],
-            false
+            false,
+            element
           )
         } else {
-          descriptionBox.innerHTML = ''
+          descriptionBox.style.display = 'none'
         }
       },
     },
@@ -622,42 +624,75 @@ function createCompetencyChart2(categoryScores) {
       canvas.style.cursor = 'default'
     }
   })
+
+  // Hide description box when clicking outside the chart
+  document.addEventListener('click', (event) => {
+    if (
+      !canvas.contains(event.target) &&
+      !descriptionBox.contains(event.target)
+    ) {
+      descriptionBox.style.display = 'none'
+    }
+  })
 }
 
 function updateDescriptionBox2(
   descriptionBox,
   competency,
   score,
-  showDescription
+  showDescription,
+  element
 ) {
   if (competency) {
     const description = competencyDescriptions[competency]
     descriptionBox.innerHTML = `
-      <div style="background-color: rgba(0, 0, 0, 0.8); color: white; padding: 10px; border-radius: 5px;">
-        <h3>${competency}</h3>
+      <div style="background-color: rgba(0, 0, 0, 0.8); color: white; padding: 10px; border-radius: 5px; max-width: 250px;">
+        <h3 style="margin-top: 0;">${competency}</h3>
         <p>Score: ${score}%</p>
         ${
           showDescription
             ? `<p>${description}</p>
-           <p class="collapse-arrow" style="cursor: pointer; text-align: center;">&#9650; Collapse</p>`
-            : `<p><i class="fas fa-info-circle" style="cursor: pointer;"></i> Show description</p>`
+           <p class="collapse-arrow" style="cursor: pointer; text-align: center; margin-bottom: 0;">&#9650; Collapse</p>`
+            : `<p style="margin-bottom: 0;"><i class="fas fa-info-circle" style="cursor: pointer;"></i> Show description</p>`
         }
       </div>
     `
+
+    // Position the description box
+    const chartRect = chart2Instance.canvas.getBoundingClientRect()
+    const barRect = element.getBoundingClientRect()
+    descriptionBox.style.position = 'absolute'
+    descriptionBox.style.left = `${
+      barRect.left -
+      chartRect.left +
+      barRect.width / 2 -
+      descriptionBox.offsetWidth / 2
+    }px`
+    descriptionBox.style.top = `${
+      barRect.top - chartRect.top - descriptionBox.offsetHeight - 10
+    }px`
+    descriptionBox.style.display = 'block'
 
     if (showDescription) {
       descriptionBox
         .querySelector('.collapse-arrow')
         .addEventListener('click', () => {
-          updateDescriptionBox2(descriptionBox, competency, score, false)
+          updateDescriptionBox2(
+            descriptionBox,
+            competency,
+            score,
+            false,
+            element
+          )
         })
     } else {
-      descriptionBox.querySelector('i').addEventListener('click', () => {
-        updateDescriptionBox2(descriptionBox, competency, score, true)
+      descriptionBox.querySelector('i').addEventListener('click', (e) => {
+        e.stopPropagation()
+        updateDescriptionBox2(descriptionBox, competency, score, true, element)
       })
     }
   } else {
-    descriptionBox.innerHTML = ''
+    descriptionBox.style.display = 'none'
   }
 }
 
