@@ -469,12 +469,12 @@ function createCompetencyChart1(categoryScores) {
   const data = Object.values(categoryScores)
 
   const colorMap = {
-    'Analysieren und Reflektieren': '#FFD473',
+    'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
     'Kommunizieren und Kollaborieren': '#0CC0DF',
-    'Problemlösen und Handeln': '#E884C4',
     'Produzieren und Präsentieren': '#FF6D5F',
     'Schützen und sicher Agieren': '#8C52FF',
-    'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
+    'Problemlösen und Handeln': '#E884C4',
+    'Analysieren und Reflektieren': '#FFD473',
   }
 
   new Chart(ctx, {
@@ -545,7 +545,7 @@ function createCompetencyChart1(categoryScores) {
 function updateDescriptionBox(descriptionBox, competency, description) {
   descriptionBox.innerHTML = `
     <h3>${competency}</h3>
-    <p>${description}</p>
+    <p>${description || 'Beschreibung nicht verfügbar.'}</p>
   `
 }
 
@@ -560,17 +560,7 @@ function createCompetencyChart2(categoryScores) {
   const labels = Object.keys(categoryScores)
   const data = Object.values(categoryScores)
 
-  const colorMap = {
-    'Analysieren und Reflektieren': '#FFD473',
-    'Kommunizieren und Kollaborieren': '#0CC0DF',
-    'Problemlösen und Handeln': '#E884C4',
-    'Produzieren und Präsentieren': '#FF6D5F',
-    'Schützen und sicher Agieren': '#8C52FF',
-    'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
-  }
-
   let selectedBarIndex = -1
-  let showDescription = false
 
   const chart = new Chart(ctx, {
     type: 'bar',
@@ -598,9 +588,6 @@ function createCompetencyChart2(categoryScores) {
           },
         },
         x: {
-          title: {
-            display: false,
-          },
           ticks: {
             maxRotation: 45,
             minRotation: 45,
@@ -617,13 +604,7 @@ function createCompetencyChart2(categoryScores) {
       },
       onClick: (event, activeElements) => {
         if (activeElements.length > 0) {
-          const clickedBarIndex = activeElements[0].index
-          if (selectedBarIndex === clickedBarIndex) {
-            selectedBarIndex = -1
-          } else {
-            selectedBarIndex = clickedBarIndex
-          }
-          showDescription = false
+          selectedBarIndex = activeElements[0].index
           chart.update()
         }
       },
@@ -633,60 +614,33 @@ function createCompetencyChart2(categoryScores) {
         id: 'customPlugin',
         afterDraw: (chart) => {
           const ctx = chart.ctx
-          ctx.save()
-          if (selectedBarIndex !== -1) {
+          chart.data.datasets[0].data.forEach((value, index) => {
             const meta = chart.getDatasetMeta(0)
-            const rect = meta.data[selectedBarIndex]
-            const competency = labels[selectedBarIndex]
-            const score = data[selectedBarIndex]
+            const rect = meta.data[index]
 
-            // Draw score and 'i' icon
-            ctx.fillStyle = 'black'
-            ctx.font = '14px Arial'
-            ctx.textAlign = 'center'
-            const scoreText = `${score}%`
-            const scoreWidth = ctx.measureText(scoreText).width
-            ctx.fillText(scoreText, rect.x + rect.width / 2 - 10, rect.y - 10)
-
-            // Draw 'i' icon
-            ctx.fillStyle = '#004a99'
-            ctx.beginPath()
-            ctx.arc(
-              rect.x + rect.width / 2 + scoreWidth / 2 + 10,
-              rect.y - 14,
-              8,
-              0,
-              2 * Math.PI
-            )
-            ctx.fill()
-            ctx.fillStyle = 'white'
-            ctx.font = 'bold 12px Arial'
-            ctx.fillText(
-              'i',
-              rect.x + rect.width / 2 + scoreWidth / 2 + 10,
-              rect.y - 11
-            )
-
-            if (showDescription) {
-              // Draw description box
-              const description = competencyDescriptions[competency]
-              const boxWidth = chart.width * 0.8
-              const boxHeight = 100
-              const boxX = chart.width / 2 - boxWidth / 2
-              const boxY = rect.y + rect.height + 10
-
-              ctx.fillStyle = 'rgba(255,255,255,0.9)'
-              ctx.fillRect(boxX, boxY, boxWidth, boxHeight)
-              ctx.strokeStyle = 'black'
-              ctx.strokeRect(boxX, boxY, boxWidth, boxHeight)
-
+            if (index === selectedBarIndex) {
+              // Draw score
               ctx.fillStyle = 'black'
               ctx.font = '14px Arial'
-              ctx.textAlign = 'left'
-              wrapText(ctx, description, boxX + 5, boxY + 20, boxWidth - 10, 20)
+              ctx.textAlign = 'center'
+              ctx.fillText(`${value}%`, rect.x + rect.width / 2, rect.y - 10)
+
+              // Draw 'i' icon
+              ctx.fillStyle = '#004a99'
+              ctx.beginPath()
+              ctx.arc(
+                rect.x + rect.width / 2 + 20,
+                rect.y - 20,
+                8,
+                0,
+                2 * Math.PI
+              )
+              ctx.fill()
+              ctx.fillStyle = 'white'
+              ctx.font = 'bold 12px Arial'
+              ctx.fillText('i', rect.x + rect.width / 2 + 20, rect.y - 17)
             }
-          }
-          ctx.restore()
+          })
         },
       },
     ],
@@ -705,18 +659,14 @@ function createCompetencyChart2(categoryScores) {
       const x = event.clientX - rect.left
       const y = event.clientY - rect.top
       const competency = labels[firstPoint.index]
-      const score = data[firstPoint.index]
-      const iconX =
-        firstPoint.element.x +
-        firstPoint.element.width / 2 +
-        ctx.measureText(`${score}%`).width / 2 +
-        10
-      const iconY = firstPoint.element.y - 14
+      const iconX = firstPoint.element.x + firstPoint.element.width / 2 + 20
+      const iconY = firstPoint.element.y - 20
 
       if (Math.sqrt((x - iconX) ** 2 + (y - iconY) ** 2) <= 8) {
-        showDescription = !showDescription
-        selectedBarIndex = firstPoint.index
-        chart.update()
+        // 'i' icon clicked, show description
+        alert(
+          competencyDescriptions[competency] || 'Description not available.'
+        )
       }
     }
   }
