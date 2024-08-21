@@ -665,9 +665,22 @@ function updateDescriptionBox2(
         const barPos = chart.getDatasetMeta(0).data[dataIndex].getCenterPoint()
 
         descriptionBox.style.position = 'absolute'
-        descriptionBox.style.left = `${
-          rect.left + barPos.x - descriptionBox.offsetWidth / 2
-        }px`
+
+        // Calculate left position
+        let leftPos = rect.left + barPos.x - descriptionBox.offsetWidth / 2
+
+        // Check if the box would overflow on the right
+        const rightEdge = rect.right
+        if (leftPos + descriptionBox.offsetWidth > rightEdge) {
+          leftPos = rightEdge - descriptionBox.offsetWidth - 10 // 10px padding from right edge
+        }
+
+        // Check if the box would overflow on the left
+        if (leftPos < rect.left) {
+          leftPos = rect.left + 10 // 10px padding from left edge
+        }
+
+        descriptionBox.style.left = `${leftPos}px`
         descriptionBox.style.top = `${
           rect.top + barPos.y - descriptionBox.offsetHeight - 10
         }px`
