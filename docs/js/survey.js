@@ -381,14 +381,16 @@ function showResults() {
   const categoryScores = calculateCategoryScores()
 
   const resultHtml = `
-    <h2>Your Competenz Score: ${score}%</h2>
-    <p>Based on your score, we recommend the following courses:</p>
-    <ul>
-      ${courses.map((course) => `<li>${course}</li>`).join('')}
-    </ul>
-    <canvas id="competencyChart" width="600" height="400"></canvas>
-    <button id="downloadChart" class="btn btn-primary">Download Chart</button>
-  `
+  <h2>Your Competenz Score: ${score}%</h2>
+  <p>Based on your score, we recommend the following courses:</p>
+  <ul>
+    ${courses.map((course) => `<li>${course}</li>`).join('')}
+  </ul>
+  <div style="height: 400px;"> <!-- Set a fixed height for the chart container -->
+    <canvas id="competencyChart"></canvas>
+  </div>
+  <button id="downloadChart" class="btn btn-primary">Download Chart</button>
+`
 
   document.getElementById('surveyForm').innerHTML = resultHtml
 
@@ -433,7 +435,7 @@ function createCompetencyChart(categoryScores) {
             data: data,
             backgroundColor: labels.map(
               (label) => colorMap[label] || '#004a99'
-            ), // Default to blue if color not found
+            ),
             borderColor: labels.map((label) => colorMap[label] || '#004a99'),
             borderWidth: 1,
           },
@@ -453,7 +455,11 @@ function createCompetencyChart(categoryScores) {
           },
           x: {
             title: {
-              display: false, // Remove x-axis title
+              display: false,
+            },
+            ticks: {
+              maxRotation: 45,
+              minRotation: 45,
             },
           },
         },
@@ -462,7 +468,7 @@ function createCompetencyChart(categoryScores) {
             display: false,
           },
           title: {
-            display: false, // Remove chart title
+            display: false,
           },
           tooltip: {
             callbacks: {
