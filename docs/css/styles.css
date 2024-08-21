@@ -329,3 +329,16 @@ footer {
     margin-top: 10px;
     font-style: italic;
 }
+
+#competencyChart1,
+#chart2Container {
+    height: 300px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+#descriptionBox1 {
+    height: 100px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+}

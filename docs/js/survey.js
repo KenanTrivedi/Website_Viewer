@@ -396,12 +396,12 @@ function showResults() {
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
     <h3>Diagramm 1: Hover für Scores</h3>
-    <div style="height: 400px; width: 100%;">
+    <div style="height: 300px; width: 100%;">
       <canvas id="competencyChart1"></canvas>
     </div>
-    <div id="descriptionBox1" style="height: 200px; overflow-y: auto;"></div>
+    <div id="descriptionBox1" style="height: 100px; overflow-y: auto;"></div>
     <h3>Diagramm 2: Klicken für detaillierte Informationen</h3>
-    <div id="chart2Container" style="position: relative; height: 400px; width: 100%;">
+    <div id="chart2Container" style="position: relative; height: 300px; width: 100%;">
       <canvas id="competencyChart2"></canvas>
       <div id="chart2Tooltip" style="position: absolute; display: none; background-color: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; pointer-events: auto;"></div>
     </div>
@@ -485,6 +485,7 @@ function createCompetencyChart1(categoryScores) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      aspectRatio: 2, // Adjust this value to change the aspect ratio
       scales: {
         y: {
           beginAtZero: true,
@@ -575,6 +576,7 @@ function createCompetencyChart2(categoryScores) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      aspectRatio: 2, // Adjust this value to change the aspect ratio
       scales: {
         y: {
           beginAtZero: true,
