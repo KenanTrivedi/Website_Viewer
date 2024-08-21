@@ -386,7 +386,7 @@ function showResults() {
     <ul>
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
-    <h3>Chart 1: Hover for Scores, Descriptions on Right</h3>
+    <h3>Chart 1: Hover for Scores and Descriptions</h3>
     <div style="display: flex; height: 400px;">
       <div style="flex: 2;">
         <canvas id="competencyChart1"></canvas>
@@ -394,8 +394,11 @@ function showResults() {
       <div id="descriptionBox1" style="flex: 1; padding: 10px; border: 1px solid #ccc; margin-left: 10px; overflow-y: auto;"></div>
     </div>
     <h3>Chart 2: Click for Scores, Click 'i' for Description</h3>
-    <div style="height: 400px;">
-      <canvas id="competencyChart2"></canvas>
+    <div style="display: flex; height: 400px;">
+      <div style="flex: 2;">
+        <canvas id="competencyChart2"></canvas>
+      </div>
+      <div id="descriptionBox2" style="flex: 1; padding: 10px; border: 1px solid #ccc; margin-left: 10px; overflow-y: auto;"></div>
     </div>
     <button id="downloadChart" class="btn btn-primary">Download Chart</button>
   `
@@ -547,9 +550,6 @@ function createCompetencyChart1(categoryScores) {
     'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
   }
 
-  // Populate the description box initially
-  updateDescriptionBox(descriptionBox, labels, competencyDescriptions)
-
   new Chart(ctx, {
     type: 'bar',
     data: {
@@ -590,29 +590,42 @@ function createCompetencyChart1(categoryScores) {
           display: false,
         },
         tooltip: {
-          enabled: true,
-          callbacks: {
-            title: (tooltipItems) => tooltipItems[0].label,
-            label: (context) => `Score: ${context.parsed.y}%`,
-          },
+          enabled: false,
         },
+      },
+      onHover: (event, activeElements) => {
+        if (activeElements.length > 0) {
+          const dataIndex = activeElements[0].index
+          const competency = labels[dataIndex]
+          const score = data[dataIndex]
+          updateDescriptionBox(
+            descriptionBox,
+            competency,
+            score,
+            competencyDescriptions[competency]
+          )
+        } else {
+          descriptionBox.innerHTML =
+            '<h3>Hover over a bar to see description</h3>'
+        }
       },
     },
   })
 }
 
-function updateDescriptionBox(descriptionBox, labels, descriptions) {
-  let content = '<h3>Competency Descriptions</h3>'
-  labels.forEach((label) => {
-    content += `<h4>${label}</h4><p>${descriptions[label]}</p>`
-  })
-  descriptionBox.innerHTML = content
+function updateDescriptionBox(descriptionBox, competency, score, description) {
+  descriptionBox.innerHTML = `
+    <h3>${competency}</h3>
+    <p><strong>Score: ${score}%</strong></p>
+    <p>${description}</p>
+  `
 }
 
 function createCompetencyChart2(categoryScores) {
   const canvas = document.getElementById('competencyChart2')
-  if (!canvas) {
-    console.error('Chart canvas not found')
+  const descriptionBox = document.getElementById('descriptionBox2')
+  if (!canvas || !descriptionBox) {
+    console.error('Chart canvas or description box not found')
     return
   }
 
@@ -630,7 +643,6 @@ function createCompetencyChart2(categoryScores) {
   }
 
   let selectedBarIndex = -1
-  let showDescription = false
 
   const chart = new Chart(ctx, {
     type: 'bar',
@@ -678,13 +690,8 @@ function createCompetencyChart2(categoryScores) {
       onClick: (event, activeElements) => {
         if (activeElements.length > 0) {
           const clickedBarIndex = activeElements[0].index
-          if (selectedBarIndex === clickedBarIndex) {
-            selectedBarIndex = -1
-            showDescription = false
-          } else {
-            selectedBarIndex = clickedBarIndex
-            showDescription = false
-          }
+          selectedBarIndex =
+            selectedBarIndex === clickedBarIndex ? -1 : clickedBarIndex
           chart.update()
         }
       },
@@ -701,39 +708,32 @@ function createCompetencyChart2(categoryScores) {
             const competency = labels[selectedBarIndex]
             const score = data[selectedBarIndex]
 
-            // Draw score
+            // Draw score and 'i' icon
             ctx.fillStyle = 'black'
             ctx.font = '14px Arial'
             ctx.textAlign = 'center'
-            ctx.fillText(`${score}%`, rect.x + rect.width / 2, rect.y - 20)
+            const scoreText = `${score}%`
+            const scoreWidth = ctx.measureText(scoreText).width
+            ctx.fillText(scoreText, rect.x + rect.width / 2 - 10, rect.y - 10)
 
             // Draw 'i' icon
             ctx.fillStyle = '#004a99'
             ctx.beginPath()
-            ctx.arc(rect.x + rect.width + 15, rect.y - 20, 8, 0, 2 * Math.PI)
+            ctx.arc(
+              rect.x + rect.width / 2 + scoreWidth / 2 + 10,
+              rect.y - 14,
+              8,
+              0,
+              2 * Math.PI
+            )
             ctx.fill()
             ctx.fillStyle = 'white'
             ctx.font = 'bold 12px Arial'
-            ctx.fillText('i', rect.x + rect.width + 15, rect.y - 17)
-
-            if (showDescription) {
-              // Draw description box
-              const description = competencyDescriptions[competency]
-              const boxWidth = chart.width * 0.8
-              const boxHeight = 100
-              const boxX = chart.width / 2 - boxWidth / 2
-              const boxY = rect.y + rect.height + 10
-
-              ctx.fillStyle = 'rgba(255,255,255,0.9)'
-              ctx.fillRect(boxX, boxY, boxWidth, boxHeight)
-              ctx.strokeStyle = 'black'
-              ctx.strokeRect(boxX, boxY, boxWidth, boxHeight)
-
-              ctx.fillStyle = 'black'
-              ctx.font = '14px Arial'
-              ctx.textAlign = 'left'
-              wrapText(ctx, description, boxX + 5, boxY + 20, boxWidth - 10, 20)
-            }
+            ctx.fillText(
+              'i',
+              rect.x + rect.width / 2 + scoreWidth / 2 + 10,
+              rect.y - 11
+            )
           }
           ctx.restore()
         },
@@ -753,32 +753,26 @@ function createCompetencyChart2(categoryScores) {
       const rect = chart.canvas.getBoundingClientRect()
       const x = event.clientX - rect.left
       const y = event.clientY - rect.top
-      const iconX = firstPoint.element.x + firstPoint.element.width + 15
-      const iconY = firstPoint.element.y - 20
+      const competency = labels[firstPoint.index]
+      const score = data[firstPoint.index]
+      const iconX =
+        firstPoint.element.x +
+        firstPoint.element.width / 2 +
+        ctx.measureText(`${score}%`).width / 2 +
+        10
+      const iconY = firstPoint.element.y - 14
 
       if (Math.sqrt((x - iconX) ** 2 + (y - iconY) ** 2) <= 8) {
-        showDescription = !showDescription
-        chart.update()
+        updateDescriptionBox(
+          descriptionBox,
+          competency,
+          score,
+          competencyDescriptions[competency]
+        )
+      } else {
+        descriptionBox.innerHTML =
+          '<h3>Click on "i" icon to see description</h3>'
       }
     }
   }
-}
-
-function wrapText(context, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(' ')
-  let line = ''
-
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + ' '
-    const metrics = context.measureText(testLine)
-    const testWidth = metrics.width
-    if (testWidth > maxWidth && n > 0) {
-      context.fillText(line, x, y)
-      line = words[n] + ' '
-      y += lineHeight
-    } else {
-      line = testLine
-    }
-  }
-  context.fillText(line, x, y)
 }
