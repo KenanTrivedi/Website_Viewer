@@ -112,7 +112,7 @@ const surveyData = [
     ],
   },
   {
-    title: 'Schützen und sicher agieren',
+    title: 'Schützen und sicher Agieren',
     questions: [
       {
         text: 'Ich kann die Gefahren und Risiken in digitalen Umgebungen beachten, z. B. erkennen, dass E-Mails von unbekannten Absendern Viren weiterleiten können, dass digitale Medien negativ die mentale Gesundheit beeinflussen können und dass Falschmeldungen schnell verbreitet werden.',
