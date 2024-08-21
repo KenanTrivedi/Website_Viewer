@@ -386,15 +386,11 @@ function showResults() {
     <ul>
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
-    <h3>Chart 1: Hover for Scores, See Descriptions on Right</h3>
+    <h3>Chart: Hover for Scores, See Descriptions on Right</h3>
     <div style="height: 400px;">
-  <canvas id="competencyChart1"></canvas>
-</div>
-<div id="descriptionBox1" style="height: 300px; overflow-y: auto;"></div>
-
-<div style="height: 400px; margin-top: 20px;">
-  <canvas id="competencyChart2"></canvas>
-</div>
+      <canvas id="competencyChart1"></canvas>
+    </div>
+    <div id="descriptionBox1" style="height: 300px; overflow-y: auto;"></div>
     <button id="downloadChart" class="btn btn-primary">Download Chart</button>
   `
   console.log('Category Scores:', categoryScores)
@@ -403,7 +399,6 @@ function showResults() {
   document.getElementById('surveyForm').innerHTML = resultHtml
 
   createCompetencyChart1(categoryScores)
-  createCompetencyChart2(categoryScores)
 
   const downloadButton = document.getElementById('downloadChart')
   if (downloadButton) {
@@ -416,28 +411,15 @@ function showResults() {
 function downloadChart(event) {
   event.preventDefault()
 
-  // Download Chart 1
-  const canvas1 = document.getElementById('competencyChart1')
-  if (canvas1) {
-    const image1 = canvas1.toDataURL('image/png')
-    const link1 = document.createElement('a')
-    link1.download = 'competency-chart1.png'
-    link1.href = image1
-    link1.click()
+  const canvas = document.getElementById('competencyChart1')
+  if (canvas) {
+    const image = canvas.toDataURL('image/png')
+    const link = document.createElement('a')
+    link.download = 'competency-chart.png'
+    link.href = image
+    link.click()
   } else {
-    console.error('Chart 1 canvas not found')
-  }
-
-  // Download Chart 2
-  const canvas2 = document.getElementById('competencyChart2')
-  if (canvas2) {
-    const image2 = canvas2.toDataURL('image/png')
-    const link2 = document.createElement('a')
-    link2.download = 'competency-chart2.png'
-    link2.href = image2
-    link2.click()
-  } else {
-    console.error('Chart 2 canvas not found')
+    console.error('Chart canvas not found')
   }
 }
 
@@ -546,150 +528,4 @@ function updateDescriptionBox(descriptionBox, competency, description) {
   `
   descriptionBox.style.overflowY = 'auto'
   descriptionBox.style.maxHeight = '300px' // Adjust as needed
-}
-
-function createCompetencyChart2(categoryScores) {
-  const canvas = document.getElementById('competencyChart2')
-  if (!canvas) {
-    console.error('Chart canvas not found')
-    return
-  }
-  // Ensure the canvas is visible
-  canvas.style.display = 'block'
-  canvas.style.width = '100%'
-  canvas.style.height = '400px' // Adjust as needed
-
-  const ctx = canvas.getContext('2d')
-  const labels = Object.keys(categoryScores)
-  const data = Object.values(categoryScores)
-
-  let selectedBarIndex = -1
-
-  const chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          data: data,
-          backgroundColor: labels.map((label) => colorMap[label]),
-          borderColor: labels.map((label) => colorMap[label]),
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
-          title: {
-            display: true,
-            text: 'Score (%)',
-          },
-        },
-        x: {
-          ticks: {
-            maxRotation: 45,
-            minRotation: 45,
-          },
-        },
-      },
-      plugins: {
-        legend: {
-          display: false,
-        },
-        tooltip: {
-          enabled: false,
-        },
-      },
-      onClick: (event, activeElements) => {
-        if (activeElements.length > 0) {
-          selectedBarIndex = activeElements[0].index
-          chart.update()
-        }
-      },
-    },
-    plugins: [
-      {
-        id: 'customPlugin',
-        afterDraw: (chart) => {
-          const ctx = chart.ctx
-          chart.data.datasets[0].data.forEach((value, index) => {
-            const meta = chart.getDatasetMeta(0)
-            const rect = meta.data[index]
-
-            if (index === selectedBarIndex) {
-              // Draw score
-              ctx.fillStyle = 'black'
-              ctx.font = '14px Arial'
-              ctx.textAlign = 'center'
-              ctx.fillText(`${value}%`, rect.x + rect.width / 2, rect.y - 10)
-
-              // Draw 'i' icon
-              ctx.fillStyle = '#004a99'
-              ctx.beginPath()
-              ctx.arc(
-                rect.x + rect.width / 2 + 20,
-                rect.y - 20,
-                8,
-                0,
-                2 * Math.PI
-              )
-              ctx.fill()
-              ctx.fillStyle = 'white'
-              ctx.font = 'bold 12px Arial'
-              ctx.fillText('i', rect.x + rect.width / 2 + 20, rect.y - 17)
-            }
-          })
-        },
-      },
-    ],
-  })
-
-  canvas.onclick = (event) => {
-    const points = chart.getElementsAtEventForMode(
-      event,
-      'nearest',
-      { intersect: true },
-      true
-    )
-    if (points.length) {
-      const firstPoint = points[0]
-      const rect = chart.canvas.getBoundingClientRect()
-      const x = event.clientX - rect.left
-      const y = event.clientY - rect.top
-      const competency = labels[firstPoint.index]
-      const iconX = firstPoint.element.x + firstPoint.element.width / 2 + 20
-      const iconY = firstPoint.element.y - 20
-
-      if (Math.sqrt((x - iconX) ** 2 + (y - iconY) ** 2) <= 8) {
-        // 'i' icon clicked, show description
-        alert(
-          competencyDescriptions[competency] || 'Description not available.'
-        )
-      }
-    }
-  }
-}
-
-function wrapText(context, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(' ')
-  let line = ''
-
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + ' '
-    const metrics = context.measureText(testLine)
-    const testWidth = metrics.width
-    if (testWidth > maxWidth && n > 0) {
-      context.fillText(line, x, y)
-      line = words[n] + ' '
-      y += lineHeight
-    } else {
-      line = testLine
-    }
-  }
-  context.fillText(line, x, y)
 }
