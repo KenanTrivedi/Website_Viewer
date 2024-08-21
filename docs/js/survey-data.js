@@ -203,4 +203,8 @@ const surveyData = [
     ],
   },
 ]
-window.surveyData = surveyData
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = surveyData
+} else if (typeof window !== 'undefined') {
+  window.surveyData = surveyData
+}
