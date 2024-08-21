@@ -467,6 +467,8 @@ function createCompetencyChart1(categoryScores) {
     'Analysieren und Reflektieren': '#FFD473',
   }
 
+  let currentHoveredIndex = -1
+
   chart1Instance = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -510,22 +512,24 @@ function createCompetencyChart1(categoryScores) {
         },
       },
       onHover: (event, activeElements) => {
-        if (activeElements.length > 0) {
-          const dataIndex = activeElements[0].index
+        const dataIndex =
+          activeElements.length > 0 ? activeElements[0].index : -1
+        if (dataIndex !== currentHoveredIndex && dataIndex !== -1) {
+          currentHoveredIndex = dataIndex
           const competency = labels[dataIndex]
           updateDescriptionBox(
             descriptionBox,
             competency,
             competencyDescriptions[competency]
           )
-        } else {
-          descriptionBox.innerHTML = ''
         }
       },
     },
   })
+
+  // Clear description when mouse leaves the chart area
   canvas.addEventListener('mouseleave', () => {
-    descriptionBox.innerHTML = ''
+    currentHoveredIndex = -1
   })
 }
 
