@@ -444,7 +444,7 @@ function downloadChart(event) {
 const competencyDescriptions = {
   'Suchen, Verarbeiten und Aufbewahren':
     'Umfasst das Wissen, die Motivation und Fähigkeiten, gezielt nach digitalen Daten und Inhalten zu suchen, diese effektiv zu organisieren, zu speichern und abzurufen.',
-  'Kommunizieren und Kollaborieren':
+  'Kommunikation und Kollaborieren':
     'Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen, dabei die Verhaltensnormen in digitalen Umgebungen zu beachten und digitale Technologien zur gesellschaftlichen Teilhabe und Selbstermächtigung zu nutzen.',
   'Problemlösen und Handeln':
     'Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen und kreative technische Lösungen für spezifische Bedürfnisse zu finden. Zudem gehört zum Kompetenzbereich informatisches Denken, also das strategische Lösen komplexer Probleme in digitalen Umgebungen und die kontinuierliche Weiterentwicklung der eigenen digitalen Kompetenzen.',
@@ -470,7 +470,7 @@ function createCompetencyChart1(categoryScores) {
 
   const colorMap = {
     'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
-    'Kommunizieren und Kollaborieren': '#0CC0DF',
+    'Kommunikation und Kollaborieren': '#0CC0DF',
     'Produzieren und Präsentieren': '#FF6D5F',
     'Schützen und sicher Agieren': '#8C52FF',
     'Problemlösen und Handeln': '#E884C4',
