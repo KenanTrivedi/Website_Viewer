@@ -391,6 +391,11 @@ function showResults() {
       <canvas id="competencyChart1"></canvas>
     </div>
     <div id="descriptionBox1" style="height: 200px; overflow-y: auto;"></div>
+    <h3>Chart 2: Click for Detailed Information</h3>
+    <div style="height: 400px;">
+      <canvas id="competencyChart2"></canvas>
+    </div>
+    <div id="descriptionBox2" style="height: 200px; overflow-y: auto;"></div>
     <button id="downloadChart" class="btn btn-primary">Download Chart</button>
   `
   console.log('Category Scores:', categoryScores)
@@ -408,19 +413,15 @@ function showResults() {
   }
 }
 
-function downloadChart(event) {
-  event.preventDefault()
-
-  const canvas = document.getElementById('competencyChart1')
-  if (canvas) {
-    const image = canvas.toDataURL('image/png')
-    const link = document.createElement('a')
-    link.download = 'competency-chart.png'
-    link.href = image
-    link.click()
-  } else {
-    console.error('Chart canvas not found')
-  }
+const canvas = document.getElementById('competencyChart1')
+if (canvas) {
+  const image = canvas.toDataURL('image/png')
+  const link = document.createElement('a')
+  link.download = 'competency-chart.png'
+  link.href = image
+  link.click()
+} else {
+  console.error('Chart canvas not found')
 }
 
 const competencyDescriptions = {
@@ -528,4 +529,154 @@ function updateDescriptionBox(descriptionBox, competency, description) {
   `
   descriptionBox.style.overflowY = 'auto'
   descriptionBox.style.maxHeight = '300px' // Adjust as needed
+}
+
+function createCompetencyChart2(categoryScores) {
+  const canvas = document.getElementById('competencyChart2')
+  const descriptionBox = document.getElementById('descriptionBox2')
+  if (!canvas || !descriptionBox) {
+    console.error('Chart canvas or description box not found')
+    return
+  }
+
+  const ctx = canvas.getContext('2d')
+  const labels = Object.keys(categoryScores)
+  const data = Object.values(categoryScores)
+
+  const colorMap = {
+    'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
+    'Kommunikation und Kollaborieren': '#0CC0DF',
+    'Produzieren und Präsentieren': '#FF6D5F',
+    'Schützen und sicher Agieren': '#8C52FF',
+    'Problemlösen und Handeln': '#E884C4',
+    'Analysieren und Reflektieren': '#FFD473',
+  }
+
+  let selectedIndex = -1
+  let showDescription = false
+
+  const chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          data: data,
+          backgroundColor: labels.map((label) => colorMap[label] || '#999999'),
+          borderColor: labels.map((label) => colorMap[label] || '#999999'),
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          title: {
+            display: true,
+            text: 'Score (%)',
+          },
+        },
+        x: {
+          ticks: {
+            maxRotation: 45,
+            minRotation: 45,
+          },
+        },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: false,
+        },
+      },
+      onClick: (event, elements) => {
+        if (elements.length > 0) {
+          const index = elements[0].index
+          if (index === selectedIndex) {
+            showDescription = !showDescription
+          } else {
+            selectedIndex = index
+            showDescription = false
+          }
+          chart.update()
+          updateDescriptionBox2(
+            descriptionBox,
+            labels[selectedIndex],
+            categoryScores[labels[selectedIndex]],
+            showDescription
+          )
+        }
+      },
+    },
+  })
+
+  function updateDescriptionBox2(
+    descriptionBox,
+    competency,
+    score,
+    showDescription
+  ) {
+    if (competency) {
+      const description = competencyDescriptions[competency]
+      descriptionBox.innerHTML = `
+        <div style="background-color: black; color: white; padding: 10px; border-radius: 5px;">
+          <h3>${competency}</h3>
+          <p>Score: ${score}%</p>
+          ${
+            showDescription
+              ? `<p>${description}</p>`
+              : '<p><i class="fas fa-info-circle" style="cursor: pointer;"></i> Click for description</p>'
+          }
+        </div>
+      `
+      if (!showDescription) {
+        descriptionBox.querySelector('i').addEventListener('click', (e) => {
+          e.stopPropagation()
+          showDescription = true
+          updateDescriptionBox2(descriptionBox, competency, score, true)
+        })
+      }
+    } else {
+      descriptionBox.innerHTML = ''
+    }
+  }
+
+  canvas.addEventListener('mousemove', (event) => {
+    const points = chart.getElementsAtEventForMode(
+      event,
+      'nearest',
+      { intersect: true },
+      true
+    )
+    if (points.length) {
+      canvas.style.cursor = 'pointer'
+    } else {
+      canvas.style.cursor = 'default'
+    }
+  })
+}
+
+function downloadChart(event) {
+  event.preventDefault()
+
+  const canvas1 = document.getElementById('competencyChart1')
+  const canvas2 = document.getElementById('competencyChart2')
+  if (canvas1 && canvas2) {
+    const zipFile = new JSZip()
+    zipFile.file('chart1.png', canvas1.toDataURL().split(',')[1], {
+      base64: true,
+    })
+    zipFile.file('chart2.png', canvas2.toDataURL().split(',')[1], {
+      base64: true,
+    })
+    zipFile.generateAsync({ type: 'blob' }).then(function (content) {
+      saveAs(content, 'competency-charts.zip')
+    })
+  } else {
+    console.error('Chart canvas not found')
+  }
 }
