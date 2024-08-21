@@ -387,19 +387,19 @@ function showResults() {
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
     <h3>Chart 1: Hover for Scores, See Descriptions on Right</h3>
-    <div style="display: flex; height: 400px;">
-      <div style="flex: 2;">
-        <canvas id="competencyChart1"></canvas>
-      </div>
-      <div id="descriptionBox1" style="flex: 1; padding: 10px; border: 1px solid #ccc; margin-left: 10px; overflow-y: auto;"></div>
-    </div>
-    <h3>Chart 2: Click for Scores, Click 'i' for Description</h3>
     <div style="height: 400px;">
-      <canvas id="competencyChart2"></canvas>
-    </div>
+  <canvas id="competencyChart1"></canvas>
+</div>
+<div id="descriptionBox1" style="height: 300px; overflow-y: auto;"></div>
+
+<div style="height: 400px; margin-top: 20px;">
+  <canvas id="competencyChart2"></canvas>
+</div>
     <button id="downloadChart" class="btn btn-primary">Download Chart</button>
   `
-
+  console.log('Category Scores:', categoryScores)
+  console.log('Labels:', Object.keys(categoryScores))
+  console.log('Data:', Object.values(categoryScores))
   document.getElementById('surveyForm').innerHTML = resultHtml
 
   createCompetencyChart1(categoryScores)
@@ -484,8 +484,8 @@ function createCompetencyChart1(categoryScores) {
       datasets: [
         {
           data: data,
-          backgroundColor: labels.map((label) => colorMap[label]),
-          borderColor: labels.map((label) => colorMap[label]),
+          backgroundColor: labels.map((label) => colorMap[label] || '#999999'), // Fallback color
+          borderColor: labels.map((label) => colorMap[label] || '#999999'),
           borderWidth: 1,
         },
       ],
@@ -503,9 +503,6 @@ function createCompetencyChart1(categoryScores) {
           },
         },
         x: {
-          title: {
-            display: false,
-          },
           ticks: {
             maxRotation: 45,
             minRotation: 45,
@@ -513,9 +510,7 @@ function createCompetencyChart1(categoryScores) {
         },
       },
       plugins: {
-        legend: {
-          display: false,
-        },
+        legend: { display: false },
         tooltip: {
           enabled: true,
           callbacks: {
@@ -533,12 +528,14 @@ function createCompetencyChart1(categoryScores) {
             competency,
             competencyDescriptions[competency]
           )
-        } else {
-          descriptionBox.innerHTML =
-            '<h3>Hover over a bar to see description</h3>'
         }
       },
     },
+  })
+
+  // Allow scrolling when mouse leaves the chart
+  canvas.addEventListener('mouseleave', () => {
+    descriptionBox.style.overflowY = 'auto'
   })
 }
 
@@ -547,6 +544,8 @@ function updateDescriptionBox(descriptionBox, competency, description) {
     <h3>${competency}</h3>
     <p>${description || 'Beschreibung nicht verfügbar.'}</p>
   `
+  descriptionBox.style.overflowY = 'auto'
+  descriptionBox.style.maxHeight = '300px' // Adjust as needed
 }
 
 function createCompetencyChart2(categoryScores) {
@@ -555,6 +554,10 @@ function createCompetencyChart2(categoryScores) {
     console.error('Chart canvas not found')
     return
   }
+  // Ensure the canvas is visible
+  canvas.style.display = 'block'
+  canvas.style.width = '100%'
+  canvas.style.height = '400px' // Adjust as needed
 
   const ctx = canvas.getContext('2d')
   const labels = Object.keys(categoryScores)
