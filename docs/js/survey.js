@@ -591,7 +591,7 @@ function createCompetencyChart2(categoryScores) {
           enabled: false,
         },
       },
-      onClick: (event, elements) => {
+      onClick: (event, elements, chart) => {
         if (elements.length > 0) {
           const index = elements[0].index
           updateDescriptionBox2(
@@ -599,7 +599,7 @@ function createCompetencyChart2(categoryScores) {
             labels[index],
             data[index],
             false,
-            chart2Instance,
+            chart,
             index
           )
         } else {
@@ -639,7 +639,7 @@ function updateDescriptionBox2(
   competency,
   score,
   showDescription,
-  chartInstance,
+  chart,
   dataIndex
 ) {
   if (competency) {
@@ -658,23 +658,26 @@ function updateDescriptionBox2(
     `
 
     // Position the description box
-    const meta = chartInstance.getDatasetMeta(0)
-    const rect = chartInstance.canvas.getBoundingClientRect()
-    const barRect = meta.data[dataIndex].element.getProps([
-      'x',
-      'y',
-      'width',
-      'height',
-    ])
+    try {
+      const meta = chart.getDatasetMeta(0)
+      if (meta.data[dataIndex]) {
+        const rect = chart.canvas.getBoundingClientRect()
+        const barPos = chart.getDatasetMeta(0).data[dataIndex].getCenterPoint()
 
-    descriptionBox.style.position = 'absolute'
-    descriptionBox.style.left = `${
-      rect.left + barRect.x - descriptionBox.offsetWidth / 2 + barRect.width / 2
-    }px`
-    descriptionBox.style.top = `${
-      rect.top + barRect.y - descriptionBox.offsetHeight - 10
-    }px`
-    descriptionBox.style.display = 'block'
+        descriptionBox.style.position = 'absolute'
+        descriptionBox.style.left = `${
+          rect.left + barPos.x - descriptionBox.offsetWidth / 2
+        }px`
+        descriptionBox.style.top = `${
+          rect.top + barPos.y - descriptionBox.offsetHeight - 10
+        }px`
+        descriptionBox.style.display = 'block'
+      } else {
+        console.error('Bar element not found for index:', dataIndex)
+      }
+    } catch (error) {
+      console.error('Error positioning description box:', error)
+    }
 
     if (showDescription) {
       descriptionBox
@@ -685,7 +688,7 @@ function updateDescriptionBox2(
             competency,
             score,
             false,
-            chartInstance,
+            chart,
             dataIndex
           )
         })
@@ -697,7 +700,7 @@ function updateDescriptionBox2(
           competency,
           score,
           true,
-          chartInstance,
+          chart,
           dataIndex
         )
       })
