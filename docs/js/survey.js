@@ -553,8 +553,6 @@ function createCompetencyChart2(categoryScores) {
     'Analysieren und Reflektieren': '#FFD473',
   }
 
-  let selectedIndex = -1
-
   chart2Instance = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -596,13 +594,13 @@ function createCompetencyChart2(categoryScores) {
       onClick: (event, elements) => {
         if (elements.length > 0) {
           const index = elements[0].index
-          const element = elements[0].element
           updateDescriptionBox2(
             descriptionBox,
             labels[index],
             data[index],
             false,
-            element
+            chart2Instance,
+            index
           )
         } else {
           descriptionBox.style.display = 'none'
@@ -641,7 +639,8 @@ function updateDescriptionBox2(
   competency,
   score,
   showDescription,
-  element
+  chartInstance,
+  dataIndex
 ) {
   if (competency) {
     const description = competencyDescriptions[competency]
@@ -659,17 +658,21 @@ function updateDescriptionBox2(
     `
 
     // Position the description box
-    const chartRect = chart2Instance.canvas.getBoundingClientRect()
-    const barRect = element.getBoundingClientRect()
+    const meta = chartInstance.getDatasetMeta(0)
+    const rect = chartInstance.canvas.getBoundingClientRect()
+    const barRect = meta.data[dataIndex].element.getProps([
+      'x',
+      'y',
+      'width',
+      'height',
+    ])
+
     descriptionBox.style.position = 'absolute'
     descriptionBox.style.left = `${
-      barRect.left -
-      chartRect.left +
-      barRect.width / 2 -
-      descriptionBox.offsetWidth / 2
+      rect.left + barRect.x - descriptionBox.offsetWidth / 2 + barRect.width / 2
     }px`
     descriptionBox.style.top = `${
-      barRect.top - chartRect.top - descriptionBox.offsetHeight - 10
+      rect.top + barRect.y - descriptionBox.offsetHeight - 10
     }px`
     descriptionBox.style.display = 'block'
 
@@ -682,13 +685,21 @@ function updateDescriptionBox2(
             competency,
             score,
             false,
-            element
+            chartInstance,
+            dataIndex
           )
         })
     } else {
       descriptionBox.querySelector('i').addEventListener('click', (e) => {
         e.stopPropagation()
-        updateDescriptionBox2(descriptionBox, competency, score, true, element)
+        updateDescriptionBox2(
+          descriptionBox,
+          competency,
+          score,
+          true,
+          chartInstance,
+          dataIndex
+        )
       })
     }
   } else {
