@@ -401,16 +401,15 @@ function showResults() {
     </div>
     <div id="descriptionBox1" style="height: 200px; overflow-y: auto;"></div>
     <h3>Diagramm 2: Klicken für detaillierte Informationen</h3>
-<div style="position: relative; height: 400px;">
-  <canvas id="competencyChart2"></canvas>
-  <div id="descriptionBox2" style="position: absolute; display: none;"></div>
-</div>
+    <div id="chart2Container" style="position: relative; height: 400px;">
+      <canvas id="competencyChart2"></canvas>
+      <div id="chart2Tooltip" style="position: absolute; display: none; background-color: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; pointer-events: auto;"></div>
+    </div>
     <button id="downloadChart" class="btn btn-primary">Diagramme herunterladen</button>
   `
 
   document.getElementById('surveyForm').innerHTML = resultHtml
 
-  // Use requestAnimationFrame to ensure DOM is updated before creating charts
   requestAnimationFrame(() => {
     createCompetencyChart1(categoryScores)
     createCompetencyChart2(categoryScores)
@@ -529,10 +528,11 @@ function createCompetencyChart1(categoryScores) {
 }
 
 function createCompetencyChart2(categoryScores) {
+  const chartContainer = document.getElementById('chart2Container')
   const canvas = document.getElementById('competencyChart2')
-  const descriptionBox = document.getElementById('descriptionBox2')
-  if (!canvas || !descriptionBox) {
-    console.error('Chart canvas or description box not found')
+  const tooltip = document.getElementById('chart2Tooltip')
+  if (!chartContainer || !canvas || !tooltip) {
+    console.error('Chart elements not found')
     return
   }
 
@@ -587,51 +587,76 @@ function createCompetencyChart2(categoryScores) {
       },
       plugins: {
         legend: { display: false },
-        tooltip: {
-          enabled: false,
-        },
+        tooltip: { enabled: false },
       },
-      onClick: (event, elements, chart) => {
+      onClick: (event, elements) => {
         if (elements.length > 0) {
           const index = elements[0].index
-          updateDescriptionBox2(
-            descriptionBox,
+          updateTooltip(
+            tooltip,
             labels[index],
             data[index],
-            false,
-            chart,
+            chart2Instance,
             index
           )
         } else {
-          descriptionBox.style.display = 'none'
+          tooltip.style.display = 'none'
         }
       },
     },
   })
 
-  canvas.addEventListener('mousemove', (event) => {
-    const points = chart2Instance.getElementsAtEventForMode(
-      event,
-      'nearest',
-      { intersect: true },
-      true
-    )
-    if (points.length) {
-      canvas.style.cursor = 'pointer'
+  document.addEventListener('click', (event) => {
+    if (!chartContainer.contains(event.target)) {
+      tooltip.style.display = 'none'
+    }
+  })
+}
+
+function updateTooltip(tooltip, competency, score, chart, dataIndex) {
+  const description = competencyDescriptions[competency]
+  tooltip.innerHTML = `
+    <div class="tooltip-content">
+      <h3>${competency}</h3>
+      <p>Score: ${score}%</p>
+      <button class="info-button">ℹ️ Show Description</button>
+      <p class="description" style="display: none;">${description}</p>
+    </div>
+  `
+
+  const infoButton = tooltip.querySelector('.info-button')
+  const descriptionElement = tooltip.querySelector('.description')
+  infoButton.addEventListener('click', (e) => {
+    e.stopPropagation()
+    if (descriptionElement.style.display === 'none') {
+      descriptionElement.style.display = 'block'
+      infoButton.textContent = '🔼 Hide Description'
     } else {
-      canvas.style.cursor = 'default'
+      descriptionElement.style.display = 'none'
+      infoButton.textContent = 'ℹ️ Show Description'
     }
   })
 
-  // Hide description box when clicking outside the chart
-  document.addEventListener('click', (event) => {
-    if (
-      !canvas.contains(event.target) &&
-      !descriptionBox.contains(event.target)
-    ) {
-      descriptionBox.style.display = 'none'
-    }
-  })
+  positionTooltip(tooltip, chart, dataIndex)
+  tooltip.style.display = 'block'
+}
+
+function positionTooltip(tooltip, chart, dataIndex) {
+  const meta = chart.getDatasetMeta(0)
+  const rect = chart.canvas.getBoundingClientRect()
+  const barPos = meta.data[dataIndex].getCenterPoint()
+
+  const tooltipWidth = 250 // Set a fixed width for the tooltip
+  let left = rect.left + barPos.x - tooltipWidth / 2
+  const top = rect.top + barPos.y - tooltip.offsetHeight - 10
+
+  // Adjust horizontal position if it goes out of the chart area
+  if (left < rect.left) left = rect.left
+  if (left + tooltipWidth > rect.right) left = rect.right - tooltipWidth
+
+  tooltip.style.left = `${left}px`
+  tooltip.style.top = `${top}px`
+  tooltip.style.width = `${tooltipWidth}px`
 }
 
 function updateDescriptionBox2(
