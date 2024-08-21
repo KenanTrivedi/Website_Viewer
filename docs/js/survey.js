@@ -181,7 +181,11 @@ function saveSectionData() {
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Server responded with status ' + response.status)
+          return response.text().then((text) => {
+            throw new Error(
+              `Server responded with status ${response.status}: ${text}`
+            )
+          })
         }
         return response.json()
       })
@@ -386,27 +390,30 @@ function showResults() {
   const categoryScores = calculateCategoryScores()
 
   const resultHtml = `
-    <h2>Your Competenz Score: ${score}%</h2>
-    <p>Based on your score, we recommend the following courses:</p>
+    <h2>Ihr Kompetenz-Score: ${score}%</h2>
+    <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse:</p>
     <ul>
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
-    <h3>Chart 1: Hover for Scores</h3>
+    <h3>Diagramm 1: Hover für Scores</h3>
     <div style="height: 400px;">
       <canvas id="competencyChart1"></canvas>
     </div>
     <div id="descriptionBox1" style="height: 200px; overflow-y: auto;"></div>
-    <h3>Chart 2: Click for Detailed Information</h3>
+    <h3>Diagramm 2: Klicken für detaillierte Informationen</h3>
     <div style="height: 400px;">
       <canvas id="competencyChart2"></canvas>
     </div>
     <div id="descriptionBox2" style="height: 200px; overflow-y: auto;"></div>
-    <button id="downloadChart" class="btn btn-primary">Download Chart</button>
+    <button id="downloadChart" class="btn btn-primary">Diagramme herunterladen</button>
   `
-  console.log('Category Scores:', categoryScores)
-  console.log('Labels:', Object.keys(categoryScores))
-  console.log('Data:', Object.values(categoryScores))
+
   document.getElementById('surveyForm').innerHTML = resultHtml
+  // Wait for the next frame to ensure the canvas elements are in the DOM
+  requestAnimationFrame(() => {
+    createCompetencyChart1(categoryScores)
+    createCompetencyChart2(categoryScores)
+  })
 
   setTimeout(() => {
     createCompetencyChart1(categoryScores)
@@ -449,12 +456,19 @@ const competencyDescriptions = {
     'Umfasst das Wissen, die Motivation und Fähigkeiten, die Auswirkungen und Verbreitung digitaler Medien und Inhalte zu analysieren, deren Glaubwürdigkeit und Zuverlässigkeit kritisch zu bewerten sowie Geschäftsaktivitäten in digitalen Umgebungen zu identifizieren und angemessen darauf zu reagieren.',
 }
 
+let chart1Instance = null
+let chart2Instance = null
+
 function createCompetencyChart1(categoryScores) {
   const canvas = document.getElementById('competencyChart1')
   const descriptionBox = document.getElementById('descriptionBox1')
   if (!canvas || !descriptionBox) {
     console.error('Chart canvas or description box not found')
     return
+  }
+
+  if (chart1Instance) {
+    chart1Instance.destroy()
   }
 
   const ctx = canvas.getContext('2d')
@@ -470,7 +484,7 @@ function createCompetencyChart1(categoryScores) {
     'Analysieren und Reflektieren': '#FFD473',
   }
 
-  new Chart(ctx, {
+  chart1Instance = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: labels,
@@ -549,6 +563,10 @@ function createCompetencyChart2(categoryScores) {
     return
   }
 
+  if (chart2Instance) {
+    chart2Instance.destroy()
+  }
+
   const ctx = canvas.getContext('2d')
   const labels = Object.keys(categoryScores)
   const data = Object.values(categoryScores)
@@ -562,10 +580,7 @@ function createCompetencyChart2(categoryScores) {
     'Analysieren und Reflektieren': '#FFD473',
   }
 
-  let selectedIndex = -1
-  let showDescription = false
-
-  const chart = new Chart(ctx, {
+  chart2Instance = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: labels,

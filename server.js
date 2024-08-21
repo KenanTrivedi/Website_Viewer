@@ -89,16 +89,24 @@ app.post("/login", async (req, res) => {
 app.post("/api/save-user-data", async (req, res) => {
   const { userId, data } = req.body;
   try {
-    await UserData.findOneAndUpdate(
+    if (!userId || !data) {
+      throw new Error("Missing userId or data in request body");
+    }
+    const result = await UserData.findOneAndUpdate(
       { userId },
       { $set: { data } },
       { upsert: true, new: true }
     );
+    if (!result) {
+      throw new Error("Failed to update or insert user data");
+    }
     await updateCSV();
-    res.status(200).send({ message: "Data saved successfully" });
+    res.status(200).json({ message: "Data saved successfully" });
   } catch (err) {
     console.error("Failed to save user data:", err);
-    res.status(500).send("Error saving user data");
+    res
+      .status(500)
+      .json({ error: "Error saving user data", details: err.message });
   }
 });
 
