@@ -409,18 +409,12 @@ function showResults() {
   `
 
   document.getElementById('surveyForm').innerHTML = resultHtml
-  // Wait for the next frame to ensure the canvas elements are in the DOM
+
+  // Use requestAnimationFrame to ensure DOM is updated before creating charts
   requestAnimationFrame(() => {
     createCompetencyChart1(categoryScores)
     createCompetencyChart2(categoryScores)
   })
-
-  setTimeout(() => {
-    createCompetencyChart1(categoryScores)
-    createCompetencyChart2(categoryScores)
-  }, 0)
-
-  createCompetencyChart1(categoryScores)
 
   const downloadButton = document.getElementById('downloadChart')
   if (downloadButton) {
@@ -428,17 +422,6 @@ function showResults() {
   } else {
     console.error('Download button not found')
   }
-}
-
-const canvas = document.getElementById('competencyChart1')
-if (canvas) {
-  const image = canvas.toDataURL('image/png')
-  const link = document.createElement('a')
-  link.download = 'competency-chart.png'
-  link.href = image
-  link.click()
-} else {
-  console.error('Chart canvas not found')
 }
 
 const competencyDescriptions = {
@@ -695,4 +678,13 @@ function downloadChart(event) {
       saveAs(content, 'competency-charts.zip')
     })
   }
+}
+
+function updateDescriptionBox(descriptionBox, competency, description) {
+  descriptionBox.innerHTML = `
+    <h3>${competency}</h3>
+    <p>${description || 'Beschreibung nicht verfügbar.'}</p>
+  `
+  descriptionBox.style.overflowY = 'auto'
+  descriptionBox.style.maxHeight = '300px'
 }
