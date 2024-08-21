@@ -396,12 +396,12 @@ function showResults() {
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
     <h3>Diagramm 1: Hover für Scores</h3>
-    <div id="chart1Container" style="height: 400px; width: 100%;">
+    <div style="height: 400px; width: 100%;">
       <canvas id="competencyChart1"></canvas>
     </div>
     <div id="descriptionBox1" style="height: 200px; overflow-y: auto;"></div>
     <h3>Diagramm 2: Klicken für detaillierte Informationen</h3>
-    <div id="chart2Container" style="height: 400px; width: 100%;">
+    <div id="chart2Container" style="position: relative; height: 400px; width: 100%;">
       <canvas id="competencyChart2"></canvas>
       <div id="chart2Tooltip" style="position: absolute; display: none; background-color: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; pointer-events: auto;"></div>
     </div>
@@ -410,11 +410,11 @@ function showResults() {
 
   document.getElementById('surveyForm').innerHTML = resultHtml
 
-  // Use setTimeout to ensure the DOM is updated before creating charts
-  setTimeout(() => {
+  // Use requestAnimationFrame to ensure the DOM is updated before creating charts
+  requestAnimationFrame(() => {
     createCompetencyChart1(categoryScores)
     createCompetencyChart2(categoryScores)
-  }, 0)
+  })
 
   const downloadButton = document.getElementById('downloadChart')
   if (downloadButton) {
@@ -518,11 +518,12 @@ function createCompetencyChart1(categoryScores) {
             competency,
             competencyDescriptions[competency]
           )
+        } else {
+          descriptionBox.innerHTML = ''
         }
       },
     },
   })
-
   canvas.addEventListener('mouseleave', () => {
     descriptionBox.innerHTML = ''
   })
@@ -607,6 +608,7 @@ function createCompetencyChart2(categoryScores) {
     },
   })
 
+  // Close tooltip when clicking outside the chart
   document.addEventListener('click', (event) => {
     if (!chartContainer.contains(event.target)) {
       tooltip.style.display = 'none'
@@ -659,95 +661,6 @@ function positionTooltip(tooltip, chart, dataIndex) {
   tooltip.style.left = `${left}px`
   tooltip.style.top = `${top}px`
   tooltip.style.width = `${tooltipWidth}px`
-}
-
-function updateDescriptionBox2(
-  descriptionBox,
-  competency,
-  score,
-  showDescription,
-  chart,
-  dataIndex
-) {
-  if (competency) {
-    const description = competencyDescriptions[competency]
-    descriptionBox.innerHTML = `
-      <div style="background-color: rgba(0, 0, 0, 0.8); color: white; padding: 10px; border-radius: 5px; max-width: 250px;">
-        <h3 style="margin-top: 0;">${competency}</h3>
-        <p>Score: ${score}%</p>
-        ${
-          showDescription
-            ? `<p>${description}</p>
-           <p class="collapse-arrow" style="cursor: pointer; text-align: center; margin-bottom: 0;">&#9650; Collapse</p>`
-            : `<p style="margin-bottom: 0;"><i class="fas fa-info-circle" style="cursor: pointer;"></i> Show description</p>`
-        }
-      </div>
-    `
-
-    // Position the description box
-    try {
-      const meta = chart.getDatasetMeta(0)
-      if (meta.data[dataIndex]) {
-        const rect = chart.canvas.getBoundingClientRect()
-        const barPos = chart.getDatasetMeta(0).data[dataIndex].getCenterPoint()
-
-        descriptionBox.style.position = 'absolute'
-
-        // Calculate left position
-        let leftPos = rect.left + barPos.x - descriptionBox.offsetWidth / 2
-
-        // Check if the box would overflow on the right
-        const rightEdge = rect.right
-        if (leftPos + descriptionBox.offsetWidth > rightEdge) {
-          leftPos = rightEdge - descriptionBox.offsetWidth - 10 // 10px padding from right edge
-        }
-
-        // Check if the box would overflow on the left
-        if (leftPos < rect.left) {
-          leftPos = rect.left + 10 // 10px padding from left edge
-        }
-
-        descriptionBox.style.left = `${leftPos}px`
-        descriptionBox.style.top = `${
-          rect.top + barPos.y - descriptionBox.offsetHeight - 10
-        }px`
-        descriptionBox.style.display = 'block'
-      } else {
-        console.error('Bar element not found for index:', dataIndex)
-      }
-    } catch (error) {
-      console.error('Error positioning description box:', error)
-    }
-
-    if (showDescription) {
-      descriptionBox
-        .querySelector('.collapse-arrow')
-        .addEventListener('click', () => {
-          updateDescriptionBox2(
-            descriptionBox,
-            competency,
-            score,
-            false,
-            chart,
-            dataIndex
-          )
-        })
-    } else {
-      descriptionBox.querySelector('i').addEventListener('click', (e) => {
-        e.stopPropagation()
-        updateDescriptionBox2(
-          descriptionBox,
-          competency,
-          score,
-          true,
-          chart,
-          dataIndex
-        )
-      })
-    }
-  } else {
-    descriptionBox.style.display = 'none'
-  }
 }
 
 function downloadChart(event) {
