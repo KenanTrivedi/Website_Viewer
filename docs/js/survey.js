@@ -387,9 +387,9 @@ function showResults() {
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
     <h3>Chart 1: Hover for Description</h3>
-    <div style="display: flex; height: 400px;">
-      <canvas id="competencyChart1" style="flex: 2;"></canvas>
-      <div id="descriptionBox1" style="flex: 1; padding: 10px; border: 1px solid #ccc; margin-left: 10px; overflow-y: auto;"></div>
+    <div style="position: relative; height: 400px;">
+      <canvas id="competencyChart1"></canvas>
+      <div id="descriptionBox1" style="position: absolute; display: none; background: white; border: 1px solid #ccc; padding: 10px; max-width: 300px;"></div>
     </div>
     <h3>Chart 2: Click for Description</h3>
     <div style="height: 400px;">
@@ -515,7 +515,7 @@ const competencyDescriptions = {
   'Kommunizieren und Kollaborieren':
     'Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen, dabei die Verhaltensnormen in digitalen Umgebungen zu beachten und digitale Technologien zur gesellschaftlichen Teilhabe und Selbstermächtigung zu nutzen.',
   'Problemlösen und Handeln':
-    'Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen und kreative technische Lösungen für spezifische Bedürfnisse zu finden. Zudem gehört zum Kompetenzbereich informatisches Denkken, also das strategische Lösen komplexer Probleme in digitalen Umgebungen und die kontinuierliche Weiterentwicklung der eigenen digitalen Kompetenzen.',
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen und kreative technische Lösungen für spezifische Bedürfnisse zu finden. Zudem gehört zum Kompetenzbereich informatisches Denken, also das strategische Lösen komplexer Probleme in digitalen Umgebungen und die kontinuierliche Weiterentwicklung der eigenen digitalen Kompetenzen.',
   'Schützen und sicher Agieren':
     'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Geräte und Inhalte zu schützen, Gesundheits- und Umweltgefahren bei der Nutzung digitaler Technologien zu vermeiden, und persönliche Daten, Identität sowie Privatsphäre in digitalen Umgebungen verantwortungsvoll zu schützen.',
   'Produzieren und Präsentieren':
@@ -586,25 +586,39 @@ function createCompetencyChart1(categoryScores) {
           display: false,
         },
         tooltip: {
-          callbacks: {
-            title: function (tooltipItems) {
-              return tooltipItems[0].label
-            },
-            label: function (context) {
-              return `Competency Score: ${context.parsed.y}%`
-            },
-          },
-          events: ['mousemove'],
-          mode: 'index',
-          intersect: false,
-          onHover: (event, activeElements) => {
-            if (activeElements.length > 0) {
-              const dataIndex = activeElements[0].index
-              const competency = labels[dataIndex]
-              descriptionBox.innerHTML = `<h4>${competency}</h4><p>${competencyDescriptions[competency]}</p>`
-            }
-          },
+          enabled: false,
         },
+      },
+      onHover: (event, activeElements) => {
+        const chart = event.chart
+        const canvas = chart.canvas
+        const rect = canvas.getBoundingClientRect()
+        const x = event.native.clientX - rect.left
+        const y = event.native.clientY - rect.top
+
+        const activeElement = chart.getElementsAtEventForMode(
+          event.native,
+          'nearest',
+          { intersect: true },
+          false
+        )[0]
+
+        if (activeElement) {
+          const dataIndex = activeElement.index
+          const competency = labels[dataIndex]
+          const score = data[dataIndex]
+
+          descriptionBox.style.display = 'block'
+          descriptionBox.style.left = `${x + 10}px`
+          descriptionBox.style.top = `${y + 10}px`
+          descriptionBox.innerHTML = `
+            <h4>${competency}</h4>
+            <p>Score: ${score}%</p>
+            <p>${competencyDescriptions[competency]}</p>
+          `
+        } else {
+          descriptionBox.style.display = 'none'
+        }
       },
     },
   })
@@ -632,7 +646,7 @@ function createCompetencyChart2(categoryScores) {
 
   let selectedBarIndex = -1
 
-  new Chart(ctx, {
+  const chart = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: labels,
@@ -692,50 +706,63 @@ function createCompetencyChart2(categoryScores) {
         afterDraw: (chart) => {
           const ctx = chart.ctx
           ctx.save()
-          if (selectedBarIndex !== -1) {
+          chart.data.datasets[0].data.forEach((value, index) => {
             const meta = chart.getDatasetMeta(0)
-            const rect = meta.data[selectedBarIndex]
-            ctx.fillStyle = 'rgba(0,0,0,0.7)'
-            ctx.fillRect(rect.x + rect.width - 20, rect.y, 20, 20)
-            ctx.fillStyle = 'white'
-            ctx.font = '16px Arial'
-            ctx.fillText('i', rect.x + rect.width - 13, rect.y + 15)
+            const rect = meta.data[index]
 
-            // Draw description box
-            const competency = labels[selectedBarIndex]
-            const description = competencyDescriptions[competency]
-            const boxWidth = 300
-            const boxHeight = 150
-            const boxX = rect.x + rect.width + 10
-            const boxY = rect.y
-
-            ctx.fillStyle = 'rgba(255,255,255,0.9)'
-            ctx.fillRect(boxX, boxY, boxWidth, boxHeight)
-            ctx.strokeStyle = 'black'
-            ctx.strokeRect(boxX, boxY, boxWidth, boxHeight)
-
+            // Draw score and 'i' icon
             ctx.fillStyle = 'black'
-            ctx.font = '14px Arial'
-            ctx.fillText(competency, boxX + 5, boxY + 20)
+            ctx.font = '12px Arial'
+            ctx.textAlign = 'center'
+            ctx.fillText(`${value}%`, rect.x + rect.width / 2, rect.y - 5)
 
-            // Wrap text
-            const words = description.split(' ')
-            let line = ''
-            let y = boxY + 40
-            for (let n = 0; n < words.length; n++) {
-              const testLine = line + words[n] + ' '
-              const metrics = ctx.measureText(testLine)
-              const testWidth = metrics.width
-              if (testWidth > boxWidth - 10 && n > 0) {
-                ctx.fillText(line, boxX + 5, y)
-                line = words[n] + ' '
-                y += 20
-              } else {
-                line = testLine
+            ctx.fillStyle = '#004a99'
+            ctx.beginPath()
+            ctx.arc(rect.x + rect.width + 10, rect.y + 10, 8, 0, 2 * Math.PI)
+            ctx.fill()
+
+            ctx.fillStyle = 'white'
+            ctx.font = 'bold 12px Arial'
+            ctx.fillText('i', rect.x + rect.width + 10, rect.y + 14)
+
+            if (selectedBarIndex === index) {
+              // Draw description box
+              const competency = labels[index]
+              const description = competencyDescriptions[competency]
+              const boxWidth = 300
+              const boxHeight = 150
+              const boxX = rect.x + rect.width / 2 - boxWidth / 2
+              const boxY = rect.y - boxHeight - 20
+
+              ctx.fillStyle = 'rgba(255,255,255,0.9)'
+              ctx.fillRect(boxX, boxY, boxWidth, boxHeight)
+              ctx.strokeStyle = 'black'
+              ctx.strokeRect(boxX, boxY, boxWidth, boxHeight)
+
+              ctx.fillStyle = 'black'
+              ctx.font = '14px Arial'
+              ctx.textAlign = 'left'
+              ctx.fillText(competency, boxX + 5, boxY + 20)
+
+              // Wrap text
+              const words = description.split(' ')
+              let line = ''
+              let y = boxY + 40
+              for (let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' '
+                const metrics = ctx.measureText(testLine)
+                const testWidth = metrics.width
+                if (testWidth > boxWidth - 10 && n > 0) {
+                  ctx.fillText(line, boxX + 5, y)
+                  line = words[n] + ' '
+                  y += 20
+                } else {
+                  line = testLine
+                }
               }
+              ctx.fillText(line, boxX + 5, y)
             }
-            ctx.fillText(line, boxX + 5, y)
-          }
+          })
           ctx.restore()
         },
       },
