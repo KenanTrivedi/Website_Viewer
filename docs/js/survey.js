@@ -386,11 +386,11 @@ function showResults() {
     <ul>
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
-    <h3>Chart: Hover for Scores, See Descriptions on Right</h3>
+    <h3>Chart 1: Hover for Scores</h3>
     <div style="height: 400px;">
       <canvas id="competencyChart1"></canvas>
     </div>
-    <div id="descriptionBox1" style="height: 300px; overflow-y: auto;"></div>
+    <div id="descriptionBox1" style="height: 200px; overflow-y: auto;"></div>
     <button id="downloadChart" class="btn btn-primary">Download Chart</button>
   `
   console.log('Category Scores:', categoryScores)
