@@ -413,6 +413,16 @@ function createCompetencyChart(categoryScores) {
   const labels = Object.keys(categoryScores)
   const data = Object.values(categoryScores)
 
+  // Define colors for each category
+  const colorMap = {
+    'Analysieren und Reflektieren': '#FFD473',
+    'Kommunikation und Kollaborieren': '#0CC0DF',
+    'Problemlösen und Handeln': '#E884C4',
+    'Produzieren und Präsentieren': '#FF6D5F',
+    'Schützen und sicher agieren': '#8C52FF',
+    'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
+  }
+
   try {
     new Chart(ctx, {
       type: 'bar',
@@ -420,15 +430,18 @@ function createCompetencyChart(categoryScores) {
         labels: labels,
         datasets: [
           {
-            label: 'Competency Scores (%)',
             data: data,
-            backgroundColor: '#004a99',
-            borderColor: '#004a99',
+            backgroundColor: labels.map(
+              (label) => colorMap[label] || '#004a99'
+            ), // Default to blue if color not found
+            borderColor: labels.map((label) => colorMap[label] || '#004a99'),
             borderWidth: 1,
           },
         ],
       },
       options: {
+        responsive: true,
+        maintainAspectRatio: false,
         scales: {
           y: {
             beginAtZero: true,
@@ -440,8 +453,7 @@ function createCompetencyChart(categoryScores) {
           },
           x: {
             title: {
-              display: true,
-              text: 'Competencies',
+              display: false, // Remove x-axis title
             },
           },
         },
@@ -450,8 +462,17 @@ function createCompetencyChart(categoryScores) {
             display: false,
           },
           title: {
-            display: true,
-            text: 'Your Competency Scores',
+            display: false, // Remove chart title
+          },
+          tooltip: {
+            callbacks: {
+              title: function (tooltipItems) {
+                return tooltipItems[0].label
+              },
+              label: function (context) {
+                return `Competency Score: ${context.parsed.y}%`
+              },
+            },
           },
         },
       },
