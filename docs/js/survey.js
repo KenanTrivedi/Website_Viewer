@@ -800,6 +800,7 @@ function createCompetencyChart2(categoryScores) {
 
       if (Math.sqrt((x - iconX) ** 2 + (y - iconY) ** 2) <= 8) {
         showDescription = !showDescription
+        selectedBarIndex = firstPoint.index // Add this line
         chart.update()
       }
     }
