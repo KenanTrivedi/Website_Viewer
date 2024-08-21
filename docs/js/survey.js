@@ -381,20 +381,27 @@ function showResults() {
   const categoryScores = calculateCategoryScores()
 
   const resultHtml = `
-  <h2>Your Competenz Score: ${score}%</h2>
-  <p>Based on your score, we recommend the following courses:</p>
-  <ul>
-    ${courses.map((course) => `<li>${course}</li>`).join('')}
-  </ul>
-  <div style="height: 400px;"> <!-- Set a fixed height for the chart container -->
-    <canvas id="competencyChart"></canvas>
-  </div>
-  <button id="downloadChart" class="btn btn-primary">Download Chart</button>
-`
+    <h2>Your Competenz Score: ${score}%</h2>
+    <p>Based on your score, we recommend the following courses:</p>
+    <ul>
+      ${courses.map((course) => `<li>${course}</li>`).join('')}
+    </ul>
+    <h3>Chart 1: Hover for Description</h3>
+    <div style="display: flex; height: 400px;">
+      <canvas id="competencyChart1" style="flex: 2;"></canvas>
+      <div id="descriptionBox1" style="flex: 1; padding: 10px; border: 1px solid #ccc; margin-left: 10px; overflow-y: auto;"></div>
+    </div>
+    <h3>Chart 2: Click for Description</h3>
+    <div style="height: 400px;">
+      <canvas id="competencyChart2"></canvas>
+    </div>
+    <button id="downloadChart" class="btn btn-primary">Download Chart</button>
+  `
 
   document.getElementById('surveyForm').innerHTML = resultHtml
 
-  createCompetencyChart(categoryScores)
+  createCompetencyChart1(categoryScores)
+  createCompetencyChart2(categoryScores)
 
   const downloadButton = document.getElementById('downloadChart')
   if (downloadButton) {
@@ -500,4 +507,238 @@ function downloadChart(event) {
   } else {
     console.error('Chart canvas not found')
   }
+}
+
+const competencyDescriptions = {
+  'Suchen, Verarbeiten und Aufbewahren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, gezielt nach digitalen Daten und Inhalten zu suchen, diese effektiv zu organisieren, zu speichern und abzurufen.',
+  'Kommunizieren und Kollaborieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen, dabei die Verhaltensnormen in digitalen Umgebungen zu beachten und digitale Technologien zur gesellschaftlichen Teilhabe und Selbstermächtigung zu nutzen.',
+  'Problemlösen und Handeln':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen und kreative technische Lösungen für spezifische Bedürfnisse zu finden. Zudem gehört zum Kompetenzbereich informatisches Denkken, also das strategische Lösen komplexer Probleme in digitalen Umgebungen und die kontinuierliche Weiterentwicklung der eigenen digitalen Kompetenzen.',
+  'Schützen und sicher Agieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Geräte und Inhalte zu schützen, Gesundheits- und Umweltgefahren bei der Nutzung digitaler Technologien zu vermeiden, und persönliche Daten, Identität sowie Privatsphäre in digitalen Umgebungen verantwortungsvoll zu schützen.',
+  'Produzieren und Präsentieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Inhalte in verschiedenen Formaten zu erstellen, zu bearbeiten und zu integrieren, dabei Urheberrecht und Lizenzen zu berücksichtigen, sowie das Programmieren digitaler Produkte.',
+  'Analysieren und Reflektieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, die Auswirkungen und Verbreitung digitaler Medien und Inhalte zu analysieren, deren Glaubwürdigkeit und Zuverlässigkeit kritisch zu bewerten sowie Geschäftsaktivitäten in digitalen Umgebungen zu identifizieren und angemessen darauf zu reagieren.',
+}
+
+function createCompetencyChart1(categoryScores) {
+  const canvas = document.getElementById('competencyChart1')
+  if (!canvas) {
+    console.error('Chart canvas not found')
+    return
+  }
+
+  const ctx = canvas.getContext('2d')
+  const labels = Object.keys(categoryScores)
+  const data = Object.values(categoryScores)
+
+  const colorMap = {
+    'Analysieren und Reflektieren': '#FFD473',
+    'Kommunizieren und Kollaborieren': '#0CC0DF',
+    'Problemlösen und Handeln': '#E884C4',
+    'Produzieren und Präsentieren': '#FF6D5F',
+    'Schützen und sicher Agieren': '#8C52FF',
+    'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
+  }
+
+  const descriptionBox = document.getElementById('descriptionBox1')
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          data: data,
+          backgroundColor: labels.map((label) => colorMap[label] || '#004a99'),
+          borderColor: labels.map((label) => colorMap[label] || '#004a99'),
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          title: {
+            display: true,
+            text: 'Score (%)',
+          },
+        },
+        x: {
+          title: {
+            display: false,
+          },
+          ticks: {
+            maxRotation: 45,
+            minRotation: 45,
+          },
+        },
+      },
+      plugins: {
+        legend: {
+          display: false,
+        },
+        tooltip: {
+          callbacks: {
+            title: function (tooltipItems) {
+              return tooltipItems[0].label
+            },
+            label: function (context) {
+              return `Competency Score: ${context.parsed.y}%`
+            },
+          },
+          events: ['mousemove'],
+          mode: 'index',
+          intersect: false,
+          onHover: (event, activeElements) => {
+            if (activeElements.length > 0) {
+              const dataIndex = activeElements[0].index
+              const competency = labels[dataIndex]
+              descriptionBox.innerHTML = `<h4>${competency}</h4><p>${competencyDescriptions[competency]}</p>`
+            }
+          },
+        },
+      },
+    },
+  })
+}
+
+function createCompetencyChart2(categoryScores) {
+  const canvas = document.getElementById('competencyChart2')
+  if (!canvas) {
+    console.error('Chart canvas not found')
+    return
+  }
+
+  const ctx = canvas.getContext('2d')
+  const labels = Object.keys(categoryScores)
+  const data = Object.values(categoryScores)
+
+  const colorMap = {
+    'Analysieren und Reflektieren': '#FFD473',
+    'Kommunizieren und Kollaborieren': '#0CC0DF',
+    'Problemlösen und Handeln': '#E884C4',
+    'Produzieren und Präsentieren': '#FF6D5F',
+    'Schützen und sicher Agieren': '#8C52FF',
+    'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
+  }
+
+  let selectedBarIndex = -1
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          data: data,
+          backgroundColor: labels.map((label) => colorMap[label] || '#004a99'),
+          borderColor: labels.map((label) => colorMap[label] || '#004a99'),
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          title: {
+            display: true,
+            text: 'Score (%)',
+          },
+        },
+        x: {
+          title: {
+            display: false,
+          },
+          ticks: {
+            maxRotation: 45,
+            minRotation: 45,
+          },
+        },
+      },
+      plugins: {
+        legend: {
+          display: false,
+        },
+        tooltip: {
+          enabled: false,
+        },
+      },
+      onClick: (event, activeElements) => {
+        if (activeElements.length > 0) {
+          const clickedBarIndex = activeElements[0].index
+          if (selectedBarIndex === clickedBarIndex) {
+            selectedBarIndex = -1
+          } else {
+            selectedBarIndex = clickedBarIndex
+          }
+          chart.update()
+        }
+      },
+    },
+    plugins: [
+      {
+        afterDraw: (chart) => {
+          const ctx = chart.ctx
+          ctx.save()
+          if (selectedBarIndex !== -1) {
+            const meta = chart.getDatasetMeta(0)
+            const rect = meta.data[selectedBarIndex]
+            ctx.fillStyle = 'rgba(0,0,0,0.7)'
+            ctx.fillRect(rect.x + rect.width - 20, rect.y, 20, 20)
+            ctx.fillStyle = 'white'
+            ctx.font = '16px Arial'
+            ctx.fillText('i', rect.x + rect.width - 13, rect.y + 15)
+
+            // Draw description box
+            const competency = labels[selectedBarIndex]
+            const description = competencyDescriptions[competency]
+            const boxWidth = 300
+            const boxHeight = 150
+            const boxX = rect.x + rect.width + 10
+            const boxY = rect.y
+
+            ctx.fillStyle = 'rgba(255,255,255,0.9)'
+            ctx.fillRect(boxX, boxY, boxWidth, boxHeight)
+            ctx.strokeStyle = 'black'
+            ctx.strokeRect(boxX, boxY, boxWidth, boxHeight)
+
+            ctx.fillStyle = 'black'
+            ctx.font = '14px Arial'
+            ctx.fillText(competency, boxX + 5, boxY + 20)
+
+            // Wrap text
+            const words = description.split(' ')
+            let line = ''
+            let y = boxY + 40
+            for (let n = 0; n < words.length; n++) {
+              const testLine = line + words[n] + ' '
+              const metrics = ctx.measureText(testLine)
+              const testWidth = metrics.width
+              if (testWidth > boxWidth - 10 && n > 0) {
+                ctx.fillText(line, boxX + 5, y)
+                line = words[n] + ' '
+                y += 20
+              } else {
+                line = testLine
+              }
+            }
+            ctx.fillText(line, boxX + 5, y)
+          }
+          ctx.restore()
+        },
+      },
+    ],
+  })
 }
