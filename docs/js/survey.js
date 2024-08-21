@@ -179,7 +179,12 @@ function saveSectionData() {
       },
       body: JSON.stringify(data),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Server responded with status ' + response.status)
+        }
+        return response.json()
+      })
       .then((data) => console.log('Data saved successfully:', data))
       .catch((error) => console.error('Error saving data:', error))
   }
@@ -402,6 +407,11 @@ function showResults() {
   console.log('Labels:', Object.keys(categoryScores))
   console.log('Data:', Object.values(categoryScores))
   document.getElementById('surveyForm').innerHTML = resultHtml
+
+  setTimeout(() => {
+    createCompetencyChart1(categoryScores)
+    createCompetencyChart2(categoryScores)
+  }, 0)
 
   createCompetencyChart1(categoryScores)
 

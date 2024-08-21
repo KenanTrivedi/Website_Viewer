@@ -203,4 +203,4 @@ const surveyData = [
     ],
   },
 ]
-module.exports = surveyData
+window.surveyData = surveyData
