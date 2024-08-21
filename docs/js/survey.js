@@ -491,7 +491,7 @@ function createCompetencyChart1(categoryScores) {
       datasets: [
         {
           data: data,
-          backgroundColor: labels.map((label) => colorMap[label] || '#999999'), // Fallback color
+          backgroundColor: labels.map((label) => colorMap[label] || '#999999'),
           borderColor: labels.map((label) => colorMap[label] || '#999999'),
           borderWidth: 1,
         },
@@ -540,19 +540,9 @@ function createCompetencyChart1(categoryScores) {
     },
   })
 
-  // Allow scrolling when mouse leaves the chart
   canvas.addEventListener('mouseleave', () => {
-    descriptionBox.style.overflowY = 'auto'
+    descriptionBox.innerHTML = ''
   })
-}
-
-function updateDescriptionBox(descriptionBox, competency, description) {
-  descriptionBox.innerHTML = `
-    <h3>${competency}</h3>
-    <p>${description || 'Beschreibung nicht verfügbar.'}</p>
-  `
-  descriptionBox.style.overflowY = 'auto'
-  descriptionBox.style.maxHeight = '300px' // Adjust as needed
 }
 
 function createCompetencyChart2(categoryScores) {
@@ -579,6 +569,9 @@ function createCompetencyChart2(categoryScores) {
     'Problemlösen und Handeln': '#E884C4',
     'Analysieren und Reflektieren': '#FFD473',
   }
+
+  let selectedIndex = -1
+  let showDescription = false
 
   chart2Instance = new Chart(ctx, {
     type: 'bar',
@@ -627,11 +620,11 @@ function createCompetencyChart2(categoryScores) {
             selectedIndex = index
             showDescription = false
           }
-          chart.update()
+          chart2Instance.update()
           updateDescriptionBox2(
             descriptionBox,
             labels[selectedIndex],
-            categoryScores[labels[selectedIndex]],
+            data[selectedIndex],
             showDescription
           )
         }
@@ -639,39 +632,8 @@ function createCompetencyChart2(categoryScores) {
     },
   })
 
-  function updateDescriptionBox2(
-    descriptionBox,
-    competency,
-    score,
-    showDescription
-  ) {
-    if (competency) {
-      const description = competencyDescriptions[competency]
-      descriptionBox.innerHTML = `
-        <div style="background-color: black; color: white; padding: 10px; border-radius: 5px;">
-          <h3>${competency}</h3>
-          <p>Score: ${score}%</p>
-          ${
-            showDescription
-              ? `<p>${description}</p>`
-              : '<p><i class="fas fa-info-circle" style="cursor: pointer;"></i> Click for description</p>'
-          }
-        </div>
-      `
-      if (!showDescription) {
-        descriptionBox.querySelector('i').addEventListener('click', (e) => {
-          e.stopPropagation()
-          showDescription = true
-          updateDescriptionBox2(descriptionBox, competency, score, true)
-        })
-      }
-    } else {
-      descriptionBox.innerHTML = ''
-    }
-  }
-
   canvas.addEventListener('mousemove', (event) => {
-    const points = chart.getElementsAtEventForMode(
+    const points = chart2Instance.getElementsAtEventForMode(
       event,
       'nearest',
       { intersect: true },
@@ -683,6 +645,37 @@ function createCompetencyChart2(categoryScores) {
       canvas.style.cursor = 'default'
     }
   })
+}
+
+function updateDescriptionBox2(
+  descriptionBox,
+  competency,
+  score,
+  showDescription
+) {
+  if (competency) {
+    const description = competencyDescriptions[competency]
+    descriptionBox.innerHTML = `
+      <div style="background-color: black; color: white; padding: 10px; border-radius: 5px;">
+        <h3>${competency}</h3>
+        <p>Score: ${score}%</p>
+        ${
+          showDescription
+            ? `<p>${description}</p>`
+            : '<p><i class="fas fa-info-circle" style="cursor: pointer;"></i> Click for description</p>'
+        }
+      </div>
+    `
+    if (!showDescription) {
+      descriptionBox.querySelector('i').addEventListener('click', (e) => {
+        e.stopPropagation()
+        showDescription = true
+        updateDescriptionBox2(descriptionBox, competency, score, true)
+      })
+    }
+  } else {
+    descriptionBox.innerHTML = ''
+  }
 }
 
 function downloadChart(event) {
@@ -701,7 +694,5 @@ function downloadChart(event) {
     zipFile.generateAsync({ type: 'blob' }).then(function (content) {
       saveAs(content, 'competency-charts.zip')
     })
-  } else {
-    console.error('Chart canvas not found')
   }
 }
