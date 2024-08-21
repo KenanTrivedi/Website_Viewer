@@ -554,7 +554,6 @@ function createCompetencyChart2(categoryScores) {
   }
 
   let selectedIndex = -1
-  let showDescription = false
 
   chart2Instance = new Chart(ctx, {
     type: 'bar',
@@ -597,19 +596,21 @@ function createCompetencyChart2(categoryScores) {
       onClick: (event, elements) => {
         if (elements.length > 0) {
           const index = elements[0].index
-          if (index === selectedIndex) {
-            showDescription = !showDescription
-          } else {
+          if (index !== selectedIndex) {
             selectedIndex = index
-            showDescription = false
+            updateDescriptionBox2(
+              descriptionBox,
+              labels[selectedIndex],
+              data[selectedIndex],
+              false
+            )
+          } else {
+            selectedIndex = -1
+            descriptionBox.innerHTML = ''
           }
-          chart2Instance.update()
-          updateDescriptionBox2(
-            descriptionBox,
-            labels[selectedIndex],
-            data[selectedIndex],
-            showDescription
-          )
+        } else {
+          selectedIndex = -1
+          descriptionBox.innerHTML = ''
         }
       },
     },
@@ -642,20 +643,16 @@ function updateDescriptionBox2(
       <div style="background-color: black; color: white; padding: 10px; border-radius: 5px;">
         <h3>${competency}</h3>
         <p>Score: ${score}%</p>
-        ${
-          showDescription
-            ? `<p>${description}</p>`
-            : '<p><i class="fas fa-info-circle" style="cursor: pointer;"></i> Click for description</p>'
-        }
+        <p><i class="fas fa-info-circle" style="cursor: pointer;"></i> ${
+          showDescription ? 'Hide' : 'Show'
+        } description</p>
+        ${showDescription ? `<p>${description}</p>` : ''}
       </div>
     `
-    if (!showDescription) {
-      descriptionBox.querySelector('i').addEventListener('click', (e) => {
-        e.stopPropagation()
-        showDescription = true
-        updateDescriptionBox2(descriptionBox, competency, score, true)
-      })
-    }
+    descriptionBox.querySelector('i').addEventListener('click', (e) => {
+      e.stopPropagation()
+      updateDescriptionBox2(descriptionBox, competency, score, !showDescription)
+    })
   } else {
     descriptionBox.innerHTML = ''
   }
