@@ -413,90 +413,6 @@ function showResults() {
   }
 }
 
-function createCompetencyChart(categoryScores) {
-  const canvas = document.getElementById('competencyChart')
-  if (!canvas) {
-    console.error('Chart canvas not found')
-    return
-  }
-
-  const ctx = canvas.getContext('2d')
-  const labels = Object.keys(categoryScores)
-  const data = Object.values(categoryScores)
-
-  // Define colors for each category
-  const colorMap = {
-    'Analysieren und Reflektieren': '#FFD473',
-    'Kommunizieren und Kollaborieren': '#0CC0DF',
-    'Problemlösen und Handeln': '#E884C4',
-    'Produzieren und Präsentieren': '#FF6D5F',
-    'Schützen und sicher Agieren': '#8C52FF',
-    'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
-  }
-
-  try {
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            data: data,
-            backgroundColor: labels.map(
-              (label) => colorMap[label] || '#004a99'
-            ),
-            borderColor: labels.map((label) => colorMap[label] || '#004a99'),
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 100,
-            title: {
-              display: true,
-              text: 'Score (%)',
-            },
-          },
-          x: {
-            title: {
-              display: false,
-            },
-            ticks: {
-              maxRotation: 45,
-              minRotation: 45,
-            },
-          },
-        },
-        plugins: {
-          legend: {
-            display: false,
-          },
-          title: {
-            display: false,
-          },
-          tooltip: {
-            callbacks: {
-              title: function (tooltipItems) {
-                return tooltipItems[0].label
-              },
-              label: function (context) {
-                return `Competency Score: ${context.parsed.y}%`
-              },
-            },
-          },
-        },
-      },
-    })
-  } catch (error) {
-    console.error('Error creating chart:', error)
-  }
-}
-
 function downloadChart(event) {
   event.preventDefault()
 
@@ -704,11 +620,10 @@ function createCompetencyChart2(categoryScores) {
           const clickedBarIndex = activeElements[0].index
           if (selectedBarIndex === clickedBarIndex) {
             selectedBarIndex = -1
-            showDescription = false
           } else {
             selectedBarIndex = clickedBarIndex
-            showDescription = false
           }
+          showDescription = false
           chart.update()
         }
       },
@@ -800,7 +715,7 @@ function createCompetencyChart2(categoryScores) {
 
       if (Math.sqrt((x - iconX) ** 2 + (y - iconY) ** 2) <= 8) {
         showDescription = !showDescription
-        selectedBarIndex = firstPoint.index // Add this line
+        selectedBarIndex = firstPoint.index
         chart.update()
       }
     }
