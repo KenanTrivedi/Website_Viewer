@@ -396,12 +396,12 @@ function showResults() {
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
     <h3>Diagramm 1: Hover für Scores</h3>
-    <div style="height: 400px;">
+    <div id="chart1Container" style="height: 400px; width: 100%;">
       <canvas id="competencyChart1"></canvas>
     </div>
     <div id="descriptionBox1" style="height: 200px; overflow-y: auto;"></div>
     <h3>Diagramm 2: Klicken für detaillierte Informationen</h3>
-    <div id="chart2Container" style="position: relative; height: 400px;">
+    <div id="chart2Container" style="height: 400px; width: 100%;">
       <canvas id="competencyChart2"></canvas>
       <div id="chart2Tooltip" style="position: absolute; display: none; background-color: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; pointer-events: auto;"></div>
     </div>
@@ -410,10 +410,11 @@ function showResults() {
 
   document.getElementById('surveyForm').innerHTML = resultHtml
 
-  requestAnimationFrame(() => {
+  // Use setTimeout to ensure the DOM is updated before creating charts
+  setTimeout(() => {
     createCompetencyChart1(categoryScores)
     createCompetencyChart2(categoryScores)
-  })
+  }, 0)
 
   const downloadButton = document.getElementById('downloadChart')
   if (downloadButton) {
@@ -627,6 +628,7 @@ function updateTooltip(tooltip, competency, score, chart, dataIndex) {
   const infoButton = tooltip.querySelector('.info-button')
   const descriptionElement = tooltip.querySelector('.description')
   infoButton.addEventListener('click', (e) => {
+    e.preventDefault()
     e.stopPropagation()
     if (descriptionElement.style.display === 'none') {
       descriptionElement.style.display = 'block'
