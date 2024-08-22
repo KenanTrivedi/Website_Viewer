@@ -679,7 +679,21 @@ function updateTooltip(tooltip, competency, score, chart, dataIndex) {
 function positionTooltip(tooltip, chart, dataIndex) {
   const meta = chart.getDatasetMeta(0)
   const rect = chart.canvas.getBoundingClientRect()
-  const barRect = meta.data[dataIndex].element.getBoundingClientRect()
+
+  let barRect
+  try {
+    barRect = meta.data[dataIndex].element.getBoundingClientRect()
+  } catch (error) {
+    console.warn('Unable to get bar rectangle, using fallback positioning')
+    // Fallback positioning
+    barRect = {
+      left: rect.left,
+      top: rect.top,
+      width: rect.width / meta.data.length,
+      height: rect.height,
+      bottom: rect.bottom,
+    }
+  }
 
   const tooltipWidth = 250 // Adjust this value as needed
   const tooltipHeight = tooltip.offsetHeight
