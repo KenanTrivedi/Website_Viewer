@@ -388,6 +388,10 @@ function showResults() {
   const score = calculateCompetenzScore()
   const courses = getCoursesSuggestions(score)
   const categoryScores = calculateCategoryScores()
+  if (Object.keys(categoryScores).length === 0) {
+    console.error('No category scores available')
+    return
+  }
 
   const resultHtml = `
     <h2>Ihr Kompetenz-Score: ${score}%</h2>
@@ -618,7 +622,7 @@ function createCompetencyChart2(categoryScores) {
         tooltip: { enabled: false },
       },
       onClick: (event, elements) => {
-        if (elements.length > 0) {
+        if (elements.length > 0 && chart2Instance) {
           const index = elements[0].index
           updateTooltip(
             tooltip,
@@ -677,7 +681,15 @@ function updateTooltip(tooltip, competency, score, chart, dataIndex) {
 }
 
 function positionTooltip(tooltip, chart, dataIndex) {
+  if (!tooltip || !chart) {
+    console.error('Tooltip or chart is undefined')
+    return
+  }
   const meta = chart.getDatasetMeta(0)
+  if (!meta || !meta.data || meta.data.length <= dataIndex) {
+    console.error('Invalid chart metadata or dataIndex')
+    return
+  }
   const rect = chart.canvas.getBoundingClientRect()
 
   let barRect
@@ -687,7 +699,7 @@ function positionTooltip(tooltip, chart, dataIndex) {
     console.warn('Unable to get bar rectangle, using fallback positioning')
     // Fallback positioning
     barRect = {
-      left: rect.left,
+      left: rect.left + (rect.width / meta.data.length) * dataIndex,
       top: rect.top,
       width: rect.width / meta.data.length,
       height: rect.height,
@@ -698,29 +710,39 @@ function positionTooltip(tooltip, chart, dataIndex) {
   const tooltipWidth = 250 // Adjust this value as needed
   const tooltipHeight = tooltip.offsetHeight
 
-  // Center the tooltip above the bar
+  // Calculate position
   let left = barRect.left + barRect.width / 2 - tooltipWidth / 2
   let top = barRect.top - tooltipHeight - 10 // 10px gap between bar and tooltip
+
+  tooltip.classList.remove('top', 'bottom', 'left', 'right')
 
   // Adjust horizontal position if it goes out of the chart area
   if (left < rect.left) {
     left = rect.left
+    tooltip.classList.add('left')
   } else if (left + tooltipWidth > rect.right) {
     left = rect.right - tooltipWidth
+    tooltip.classList.add('right')
   }
 
   // If tooltip would go above the chart, position it below the bar instead
   if (top < rect.top) {
     top = barRect.bottom + 10
-  }
-  if (top < window.scrollY) {
-    top = barRect.bottom + 10
+    tooltip.classList.add('bottom')
+  } else {
+    tooltip.classList.add('top')
   }
 
+  // Ensure the tooltip doesn't go below the chart
+  if (top + tooltipHeight > rect.bottom) {
+    top = rect.bottom - tooltipHeight - 10
+  }
+
+  // Apply the calculated position
   tooltip.style.left = `${left}px`
   tooltip.style.top = `${top}px`
   tooltip.style.width = `${tooltipWidth}px`
-  tooltip.style.transform = 'none' // Remove any transform
+  tooltip.classList.add('visible')
 }
 
 function downloadChart(event) {

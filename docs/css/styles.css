@@ -305,7 +305,7 @@ footer {
     color: white;
     padding: 10px;
     border-radius: 5px;
-    pointer-events: none;
+    pointer-events: auto;
     z-index: 1000;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     font-size: 14px;
@@ -314,6 +314,31 @@ footer {
     width: 250px;
     box-sizing: border-box;
     word-wrap: break-word;
+    visibility: hidden;
+    opacity: 0;
+}
+
+#chart2Tooltip.visible {
+    visibility: visible;
+    opacity: 1;
+}
+
+#chart2Tooltip.top {
+    bottom: 100%;
+    top: auto;
+}
+
+#chart2Tooltip.bottom {
+    top: 100%;
+    bottom: auto;
+}
+
+#chart2Tooltip.left {
+    right: 0;
+}
+
+#chart2Tooltip.right {
+    left: 0;
 }
 
 #chart2Tooltip::after {
@@ -379,6 +404,14 @@ footer {
 
 #chart2Tooltip .description {
     margin-top: 10px;
+}
+
+#chart2Container {
+    position: relative;
+    height: 500px;
+    width: 100%;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 #competencyChart1,
