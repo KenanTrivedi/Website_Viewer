@@ -681,13 +681,22 @@ function positionTooltip(tooltip, chart, dataIndex) {
   const rect = chart.canvas.getBoundingClientRect()
   const barPos = meta.data[dataIndex].getCenterPoint()
 
-  const tooltipWidth = 250 // Set a fixed width for the tooltip
+  const tooltipWidth = 300 // Match this to your CSS max-width
   let left = rect.left + barPos.x - tooltipWidth / 2
   const top = rect.top + barPos.y - 10 // Position above the bar
 
   // Adjust horizontal position if it goes out of the chart area
-  if (left < rect.left) left = rect.left
-  if (left + tooltipWidth > rect.right) left = rect.right - tooltipWidth
+  if (left < rect.left) {
+    left = rect.left + 10 // 10px padding from left edge
+  } else if (left + tooltipWidth > rect.right) {
+    left = rect.right - tooltipWidth - 10 // 10px padding from right edge
+  }
+
+  // Ensure the tooltip doesn't go off the screen on the right
+  const windowWidth = window.innerWidth
+  if (left + tooltipWidth > windowWidth) {
+    left = windowWidth - tooltipWidth - 10 // 10px padding from window edge
+  }
 
   tooltip.style.left = `${left}px`
   tooltip.style.top = `${top}px`

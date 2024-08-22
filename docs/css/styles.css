@@ -307,12 +307,13 @@ footer {
     border-radius: 5px;
     pointer-events: auto;
     z-index: 1000;
-    max-width: 300px;
-    /* Increased from 250px */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     font-size: 14px;
     transition: opacity 0.3s ease-in-out;
-
+    max-width: 300px;
+    width: auto;
+    box-sizing: border-box;
+    word-wrap: break-word;
 }
 
 #chart2Tooltip h3 {
