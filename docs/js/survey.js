@@ -498,6 +498,10 @@ function createCompetencyChart1(categoryScores) {
           ticks: {
             maxRotation: 45,
             minRotation: 45,
+            autoSkip: false,
+            callback: function (value) {
+              return value.split(' ')
+            },
           },
         },
       },
@@ -526,7 +530,6 @@ function createCompetencyChart1(categoryScores) {
       },
     },
   })
-
   canvas.addEventListener('mouseleave', () => {
     currentHoveredIndex = -1
     descriptionBox.innerHTML = ''
@@ -582,7 +585,6 @@ function createCompetencyChart2(categoryScores) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      aspectRatio: 2, // Adjust this value to change the aspect ratio
       scales: {
         y: {
           beginAtZero: true,
@@ -596,6 +598,10 @@ function createCompetencyChart2(categoryScores) {
           ticks: {
             maxRotation: 45,
             minRotation: 45,
+            autoSkip: false,
+            callback: function (value) {
+              return value.split(' ')
+            },
           },
         },
       },

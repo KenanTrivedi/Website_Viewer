@@ -345,5 +345,16 @@ footer {
 #descriptionBox1 {
     margin-top: 20px;
     margin-bottom: 20px;
-    min-height: 100px;
+    min-height: 300px;
+    overflow: visible;
+}
+
+/* Add this new style to adjust the font size of x-axis labels */
+.chart-container .x-axis-label {
+    font-size: 10px;
+    /* Adjust this value as needed */
+    white-space: normal;
+    /* Allows text to wrap */
+    max-width: 100px;
+    /* Adjust based on your chart width */
 }
