@@ -300,10 +300,16 @@ footer {
 }
 
 #chart2Tooltip {
-    font-size: 14px;
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    pointer-events: auto;
+    z-index: 1000;
     max-width: 250px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
+    font-size: 14px;
 }
 
 #chart2Tooltip h3 {
@@ -327,7 +333,6 @@ footer {
 
 #chart2Tooltip .description {
     margin-top: 10px;
-    font-style: italic;
 }
 
 #competencyChart1,
@@ -338,7 +343,7 @@ footer {
 }
 
 #descriptionBox1 {
-    height: 200px;
-    overflow-y: auto;
+    margin-top: 20px;
     margin-bottom: 20px;
+    min-height: 100px;
 }

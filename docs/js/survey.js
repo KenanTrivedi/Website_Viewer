@@ -485,7 +485,6 @@ function createCompetencyChart1(categoryScores) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      aspectRatio: 2, // Adjust this value to change the aspect ratio
       scales: {
         y: {
           beginAtZero: true,
@@ -528,10 +527,17 @@ function createCompetencyChart1(categoryScores) {
     },
   })
 
-  // Clear description when mouse leaves the chart area
   canvas.addEventListener('mouseleave', () => {
     currentHoveredIndex = -1
+    descriptionBox.innerHTML = ''
   })
+}
+
+function updateDescriptionBox(descriptionBox, competency, description) {
+  descriptionBox.innerHTML = `
+    <h3>${competency}</h3>
+    <p>${description || 'Beschreibung nicht verfügbar.'}</p>
+  `
 }
 
 function createCompetencyChart2(categoryScores) {
@@ -658,7 +664,7 @@ function positionTooltip(tooltip, chart, dataIndex) {
 
   const tooltipWidth = 250 // Set a fixed width for the tooltip
   let left = rect.left + barPos.x - tooltipWidth / 2
-  const top = rect.top + barPos.y - tooltip.offsetHeight - 10
+  const top = rect.top + barPos.y - 10 // Position above the bar
 
   // Adjust horizontal position if it goes out of the chart area
   if (left < rect.left) left = rect.left
@@ -667,6 +673,7 @@ function positionTooltip(tooltip, chart, dataIndex) {
   tooltip.style.left = `${left}px`
   tooltip.style.top = `${top}px`
   tooltip.style.width = `${tooltipWidth}px`
+  tooltip.style.transform = 'translateY(-100%)' // Move tooltip above the cursor
 }
 
 function downloadChart(event) {
@@ -686,13 +693,4 @@ function downloadChart(event) {
       saveAs(content, 'competency-charts.zip')
     })
   }
-}
-
-function updateDescriptionBox(descriptionBox, competency, description) {
-  descriptionBox.innerHTML = `
-    <h3>${competency}</h3>
-    <p>${description || 'Beschreibung nicht verfügbar.'}</p>
-  `
-  descriptionBox.style.overflowY = 'auto'
-  descriptionBox.style.maxHeight = '300px'
 }
