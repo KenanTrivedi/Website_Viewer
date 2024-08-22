@@ -499,8 +499,21 @@ function createCompetencyChart1(categoryScores) {
             maxRotation: 45,
             minRotation: 45,
             autoSkip: false,
-            callback: function (value) {
-              return value.split(' ')
+            callback: function (value, index) {
+              // Split long labels into multiple lines
+              const words = value.split(' ')
+              const lines = []
+              let line = ''
+              words.forEach((word) => {
+                if (line.length + word.length > 10) {
+                  lines.push(line)
+                  line = word
+                } else {
+                  line += (line ? ' ' : '') + word
+                }
+              })
+              lines.push(line)
+              return lines
             },
           },
         },
@@ -530,17 +543,11 @@ function createCompetencyChart1(categoryScores) {
       },
     },
   })
+
   canvas.addEventListener('mouseleave', () => {
     currentHoveredIndex = -1
     descriptionBox.innerHTML = ''
   })
-}
-
-function updateDescriptionBox(descriptionBox, competency, description) {
-  descriptionBox.innerHTML = `
-    <h3>${competency}</h3>
-    <p>${description || 'Beschreibung nicht verfügbar.'}</p>
-  `
 }
 
 function createCompetencyChart2(categoryScores) {
@@ -599,8 +606,21 @@ function createCompetencyChart2(categoryScores) {
             maxRotation: 45,
             minRotation: 45,
             autoSkip: false,
-            callback: function (value) {
-              return value.split(' ')
+            callback: function (value, index) {
+              // Split long labels into multiple lines
+              const words = value.split(' ')
+              const lines = []
+              let line = ''
+              words.forEach((word) => {
+                if (line.length + word.length > 10) {
+                  lines.push(line)
+                  line = word
+                } else {
+                  line += (line ? ' ' : '') + word
+                }
+              })
+              lines.push(line)
+              return lines
             },
           },
         },
@@ -626,7 +646,6 @@ function createCompetencyChart2(categoryScores) {
     },
   })
 
-  // Close tooltip when clicking outside the chart
   document.addEventListener('click', (event) => {
     if (!chartContainer.contains(event.target)) {
       tooltip.style.display = 'none'
