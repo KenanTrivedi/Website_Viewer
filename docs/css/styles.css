@@ -303,17 +303,29 @@ footer {
     position: absolute;
     background-color: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 15px;
+    padding: 10px;
     border-radius: 5px;
-    pointer-events: auto;
+    pointer-events: none;
     z-index: 1000;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     font-size: 14px;
-    transition: opacity 0.3s ease-in-out;
+    transition: opacity 0.3s ease, transform 0.3s ease;
     max-width: 300px;
-    width: auto;
+    width: 250px;
     box-sizing: border-box;
     word-wrap: break-word;
+}
+
+#chart2Tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    /* Adjust based on the desired size of the triangle */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
 }
 
 #chart2Tooltip h3 {
@@ -401,5 +413,11 @@ footer {
     #competencyChart1,
     #chart2Container {
         height: 400px;
+    }
+}
+
+@media (max-width: 768px) {
+    main {
+        padding: 10px;
     }
 }

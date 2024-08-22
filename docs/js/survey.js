@@ -679,29 +679,34 @@ function updateTooltip(tooltip, competency, score, chart, dataIndex) {
 function positionTooltip(tooltip, chart, dataIndex) {
   const meta = chart.getDatasetMeta(0)
   const rect = chart.canvas.getBoundingClientRect()
-  const barPos = meta.data[dataIndex].getCenterPoint()
+  const barRect = meta.data[dataIndex].element.getBoundingClientRect()
 
-  const tooltipWidth = 300 // Match this to your CSS max-width
-  let left = rect.left + barPos.x - tooltipWidth / 2
-  const top = rect.top + barPos.y - 10 // Position above the bar
+  const tooltipWidth = 250 // Adjust this value as needed
+  const tooltipHeight = tooltip.offsetHeight
+
+  // Center the tooltip above the bar
+  let left = barRect.left + barRect.width / 2 - tooltipWidth / 2
+  let top = barRect.top - tooltipHeight - 10 // 10px gap between bar and tooltip
 
   // Adjust horizontal position if it goes out of the chart area
   if (left < rect.left) {
-    left = rect.left + 10 // 10px padding from left edge
+    left = rect.left
   } else if (left + tooltipWidth > rect.right) {
-    left = rect.right - tooltipWidth - 10 // 10px padding from right edge
+    left = rect.right - tooltipWidth
   }
 
-  // Ensure the tooltip doesn't go off the screen on the right
-  const windowWidth = window.innerWidth
-  if (left + tooltipWidth > windowWidth) {
-    left = windowWidth - tooltipWidth - 10 // 10px padding from window edge
+  // If tooltip would go above the chart, position it below the bar instead
+  if (top < rect.top) {
+    top = barRect.bottom + 10
+  }
+  if (top < window.scrollY) {
+    top = barRect.bottom + 10
   }
 
   tooltip.style.left = `${left}px`
   tooltip.style.top = `${top}px`
   tooltip.style.width = `${tooltipWidth}px`
-  tooltip.style.transform = 'translateY(-100%)' // Move tooltip above the cursor
+  tooltip.style.transform = 'none' // Remove any transform
 }
 
 function downloadChart(event) {
