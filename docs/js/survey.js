@@ -638,6 +638,12 @@ function createCompetencyChart2(categoryScores) {
     },
   })
 
+  // Ensure chart is fully rendered before allowing interactions
+  chart2Instance.options.animation.onComplete = () => {
+    chart2Instance.options.animation.onComplete = null
+    console.log('Chart 2 rendering complete')
+  }
+
   document.addEventListener('click', (event) => {
     if (!chartContainer.contains(event.target)) {
       tooltip.style.display = 'none'
@@ -678,6 +684,11 @@ function updateTooltip(tooltip, competency, score, chart, dataIndex) {
 
   positionTooltip(tooltip, chart, dataIndex)
   tooltip.style.display = 'block'
+
+  setTimeout(() => {
+    positionTooltip(tooltip, chart, dataIndex)
+    tooltip.style.display = 'block'
+  }, 0)
 }
 
 function positionTooltip(tooltip, chart, dataIndex) {
@@ -685,23 +696,33 @@ function positionTooltip(tooltip, chart, dataIndex) {
     console.error('Tooltip or chart is undefined')
     return
   }
+
   const meta = chart.getDatasetMeta(0)
-  if (!meta || !meta.data || meta.data.length <= dataIndex) {
-    console.error('Invalid chart metadata or dataIndex')
-    return
-  }
   const rect = chart.canvas.getBoundingClientRect()
 
   let barRect
   try {
-    barRect = meta.data[dataIndex].element.getBoundingClientRect()
+    if (
+      meta &&
+      meta.data &&
+      meta.data[dataIndex] &&
+      meta.data[dataIndex].element
+    ) {
+      barRect = meta.data[dataIndex].element.getBoundingClientRect()
+    } else {
+      throw new Error('Bar element not found')
+    }
   } catch (error) {
-    console.warn('Unable to get bar rectangle, using fallback positioning')
+    console.warn(
+      'Unable to get bar rectangle, using fallback positioning',
+      error
+    )
     // Fallback positioning
+    const barWidth = rect.width / meta.data.length
     barRect = {
-      left: rect.left + (rect.width / meta.data.length) * dataIndex,
+      left: rect.left + barWidth * dataIndex,
       top: rect.top,
-      width: rect.width / meta.data.length,
+      width: barWidth,
       height: rect.height,
       bottom: rect.bottom,
     }
