@@ -303,18 +303,49 @@ footer {
     position: absolute;
     background-color: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 10px;
+    padding: 15px;
     border-radius: 5px;
     pointer-events: auto;
     z-index: 1000;
-    max-width: 250px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    max-width: 300px;
+    /* Increased from 250px */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     font-size: 14px;
+    transition: opacity 0.3s ease-in-out;
+
 }
 
 #chart2Tooltip h3 {
     margin-top: 0;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+#chart2Tooltip .info-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+#chart2Tooltip .info-button:hover {
+    background-color: #0056b3;
+}
+
+#chart2Tooltip .description {
+    margin-top: 15px;
+    line-height: 1.4;
+}
+
+#chart2Tooltip h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 18px;
 }
 
 #chart2Tooltip p {
@@ -325,10 +356,12 @@ footer {
     background-color: #007bff;
     color: white;
     border: none;
-    padding: 5px 10px;
-    border-radius: 3px;
+    padding: 8px 12px;
+    border-radius: 4px;
     cursor: pointer;
-    margin-top: 5px;
+    margin-top: 10px;
+    font-size: 14px;
+    transition: background-color 0.3s;
 }
 
 #chart2Tooltip .description {
@@ -337,24 +370,35 @@ footer {
 
 #competencyChart1,
 #chart2Container {
-    height: 300px;
+    height: 500px;
     width: 100%;
     margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
 }
 
 #descriptionBox1 {
     margin-top: 20px;
     margin-bottom: 20px;
-    min-height: 300px;
+    min-height: 150px;
     overflow: visible;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+    padding: 15px;
 }
 
-/* Add this new style to adjust the font size of x-axis labels */
 .chart-container .x-axis-label {
-    font-size: 10px;
-    /* Adjust this value as needed */
+    font-size: 12px;
     white-space: normal;
-    /* Allows text to wrap */
-    max-width: 100px;
-    /* Adjust based on your chart width */
+    max-width: 120px;
+    line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+
+    #competencyChart1,
+    #chart2Container {
+        height: 400px;
+    }
 }

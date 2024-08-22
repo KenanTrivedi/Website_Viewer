@@ -399,7 +399,7 @@ function showResults() {
     <div style="height: 300px; width: 100%;">
       <canvas id="competencyChart1"></canvas>
     </div>
-    <div id="descriptionBox1" style="height: 100px; overflow-y: auto;"></div>
+    <div id="descriptionBox1"></div>
     <h3>Diagramm 2: Klicken für detaillierte Informationen</h3>
     <div id="chart2Container" style="position: relative; height: 300px; width: 100%;">
       <canvas id="competencyChart2"></canvas>
@@ -499,21 +499,11 @@ function createCompetencyChart1(categoryScores) {
             maxRotation: 45,
             minRotation: 45,
             autoSkip: false,
-            callback: function (value, index) {
-              // Split long labels into multiple lines
-              const words = value.split(' ')
-              const lines = []
-              let line = ''
-              words.forEach((word) => {
-                if (line.length + word.length > 10) {
-                  lines.push(line)
-                  line = word
-                } else {
-                  line += (line ? ' ' : '') + word
-                }
-              })
-              lines.push(line)
-              return lines
+            callback: function (value) {
+              if (typeof value === 'string') {
+                return value.split(' ').length > 1 ? value.split(' ') : value
+              }
+              return value
             },
           },
         },
@@ -529,24 +519,20 @@ function createCompetencyChart1(categoryScores) {
         },
       },
       onHover: (event, activeElements) => {
-        const dataIndex =
-          activeElements.length > 0 ? activeElements[0].index : -1
-        if (dataIndex !== currentHoveredIndex && dataIndex !== -1) {
-          currentHoveredIndex = dataIndex
-          const competency = labels[dataIndex]
-          updateDescriptionBox(
-            descriptionBox,
-            competency,
-            competencyDescriptions[competency]
-          )
+        if (activeElements.length > 0) {
+          const dataIndex = activeElements[0].index
+          if (dataIndex !== currentHoveredIndex) {
+            currentHoveredIndex = dataIndex
+            const competency = labels[dataIndex]
+            updateDescriptionBox(
+              descriptionBox,
+              competency,
+              competencyDescriptions[competency]
+            )
+          }
         }
       },
     },
-  })
-
-  canvas.addEventListener('mouseleave', () => {
-    currentHoveredIndex = -1
-    descriptionBox.innerHTML = ''
   })
 }
 
@@ -607,20 +593,22 @@ function createCompetencyChart2(categoryScores) {
             minRotation: 45,
             autoSkip: false,
             callback: function (value, index) {
-              // Split long labels into multiple lines
-              const words = value.split(' ')
-              const lines = []
-              let line = ''
-              words.forEach((word) => {
-                if (line.length + word.length > 10) {
-                  lines.push(line)
-                  line = word
-                } else {
-                  line += (line ? ' ' : '') + word
-                }
-              })
-              lines.push(line)
-              return lines
+              if (typeof value === 'string') {
+                const words = value.split(' ')
+                const lines = []
+                let line = ''
+                words.forEach((word) => {
+                  if (line.length + word.length > 10) {
+                    lines.push(line)
+                    line = word
+                  } else {
+                    line += (line ? ' ' : '') + word
+                  }
+                })
+                lines.push(line)
+                return lines
+              }
+              return value
             },
           },
         },
@@ -653,6 +641,12 @@ function createCompetencyChart2(categoryScores) {
   })
 }
 
+function updateDescriptionBox(descriptionBox, competency, description) {
+  descriptionBox.innerHTML = `
+    <h3>${competency}</h3>
+    <p>${description || 'Beschreibung nicht verfügbar.'}</p>
+  `
+}
 function updateTooltip(tooltip, competency, score, chart, dataIndex) {
   const description = competencyDescriptions[competency]
   tooltip.innerHTML = `
