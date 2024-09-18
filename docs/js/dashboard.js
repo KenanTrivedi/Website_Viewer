@@ -45,12 +45,9 @@ async function fetchData() {
     console.log('Received data from server:', data)
     users = data.users.map((user) => ({
       ...user,
-      data: {
-        responses: user.data.responses,
-      },
       userCode: user.userId, // Assuming userId is the user code
     }))
-    sections = data.sections
+    sections = Object.keys(users[0].data.categoryScores)
     console.log('Users:', users)
     console.log('Sections:', sections)
     renderTable()
@@ -77,7 +74,7 @@ function renderTable(usersToRender = users) {
   `
 
   // Add question ID headers
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 7; i++) {
     for (let j = 0; j < 7; j++) {
       const questionId = `q${i}_${j}`
       const th = document.createElement('th')
@@ -96,15 +93,15 @@ function renderTable(usersToRender = users) {
         user.userId
       }"></td>
       <td>${user.userCode || ''}</td>
-      <td>${user.data?.responses?.q0_0 || ''}</td>
-      <td>${user.data?.responses?.q0_1 || ''}</td>
+      <td>${user.data.responses.q0_0 || ''}</td>
+      <td>${user.data.responses.q0_1 || ''}</td>
     `
 
     // Add question scores
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       for (let j = 0; j < 7; j++) {
         const questionId = `q${i}_${j}`
-        const score = user.data?.responses?.[questionId] || ''
+        const score = user.data.responses[questionId] || ''
         tr.innerHTML += `<td>${score}</td>`
       }
     }
@@ -196,20 +193,8 @@ function updateVisualization() {
   }
   ctx.style.display = 'block'
 
-  const competencyData = {
-    'Suchen, Verarbeiten und Aufbewahren': calculateCompetencyScore(
-      currentUser,
-      1
-    ),
-    'Kommunikation und Kollaborieren': calculateCompetencyScore(currentUser, 2),
-    'Produzieren und Präsentieren': calculateCompetencyScore(currentUser, 3),
-    'Schützen und sicher Agieren': calculateCompetencyScore(currentUser, 4),
-    'Problemlösen und Handeln': calculateCompetencyScore(currentUser, 5),
-    'Analysieren und Reflektieren': calculateCompetencyScore(currentUser, 6),
-  }
-
-  const labels = Object.keys(competencyData)
-  const data = Object.values(competencyData)
+  const labels = Object.keys(currentUser.data.categoryScores)
+  const data = Object.values(currentUser.data.categoryScores)
 
   const colorMap = {
     'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
@@ -250,9 +235,6 @@ function updateVisualization() {
             autoSkip: false,
             maxRotation: 45,
             minRotation: 45,
-            callback: function (value, index, values) {
-              return value.split(' ')[0]
-            },
           },
         },
       },
@@ -309,11 +291,9 @@ function exportToExcel(data) {
       'User Code': user.userCode,
       Gender: user.data.responses.q0_0,
       'Birth Year': user.data.responses.q0_1,
-      ...Object.fromEntries(
-        Object.entries(user.data.responses)
-          .filter(([key]) => key !== 'q0_0' && key !== 'q0_1')
-          .map(([key, value]) => [key, value])
-      ),
+      ...user.data.responses,
+      'Overall Score': user.data.overallScore,
+      ...user.data.categoryScores,
     }))
   )
   const workbook = XLSX.utils.book_new()
