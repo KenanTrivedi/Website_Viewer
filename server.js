@@ -152,16 +152,21 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
       users.map(async (user) => {
         // Fetch the code document using the user's userId
         const codeDoc = await Code.findOne({ _id: user.userId });
-        const categoryScores = calculateCategoryScores(
-          user.data.responses,
-          surveyData
-        );
+
+        // Include the individual question responses
+        const responses = user.data.responses || {};
+
+        // Calculate category scores if needed
+        const categoryScores = calculateCategoryScores(responses, surveyData);
 
         return {
           userId: user.userId,
           userCode: codeDoc ? codeDoc.code : "Unknown",
-          gender: user.data.responses.q0_0,
-          birthYear: user.data.responses.q0_1,
+          gender: responses.q0_0 || "",
+          birthYear: responses.q0_1 || "",
+          data: {
+            responses: responses,
+          },
           scores: categoryScores,
         };
       })

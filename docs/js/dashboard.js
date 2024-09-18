@@ -84,11 +84,14 @@ async function fetchData() {
     }
     const data = await response.json()
     console.log('Received data from server:', data)
+
+    // Map the received users to the format needed
     users = data.users.map((user) => ({
       ...user,
-      userCode: user.userId,
-      gender: user.data?.responses?.q0_0 || '',
-      birthYear: user.data?.responses?.q0_1 || '',
+      userCode: user.userCode || user.userId,
+      gender: user.gender || '',
+      birthYear: user.birthYear || '',
+      data: user.data || { responses: {} },
     }))
     console.log('Processed users:', users)
     renderTable()
