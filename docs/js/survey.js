@@ -450,9 +450,17 @@ function createCompetencyChart1(categoryScores) {
   if (chart1Instance) {
     chart1Instance.destroy()
   }
+  const labelMap = {
+    'Suchen, Verarbeiten und Aufbewahren': 'Suchen',
+    'Kommunikation und Kollaborieren': 'Kommunizieren',
+    'Produzieren und Präsentieren': 'Produzieren',
+    'Schützen und sicher Agieren': 'Schützen',
+    'Problemlösen und Handeln': 'Problemlösen',
+    'Analysieren und Reflektieren': 'Analysieren',
+  }
 
+  const labels = Object.keys(categoryScores).map((key) => labelMap[key] || key)
   const ctx = canvas.getContext('2d')
-  const labels = Object.keys(categoryScores)
   const data = Object.values(categoryScores)
 
   const colorMap = {
@@ -472,7 +480,7 @@ function createCompetencyChart1(categoryScores) {
       labels: labels,
       datasets: [
         {
-          data: data,
+          data: Object.values(categoryScores),
           backgroundColor: labels.map((label) => colorMap[label] || '#999999'),
           borderColor: labels.map((label) => colorMap[label] || '#999999'),
           borderWidth: 1,
@@ -493,24 +501,22 @@ function createCompetencyChart1(categoryScores) {
         },
         x: {
           ticks: {
+            autoSkip: false,
             maxRotation: 45,
             minRotation: 45,
-            autoSkip: false,
-            callback: function (value) {
-              if (typeof value === 'string') {
-                return value.split(' ').length > 1 ? value.split(' ') : value
-              }
-              return value
-            },
           },
         },
       },
       plugins: {
         legend: { display: false },
         tooltip: {
-          enabled: true,
           callbacks: {
-            title: (tooltipItems) => tooltipItems[0].label,
+            title: (tooltipItems) => {
+              const fullLabel = Object.keys(labelMap).find(
+                (key) => labelMap[key] === tooltipItems[0].label
+              )
+              return fullLabel || tooltipItems[0].label
+            },
             label: (context) => `Score: ${context.parsed.y}%`,
           },
         },
@@ -520,11 +526,13 @@ function createCompetencyChart1(categoryScores) {
           const dataIndex = activeElements[0].index
           if (dataIndex !== currentHoveredIndex) {
             currentHoveredIndex = dataIndex
-            const competency = labels[dataIndex]
+            const fullCompetency = Object.keys(labelMap).find(
+              (key) => labelMap[key] === labels[dataIndex]
+            )
             updateDescriptionBox(
               descriptionBox,
-              competency,
-              competencyDescriptions[competency]
+              fullCompetency,
+              competencyDescriptions[fullCompetency]
             )
           }
         }
