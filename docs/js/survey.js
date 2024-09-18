@@ -464,12 +464,12 @@ function createCompetencyChart1(categoryScores) {
   const data = Object.values(categoryScores)
 
   const colorMap = {
-    'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
-    'Kommunikation und Kollaborieren': '#0CC0DF',
-    'Produzieren und Präsentieren': '#FF6D5F',
-    'Schützen und sicher Agieren': '#8C52FF',
-    'Problemlösen und Handeln': '#E884C4',
-    'Analysieren und Reflektieren': '#FFD473',
+    Suchen: '#00BF63',
+    Kommunizieren: '#0CC0DF',
+    Produzieren: '#FF6D5F',
+    Schützen: '#8C52FF',
+    Problemlösen: '#E884C4',
+    Analysieren: '#FFD473',
   }
 
   let currentHoveredIndex = -1
