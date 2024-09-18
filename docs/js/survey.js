@@ -394,30 +394,24 @@ function showResults() {
   }
 
   const resultHtml = `
-    <h2>Ihr Kompetenz-Score: ${score}%</h2>
-    <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse:</p>
-    <ul>
-      ${courses.map((course) => `<li>${course}</li>`).join('')}
-    </ul>
-    <h3>Diagramm 1: Hover für Scores</h3>
-    <div style="height: 300px; width: 100%;">
-      <canvas id="competencyChart1"></canvas>
-    </div>
-    <div id="descriptionBox1"></div>
-    <h3>Diagramm 2: Klicken für detaillierte Informationen</h3>
-    <div id="chart2Container" style="position: relative; height: 300px; width: 100%;">
-      <canvas id="competencyChart2"></canvas>
-      <div id="chart2Tooltip" style="position: absolute; display: none; background-color: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 5px; pointer-events: auto;"></div>
-    </div>
-    <button id="downloadChart" class="btn btn-primary">Diagramme herunterladen</button>
-  `
+  <h2>Ihr Kompetenz-Score: ${score}%</h2>
+  <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse:</p>
+  <ul>
+    ${courses.map((course) => `<li>${course}</li>`).join('')}
+  </ul>
+  <h3>Kompetenzdiagramm</h3>
+  <div style="height: 300px; width: 100%;">
+    <canvas id="competencyChart1"></canvas>
+  </div>
+  <div id="descriptionBox1"></div>
+  <button id="downloadChart" class="btn btn-primary">Diagramm herunterladen</button>
+`
 
   document.getElementById('surveyForm').innerHTML = resultHtml
 
   // Use requestAnimationFrame to ensure the DOM is updated before creating charts
   requestAnimationFrame(() => {
     createCompetencyChart1(categoryScores)
-    createCompetencyChart2(categoryScores)
   })
 
   const downloadButton = document.getElementById('downloadChart')
@@ -444,7 +438,6 @@ const competencyDescriptions = {
 }
 
 let chart1Instance = null
-let chart2Instance = null
 
 function createCompetencyChart1(categoryScores) {
   const canvas = document.getElementById('competencyChart1')
@@ -540,116 +533,11 @@ function createCompetencyChart1(categoryScores) {
   })
 }
 
-function createCompetencyChart2(categoryScores) {
-  const chartContainer = document.getElementById('chart2Container')
-  const canvas = document.getElementById('competencyChart2')
-  const tooltip = document.getElementById('chart2Tooltip')
-  if (!chartContainer || !canvas || !tooltip) {
-    console.error('Chart elements not found')
-    return
+document.addEventListener('click', (event) => {
+  if (!chartContainer.contains(event.target)) {
+    tooltip.style.display = 'none'
   }
-
-  if (chart2Instance) {
-    chart2Instance.destroy()
-  }
-
-  const ctx = canvas.getContext('2d')
-  const labels = Object.keys(categoryScores)
-  const data = Object.values(categoryScores)
-
-  const colorMap = {
-    'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
-    'Kommunikation und Kollaborieren': '#0CC0DF',
-    'Produzieren und Präsentieren': '#FF6D5F',
-    'Schützen und sicher Agieren': '#8C52FF',
-    'Problemlösen und Handeln': '#E884C4',
-    'Analysieren und Reflektieren': '#FFD473',
-  }
-
-  chart2Instance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [
-        {
-          data: data,
-          backgroundColor: labels.map((label) => colorMap[label] || '#999999'),
-          borderColor: labels.map((label) => colorMap[label] || '#999999'),
-          borderWidth: 1,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
-          title: {
-            display: true,
-            text: 'Score (%)',
-          },
-        },
-        x: {
-          ticks: {
-            maxRotation: 45,
-            minRotation: 45,
-            autoSkip: false,
-            callback: function (value, index) {
-              if (typeof value === 'string') {
-                const words = value.split(' ')
-                const lines = []
-                let line = ''
-                words.forEach((word) => {
-                  if (line.length + word.length > 10) {
-                    lines.push(line)
-                    line = word
-                  } else {
-                    line += (line ? ' ' : '') + word
-                  }
-                })
-                lines.push(line)
-                return lines
-              }
-              return value
-            },
-          },
-        },
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: { enabled: false },
-      },
-      onClick: (event, elements) => {
-        if (elements.length > 0 && chart2Instance) {
-          const index = elements[0].index
-          updateTooltip(
-            tooltip,
-            labels[index],
-            data[index],
-            chart2Instance,
-            index
-          )
-        } else {
-          tooltip.style.display = 'none'
-        }
-      },
-    },
-  })
-
-  // Ensure chart is fully rendered before allowing interactions
-  chart2Instance.options.animation.onComplete = () => {
-    chart2Instance.options.animation.onComplete = null
-    console.log('Chart 2 rendering complete')
-  }
-
-  document.addEventListener('click', (event) => {
-    if (!chartContainer.contains(event.target)) {
-      tooltip.style.display = 'none'
-    }
-  })
-}
+})
 
 function updateDescriptionBox(descriptionBox, competency, description) {
   descriptionBox.innerHTML = `
@@ -657,130 +545,14 @@ function updateDescriptionBox(descriptionBox, competency, description) {
     <p>${description || 'Beschreibung nicht verfügbar.'}</p>
   `
 }
-function updateTooltip(tooltip, competency, score, chart, dataIndex) {
-  const description = competencyDescriptions[competency]
-  tooltip.innerHTML = `
-    <div class="tooltip-content">
-      <h3>${competency}</h3>
-      <p>Score: ${score}%</p>
-      <button class="info-button">ℹ️ Show Description</button>
-      <p class="description" style="display: none;">${description}</p>
-    </div>
-  `
-
-  const infoButton = tooltip.querySelector('.info-button')
-  const descriptionElement = tooltip.querySelector('.description')
-  infoButton.addEventListener('click', (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (descriptionElement.style.display === 'none') {
-      descriptionElement.style.display = 'block'
-      infoButton.textContent = '🔼 Hide Description'
-    } else {
-      descriptionElement.style.display = 'none'
-      infoButton.textContent = 'ℹ️ Show Description'
-    }
-  })
-
-  positionTooltip(tooltip, chart, dataIndex)
-  tooltip.style.display = 'block'
-
-  setTimeout(() => {
-    positionTooltip(tooltip, chart, dataIndex)
-    tooltip.style.display = 'block'
-  }, 0)
-}
-
-function positionTooltip(tooltip, chart, dataIndex) {
-  if (!tooltip || !chart) {
-    console.error('Tooltip or chart is undefined')
-    return
-  }
-
-  const meta = chart.getDatasetMeta(0)
-  const rect = chart.canvas.getBoundingClientRect()
-
-  let barRect
-  try {
-    if (
-      meta &&
-      meta.data &&
-      meta.data[dataIndex] &&
-      meta.data[dataIndex].element
-    ) {
-      barRect = meta.data[dataIndex].element.getBoundingClientRect()
-    } else {
-      throw new Error('Bar element not found')
-    }
-  } catch (error) {
-    console.warn(
-      'Unable to get bar rectangle, using fallback positioning',
-      error
-    )
-    // Fallback positioning
-    const barWidth = rect.width / meta.data.length
-    barRect = {
-      left: rect.left + barWidth * dataIndex,
-      top: rect.top,
-      width: barWidth,
-      height: rect.height,
-      bottom: rect.bottom,
-    }
-  }
-
-  const tooltipWidth = 250 // Adjust this value as needed
-  const tooltipHeight = tooltip.offsetHeight
-
-  // Calculate position
-  let left = barRect.left + barRect.width / 2 - tooltipWidth / 2
-  let top = barRect.top - tooltipHeight - 10 // 10px gap between bar and tooltip
-
-  tooltip.classList.remove('top', 'bottom', 'left', 'right')
-
-  // Adjust horizontal position if it goes out of the chart area
-  if (left < rect.left) {
-    left = rect.left
-    tooltip.classList.add('left')
-  } else if (left + tooltipWidth > rect.right) {
-    left = rect.right - tooltipWidth
-    tooltip.classList.add('right')
-  }
-
-  // If tooltip would go above the chart, position it below the bar instead
-  if (top < rect.top) {
-    top = barRect.bottom + 10
-    tooltip.classList.add('bottom')
-  } else {
-    tooltip.classList.add('top')
-  }
-
-  // Ensure the tooltip doesn't go below the chart
-  if (top + tooltipHeight > rect.bottom) {
-    top = rect.bottom - tooltipHeight - 10
-  }
-
-  // Apply the calculated position
-  tooltip.style.left = `${left}px`
-  tooltip.style.top = `${top}px`
-  tooltip.style.width = `${tooltipWidth}px`
-  tooltip.classList.add('visible')
-}
 
 function downloadChart(event) {
   event.preventDefault()
-
   const canvas1 = document.getElementById('competencyChart1')
-  const canvas2 = document.getElementById('competencyChart2')
-  if (canvas1 && canvas2) {
-    const zipFile = new JSZip()
-    zipFile.file('chart1.png', canvas1.toDataURL().split(',')[1], {
-      base64: true,
-    })
-    zipFile.file('chart2.png', canvas2.toDataURL().split(',')[1], {
-      base64: true,
-    })
-    zipFile.generateAsync({ type: 'blob' }).then(function (content) {
-      saveAs(content, 'competency-charts.zip')
-    })
+  if (canvas1) {
+    const link = document.createElement('a')
+    link.download = 'competency-chart.png'
+    link.href = canvas1.toDataURL()
+    link.click()
   }
 }
