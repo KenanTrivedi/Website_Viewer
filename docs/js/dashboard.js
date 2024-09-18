@@ -67,47 +67,51 @@ function renderTable(usersToRender = users) {
 
   // Clear existing headers and rows
   thead.innerHTML = `
-        <th><input type="checkbox" id="selectAll"></th>
-        <th>User Code</th>
-        <th>Gender</th>
-        <th>Birth Year</th>
-        <th class="sortable" data-section="Total Score">Total Score <i class="sort-icon fas fa-sort"></i></th>
-    `
-  tbody.innerHTML = ''
+    <th><input type="checkbox" id="selectAll"></th>
+    <th>User Code</th>
+    <th>Gender</th>
+    <th>Birth Year</th>
+  `
 
-  // Add section headers
-  sections.forEach((section) => {
-    const th = document.createElement('th')
-    th.innerHTML = `${section} <i class="sort-icon fas fa-sort"></i>`
-    th.classList.add('sortable')
-    th.dataset.section = section
-    thead.appendChild(th)
-  })
+  // Add question ID headers
+  for (let i = 0; i < 6; i++) {
+    // Assuming 6 sections excluding personal info
+    for (let j = 0; j < 7; j++) {
+      // Assuming max 7 questions per section
+      const questionId = `q${i}_${j}`
+      const th = document.createElement('th')
+      th.textContent = questionId
+      th.classList.add('sortable')
+      th.dataset.questionId = questionId
+      thead.appendChild(th)
+    }
+  }
 
   // Add user rows
-  users.forEach((user) => {
+  usersToRender.forEach((user) => {
     const tr = document.createElement('tr')
-    tr.classList.add('user-row')
     tr.innerHTML = `
-            <td><input type="checkbox" class="user-select" data-id="${
-              user.userId
-            }"></td>
-            <td>${user.userCode}</td>
-            <td>${user.gender || 'undefined'}</td>
-            <td>${user.birthYear || 'undefined'}</td>
-            <td>${user.totalScore}%</td>
-            ${sections
-              .map((section) => `<td>${user.scores[section] || 0}%</td>`)
-              .join('')}
-        `
-    tr.addEventListener('click', (event) => {
-      if (!event.target.classList.contains('user-select')) {
-        showUserDetails(user)
+    <td><input type="checkbox" class="user-select" data-id="${
+      user.userId
+    }"></td>
+    <td>${user.userCode || ''}</td>
+    <td>${user.data?.responses?.q0_0 || 'undefined'}</td>
+    <td>${user.data?.responses?.q0_1 || 'undefined'}</td>
+  `
+
+    // Add question scores
+    for (let i = 0; i < 6; i++) {
+      for (let j = 0; j < 7; j++) {
+        const questionId = `q${i}_${j}`
+        const score = user.data?.responses?.[questionId] || ''
+        tr.innerHTML += `<td>${score}</td>`
       }
-    })
+    }
+
     tbody.appendChild(tr)
   })
 
+  // Re-add event listeners
   document.querySelectorAll('.user-select').forEach((checkbox) => {
     checkbox.addEventListener('change', function () {
       const userId = this.dataset.id
@@ -121,7 +125,7 @@ function renderTable(usersToRender = users) {
   document
     .getElementById('selectAll')
     .addEventListener('change', toggleSelectAll)
-  updateSortIcons()
+  setupSortingListeners()
 }
 
 function setupSortingListeners() {
@@ -129,11 +133,11 @@ function setupSortingListeners() {
   thead.addEventListener('click', function (e) {
     const target = e.target.closest('.sortable')
     if (target) {
-      const section = target.dataset.section
-      if (currentSort.section === section) {
+      const questionId = target.dataset.questionId
+      if (currentSort.questionId === questionId) {
         currentSort.ascending = !currentSort.ascending
       } else {
-        currentSort = { section, ascending: true }
+        currentSort = { questionId, ascending: true }
       }
       sortUsers()
     }
@@ -141,26 +145,10 @@ function setupSortingListeners() {
 }
 
 function sortUsers() {
-  const sortableSections = [
-    'Total Score',
-    'Suchen, Verarbeiten und Aufbewahren',
-    'Kommunikation und Kollaborieren',
-    'Produzieren und Präsentieren',
-    'Schützen und sicher agieren',
-    'Problemlösen und Handeln',
-    'Analysieren und Reflektieren',
-  ]
-
-  if (sortableSections.includes(currentSort.section)) {
+  if (currentSort.questionId) {
     users.sort((a, b) => {
-      let valueA, valueB
-      if (currentSort.section === 'Total Score') {
-        valueA = a.totalScore
-        valueB = b.totalScore
-      } else {
-        valueA = a.scores[currentSort.section] || 0
-        valueB = b.scores[currentSort.section] || 0
-      }
+      const valueA = parseInt(a.data.responses[currentSort.questionId]) || 0
+      const valueB = parseInt(b.data.responses[currentSort.questionId]) || 0
       return currentSort.ascending ? valueA - valueB : valueB - valueA
     })
     renderTable()
@@ -207,16 +195,39 @@ function updateVisualization() {
   }
   ctx.style.display = 'block'
 
+  const competencyData = {
+    'Suchen, Verarbeiten und Aufbewahren': calculateCompetencyScore(
+      currentUser,
+      1
+    ),
+    'Kommunikation und Kollaborieren': calculateCompetencyScore(currentUser, 2),
+    'Produzieren und Präsentieren': calculateCompetencyScore(currentUser, 3),
+    'Schützen und sicher Agieren': calculateCompetencyScore(currentUser, 4),
+    'Problemlösen und Handeln': calculateCompetencyScore(currentUser, 5),
+    'Analysieren und Reflektieren': calculateCompetencyScore(currentUser, 6),
+  }
+
+  const labels = Object.keys(competencyData)
+  const data = Object.values(competencyData)
+
+  const colorMap = {
+    'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
+    'Kommunikation und Kollaborieren': '#0CC0DF',
+    'Produzieren und Präsentieren': '#FF6D5F',
+    'Schützen und sicher Agieren': '#8C52FF',
+    'Problemlösen und Handeln': '#E884C4',
+    'Analysieren und Reflektieren': '#FFD473',
+  }
+
   chart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: sections,
+      labels: labels,
       datasets: [
         {
-          label: 'User Scores',
-          data: sections.map((section) => currentUser.scores[section] || 0),
-          backgroundColor: '#004a99',
-          borderColor: '#004a99',
+          data: data,
+          backgroundColor: labels.map((label) => colorMap[label]),
+          borderColor: labels.map((label) => colorMap[label]),
           borderWidth: 1,
         },
       ],
@@ -234,16 +245,18 @@ function updateVisualization() {
           },
         },
         x: {
-          title: {
-            display: true,
-            text: 'Competencies',
+          ticks: {
+            autoSkip: false,
+            maxRotation: 45,
+            minRotation: 45,
+            callback: function (value, index, values) {
+              return value.split(' ')[0]
+            },
           },
         },
       },
       plugins: {
-        legend: {
-          display: false,
-        },
+        legend: { display: false },
         title: {
           display: true,
           text: `Scores for User: ${currentUser.userCode}`,
@@ -251,8 +264,25 @@ function updateVisualization() {
       },
     },
   })
-  // Force a resize to ensure proper rendering
+
   chart.resize()
+}
+
+function calculateCompetencyScore(user, sectionIndex) {
+  if (!user.data || !user.data.responses) return 0
+
+  let totalScore = 0
+  let questionCount = 0
+  for (let j = 0; j < 7; j++) {
+    const questionId = `q${sectionIndex}_${j}`
+    if (user.data.responses[questionId] !== undefined) {
+      totalScore += parseInt(user.data.responses[questionId]) || 0
+      questionCount++
+    }
+  }
+  return questionCount > 0
+    ? Math.round((totalScore / (questionCount * 6)) * 100)
+    : 0
 }
 
 function toggleSelectAll(event) {
@@ -276,11 +306,12 @@ function exportToExcel(data) {
   const worksheet = XLSX.utils.json_to_sheet(
     data.map((user) => ({
       'User Code': user.userCode,
-      Gender: user.gender,
-      'Birth Year': user.birthYear,
-      'Total Score': user.totalScore + '%',
+      Gender: user.data.responses.q0_0,
+      'Birth Year': user.data.responses.q0_1,
       ...Object.fromEntries(
-        sections.map((section) => [section, user.scores[section] + '%'])
+        Object.entries(user.data.responses)
+          .filter(([key]) => key !== 'q0_0' && key !== 'q0_1')
+          .map(([key, value]) => [key, value])
       ),
     }))
   )
@@ -345,9 +376,11 @@ function searchUsers() {
   const searchTerm = document.getElementById('userSearch').value.toLowerCase()
   const filteredUsers = users.filter(
     (user) =>
-      user.userCode.toLowerCase().includes(searchTerm) ||
-      user.gender.toLowerCase().includes(searchTerm) ||
-      user.birthYear.toString().includes(searchTerm)
+      (user.userCode && user.userCode.toLowerCase().includes(searchTerm)) ||
+      (user.data.responses.q0_0 &&
+        user.data.responses.q0_0.toLowerCase().includes(searchTerm)) || // Gender
+      (user.data.responses.q0_1 &&
+        user.data.responses.q0_1.toString().includes(searchTerm)) // Birth year
   )
   renderTable(filteredUsers)
 }
