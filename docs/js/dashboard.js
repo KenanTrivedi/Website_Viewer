@@ -43,16 +43,15 @@ async function fetchData() {
     }
     const data = await response.json()
     console.log('Received data from server:', data)
-    users = data.users.map((user) => ({
-      ...user,
-      userCode: user.userId, // Assuming userId is the user code
-    }))
-    sections = Object.keys(users[0].data.categoryScores)
+    users = data.users
+    sections = data.sections
     console.log('Users:', users)
     console.log('Sections:', sections)
     renderTable()
   } catch (error) {
     console.error('Error fetching data:', error)
+    document.getElementById('userTable').innerHTML =
+      '<tr><td colspan="4">Error loading data. Please try again later.</td></tr>'
   }
 }
 
@@ -73,53 +72,12 @@ function renderTable(usersToRender = users) {
     <th>Birth Year</th>
   `
 
-  // Add question ID headers
-  const questionIds = [
-    'q1_0',
-    'q1_1',
-    'q1_2',
-    'q1_3',
-    'q1_4',
-    'q1_5',
-    'q2_0',
-    'q2_1',
-    'q2_2',
-    'q2_3',
-    'q2_4',
-    'q2_5',
-    'q2_6',
-    'q3_0',
-    'q3_1',
-    'q3_2',
-    'q3_3',
-    'q3_4',
-    'q3_5',
-    'q3_6',
-    'q4_0',
-    'q4_1',
-    'q4_2',
-    'q4_3',
-    'q4_4',
-    'q4_5',
-    'q5_0',
-    'q5_1',
-    'q5_2',
-    'q5_3',
-    'q5_5',
-    'q5_6',
-    'q6_0',
-    'q6_1',
-    'q6_2',
-    'q6_3',
-    'q6_4',
-    'q6_5',
-  ]
-
-  questionIds.forEach((questionId) => {
+  // Add section headers
+  sections.forEach((section) => {
     const th = document.createElement('th')
-    th.textContent = questionId
+    th.textContent = section
     th.classList.add('sortable')
-    th.dataset.questionId = questionId
+    th.dataset.section = section
     thead.appendChild(th)
   })
 
@@ -131,13 +89,13 @@ function renderTable(usersToRender = users) {
         user.userId
       }"></td>
       <td>${user.userCode || ''}</td>
-      <td>${user.data.responses.q0_0 || ''}</td>
-      <td>${user.data.responses.q0_1 || ''}</td>
+      <td>${user.gender || ''}</td>
+      <td>${user.birthYear || ''}</td>
     `
 
-    // Add question scores
-    questionIds.forEach((questionId) => {
-      const score = user.data.responses[questionId] || ''
+    // Add section scores
+    sections.forEach((section) => {
+      const score = user.scores[section] || ''
       tr.innerHTML += `<td>${score}</td>`
     })
 
@@ -219,7 +177,10 @@ function showUserDetails(user) {
 }
 
 function updateVisualization() {
-  if (!currentUser) return
+  if (!currentUser || !currentUser.scores) {
+    console.error('User data or scores not available')
+    return
+  }
 
   const ctx = document.getElementById('userChart')
 
@@ -228,8 +189,8 @@ function updateVisualization() {
   }
   ctx.style.display = 'block'
 
-  const labels = Object.keys(currentUser.data.categoryScores)
-  const data = Object.values(currentUser.data.categoryScores)
+  const labels = sections
+  const data = sections.map((section) => currentUser.scores[section] || 0)
 
   const colorMap = {
     'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
@@ -435,10 +396,8 @@ function searchUsers() {
   const filteredUsers = users.filter(
     (user) =>
       (user.userCode && user.userCode.toLowerCase().includes(searchTerm)) ||
-      (user.data.responses.q0_0 &&
-        user.data.responses.q0_0.toLowerCase().includes(searchTerm)) || // Gender
-      (user.data.responses.q0_1 &&
-        user.data.responses.q0_1.toString().includes(searchTerm)) // Birth year
+      (user.gender && user.gender.toLowerCase().includes(searchTerm)) ||
+      (user.birthYear && user.birthYear.toString().includes(searchTerm))
   )
   renderTable(filteredUsers)
 }
