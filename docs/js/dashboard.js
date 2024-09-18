@@ -1,7 +1,49 @@
 let users = []
-let sections = []
+let questionIds = [
+  'q0_0',
+  'q0_1',
+  'q1_0',
+  'q1_1',
+  'q1_2',
+  'q1_3',
+  'q1_4',
+  'q1_5',
+  'q2_0',
+  'q2_1',
+  'q2_2',
+  'q2_3',
+  'q2_4',
+  'q2_5',
+  'q2_6',
+  'q3_0',
+  'q3_1',
+  'q3_2',
+  'q3_3',
+  'q3_4',
+  'q3_5',
+  'q3_6',
+  'q4_0',
+  'q4_1',
+  'q4_2',
+  'q4_3',
+  'q4_4',
+  'q4_5',
+  'q5_0',
+  'q5_1',
+  'q5_2',
+  'q5_3',
+  'q5_4',
+  'q5_5',
+  'q5_6',
+  'q6_0',
+  'q6_1',
+  'q6_2',
+  'q6_3',
+  'q6_4',
+  'q6_5',
+]
 let currentUser = null
-let currentSort = { section: null, ascending: true }
+let currentSort = { questionId: null, ascending: true }
 let chart = null
 
 function getAuthToken() {
@@ -20,7 +62,6 @@ document.addEventListener('DOMContentLoaded', function () {
   document
     .getElementById('toggleVisualization')
     .addEventListener('click', toggleVisualizationSidebar)
-  setupSortingListeners()
   document
     .getElementById('closeVisualization')
     .addEventListener('click', closeVisualizationSidebar)
@@ -43,10 +84,13 @@ async function fetchData() {
     }
     const data = await response.json()
     console.log('Received data from server:', data)
-    users = data.users
-    sections = data.sections
-    console.log('Users:', users)
-    console.log('Sections:', sections)
+    users = data.users.map((user) => ({
+      ...user,
+      userCode: user.userId,
+      gender: user.data?.responses?.q0_0 || '',
+      birthYear: user.data?.responses?.q0_1 || '',
+    }))
+    console.log('Processed users:', users)
     renderTable()
   } catch (error) {
     console.error('Error fetching data:', error)
@@ -55,16 +99,10 @@ async function fetchData() {
   }
 }
 
-function calculateTotalScore(scores) {
-  const total = Object.values(scores).reduce((sum, score) => sum + score, 0)
-  return Math.round(total / Object.keys(scores).length)
-}
-
 function renderTable(usersToRender = users) {
   const thead = document.querySelector('#userTable thead tr')
   const tbody = document.querySelector('#userTable tbody')
 
-  // Clear existing headers and rows
   thead.innerHTML = `
     <th><input type="checkbox" id="selectAll"></th>
     <th>User Code</th>
@@ -72,16 +110,17 @@ function renderTable(usersToRender = users) {
     <th>Birth Year</th>
   `
 
-  // Add section headers
-  sections.forEach((section) => {
-    const th = document.createElement('th')
-    th.textContent = section
-    th.classList.add('sortable')
-    th.dataset.section = section
-    thead.appendChild(th)
+  questionIds.forEach((questionId) => {
+    if (questionId !== 'q0_0' && questionId !== 'q0_1') {
+      const th = document.createElement('th')
+      th.textContent = questionId
+      th.classList.add('sortable')
+      th.dataset.questionId = questionId
+      thead.appendChild(th)
+    }
   })
 
-  // Add user rows
+  tbody.innerHTML = ''
   usersToRender.forEach((user) => {
     const tr = document.createElement('tr')
     tr.innerHTML = `
@@ -93,16 +132,16 @@ function renderTable(usersToRender = users) {
       <td>${user.birthYear || ''}</td>
     `
 
-    // Add section scores
-    sections.forEach((section) => {
-      const score = user.scores[section] || ''
-      tr.innerHTML += `<td>${score}</td>`
+    questionIds.forEach((questionId) => {
+      if (questionId !== 'q0_0' && questionId !== 'q0_1') {
+        const response = user.data?.responses?.[questionId] || ''
+        tr.innerHTML += `<td>${response}</td>`
+      }
     })
 
     tbody.appendChild(tr)
   })
 
-  // Re-add event listeners
   document.querySelectorAll('.user-select').forEach((checkbox) => {
     checkbox.addEventListener('change', function () {
       const userId = this.dataset.id
@@ -138,28 +177,11 @@ function setupSortingListeners() {
 function sortUsers() {
   if (currentSort.questionId) {
     users.sort((a, b) => {
-      const valueA = parseInt(a.data.responses[currentSort.questionId]) || 0
-      const valueB = parseInt(b.data.responses[currentSort.questionId]) || 0
+      const valueA = parseInt(a.data?.responses?.[currentSort.questionId]) || 0
+      const valueB = parseInt(b.data?.responses?.[currentSort.questionId]) || 0
       return currentSort.ascending ? valueA - valueB : valueB - valueA
     })
     renderTable()
-  }
-}
-
-function updateSortIcons() {
-  document.querySelectorAll('.sort-icon').forEach((icon) => {
-    icon.classList.remove('fa-sort-up', 'fa-sort-down', 'fa-sort')
-    icon.classList.add('fa-sort')
-  })
-
-  if (currentSort.section) {
-    const currentIcon = document.querySelector(
-      `.sortable[data-section="${currentSort.section}"] .sort-icon`
-    )
-    currentIcon.classList.remove('fa-sort')
-    currentIcon.classList.add(
-      currentSort.ascending ? 'fa-sort-up' : 'fa-sort-down'
-    )
   }
 }
 
@@ -170,15 +192,15 @@ function showUserDetails(user) {
     .forEach((row) => row.classList.remove('selected-row'))
   document
     .querySelector(`.user-select[data-id="${user.userId}"]`)
-    .closest('.user-row')
+    .closest('tr')
     .classList.add('selected-row')
   updateVisualization()
   openVisualizationSidebar()
 }
 
 function updateVisualization() {
-  if (!currentUser || !currentUser.scores) {
-    console.error('User data or scores not available')
+  if (!currentUser || !currentUser.data || !currentUser.data.categoryScores) {
+    console.error('User data or category scores not available')
     return
   }
 
@@ -189,8 +211,8 @@ function updateVisualization() {
   }
   ctx.style.display = 'block'
 
-  const labels = sections
-  const data = sections.map((section) => currentUser.scores[section] || 0)
+  const labels = Object.keys(currentUser.data.categoryScores)
+  const data = Object.values(currentUser.data.categoryScores)
 
   const colorMap = {
     'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
@@ -208,8 +230,8 @@ function updateVisualization() {
       datasets: [
         {
           data: data,
-          backgroundColor: labels.map((label) => colorMap[label]),
-          borderColor: labels.map((label) => colorMap[label]),
+          backgroundColor: labels.map((label) => colorMap[label] || '#999999'),
+          borderColor: labels.map((label) => colorMap[label] || '#999999'),
           borderWidth: 1,
         },
       ],
@@ -247,23 +269,6 @@ function updateVisualization() {
   chart.resize()
 }
 
-function calculateCompetencyScore(user, sectionIndex) {
-  if (!user.data || !user.data.responses) return 0
-
-  let totalScore = 0
-  let questionCount = 0
-  for (let j = 0; j < 7; j++) {
-    const questionId = `q${sectionIndex}_${j}`
-    if (user.data.responses[questionId] !== undefined) {
-      totalScore += parseInt(user.data.responses[questionId]) || 0
-      questionCount++
-    }
-  }
-  return questionCount > 0
-    ? Math.round((totalScore / (questionCount * 6)) * 100)
-    : 0
-}
-
 function toggleSelectAll(event) {
   const checkboxes = document.querySelectorAll('.user-select')
   checkboxes.forEach((checkbox) => (checkbox.checked = event.target.checked))
@@ -282,54 +287,15 @@ function exportAll() {
 }
 
 function exportToExcel(data) {
-  const questionIds = [
-    'q1_0',
-    'q1_1',
-    'q1_2',
-    'q1_3',
-    'q1_4',
-    'q1_5',
-    'q2_0',
-    'q2_1',
-    'q2_2',
-    'q2_3',
-    'q2_4',
-    'q2_5',
-    'q2_6',
-    'q3_0',
-    'q3_1',
-    'q3_2',
-    'q3_3',
-    'q3_4',
-    'q3_5',
-    'q3_6',
-    'q4_0',
-    'q4_1',
-    'q4_2',
-    'q4_3',
-    'q4_4',
-    'q4_5',
-    'q5_0',
-    'q5_1',
-    'q5_2',
-    'q5_3',
-    'q5_5',
-    'q5_6',
-    'q6_0',
-    'q6_1',
-    'q6_2',
-    'q6_3',
-    'q6_4',
-    'q6_5',
-  ]
-
   const worksheet = XLSX.utils.json_to_sheet(
     data.map((user) => ({
       'User Code': user.userCode,
-      Gender: user.data.responses.q0_0,
-      'Birth Year': user.data.responses.q0_1,
+      Gender: user.gender,
+      'Birth Year': user.birthYear,
       ...questionIds.reduce((acc, questionId) => {
-        acc[questionId] = user.data.responses[questionId] || ''
+        if (questionId !== 'q0_0' && questionId !== 'q0_1') {
+          acc[questionId] = user.data?.responses?.[questionId] || ''
+        }
         return acc
       }, {}),
     }))
@@ -355,7 +321,6 @@ function toggleVisualizationSidebar() {
     if (currentUser) {
       updateVisualization()
     } else {
-      // Clear the chart if no user is selected
       const ctx = document.getElementById('userChart')
       ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height)
     }
