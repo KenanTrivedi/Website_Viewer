@@ -74,16 +74,54 @@ function renderTable(usersToRender = users) {
   `
 
   // Add question ID headers
-  for (let i = 0; i < 7; i++) {
-    for (let j = 0; j < 7; j++) {
-      const questionId = `q${i}_${j}`
-      const th = document.createElement('th')
-      th.textContent = questionId
-      th.classList.add('sortable')
-      th.dataset.questionId = questionId
-      thead.appendChild(th)
-    }
-  }
+  const questionIds = [
+    'q1_0',
+    'q1_1',
+    'q1_2',
+    'q1_3',
+    'q1_4',
+    'q1_5',
+    'q2_0',
+    'q2_1',
+    'q2_2',
+    'q2_3',
+    'q2_4',
+    'q2_5',
+    'q2_6',
+    'q3_0',
+    'q3_1',
+    'q3_2',
+    'q3_3',
+    'q3_4',
+    'q3_5',
+    'q3_6',
+    'q4_0',
+    'q4_1',
+    'q4_2',
+    'q4_3',
+    'q4_4',
+    'q4_5',
+    'q5_0',
+    'q5_1',
+    'q5_2',
+    'q5_3',
+    'q5_5',
+    'q5_6',
+    'q6_0',
+    'q6_1',
+    'q6_2',
+    'q6_3',
+    'q6_4',
+    'q6_5',
+  ]
+
+  questionIds.forEach((questionId) => {
+    const th = document.createElement('th')
+    th.textContent = questionId
+    th.classList.add('sortable')
+    th.dataset.questionId = questionId
+    thead.appendChild(th)
+  })
 
   // Add user rows
   usersToRender.forEach((user) => {
@@ -98,13 +136,10 @@ function renderTable(usersToRender = users) {
     `
 
     // Add question scores
-    for (let i = 0; i < 7; i++) {
-      for (let j = 0; j < 7; j++) {
-        const questionId = `q${i}_${j}`
-        const score = user.data.responses[questionId] || ''
-        tr.innerHTML += `<td>${score}</td>`
-      }
-    }
+    questionIds.forEach((questionId) => {
+      const score = user.data.responses[questionId] || ''
+      tr.innerHTML += `<td>${score}</td>`
+    })
 
     tbody.appendChild(tr)
   })
@@ -286,14 +321,56 @@ function exportAll() {
 }
 
 function exportToExcel(data) {
+  const questionIds = [
+    'q1_0',
+    'q1_1',
+    'q1_2',
+    'q1_3',
+    'q1_4',
+    'q1_5',
+    'q2_0',
+    'q2_1',
+    'q2_2',
+    'q2_3',
+    'q2_4',
+    'q2_5',
+    'q2_6',
+    'q3_0',
+    'q3_1',
+    'q3_2',
+    'q3_3',
+    'q3_4',
+    'q3_5',
+    'q3_6',
+    'q4_0',
+    'q4_1',
+    'q4_2',
+    'q4_3',
+    'q4_4',
+    'q4_5',
+    'q5_0',
+    'q5_1',
+    'q5_2',
+    'q5_3',
+    'q5_5',
+    'q5_6',
+    'q6_0',
+    'q6_1',
+    'q6_2',
+    'q6_3',
+    'q6_4',
+    'q6_5',
+  ]
+
   const worksheet = XLSX.utils.json_to_sheet(
     data.map((user) => ({
       'User Code': user.userCode,
       Gender: user.data.responses.q0_0,
       'Birth Year': user.data.responses.q0_1,
-      ...user.data.responses,
-      'Overall Score': user.data.overallScore,
-      ...user.data.categoryScores,
+      ...questionIds.reduce((acc, questionId) => {
+        acc[questionId] = user.data.responses[questionId] || ''
+        return acc
+      }, {}),
     }))
   )
   const workbook = XLSX.utils.book_new()
