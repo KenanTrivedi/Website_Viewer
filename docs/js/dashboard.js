@@ -202,20 +202,21 @@ function showUserDetails(user) {
 }
 
 function updateVisualization() {
-  if (!currentUser || !currentUser.data || !currentUser.data.categoryScores) {
+  if (!currentUser || !currentUser.scores) {
     console.error('User data or category scores not available')
     return
   }
 
-  const ctx = document.getElementById('userChart')
+  const canvas = document.getElementById('userChart')
 
   if (chart) {
     chart.destroy()
   }
-  ctx.style.display = 'block'
 
-  const labels = Object.keys(currentUser.data.categoryScores)
-  const data = Object.values(currentUser.data.categoryScores)
+  const ctx = canvas.getContext('2d')
+
+  const labels = Object.keys(currentUser.scores)
+  const data = Object.values(currentUser.scores)
 
   const colorMap = {
     'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
@@ -256,6 +257,12 @@ function updateVisualization() {
             autoSkip: false,
             maxRotation: 45,
             minRotation: 45,
+            callback: function (value) {
+              if (typeof value === 'string') {
+                return value.split(' ').length > 1 ? value.split(' ') : value
+              }
+              return value
+            },
           },
         },
       },
@@ -265,11 +272,16 @@ function updateVisualization() {
           display: true,
           text: `Scores for User: ${currentUser.userCode}`,
         },
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            title: (tooltipItems) => tooltipItems[0].label,
+            label: (context) => `Score: ${context.parsed.y}%`,
+          },
+        },
       },
     },
   })
-
-  chart.resize()
 }
 
 function toggleSelectAll(event) {
