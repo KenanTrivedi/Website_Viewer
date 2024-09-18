@@ -45,7 +45,10 @@ async function fetchData() {
     console.log('Received data from server:', data)
     users = data.users.map((user) => ({
       ...user,
-      totalScore: calculateTotalScore(user.scores),
+      data: {
+        responses: user.data.responses,
+      },
+      userCode: user.userId, // Assuming userId is the user code
     }))
     sections = data.sections
     console.log('Users:', users)
@@ -75,9 +78,7 @@ function renderTable(usersToRender = users) {
 
   // Add question ID headers
   for (let i = 0; i < 6; i++) {
-    // Assuming 6 sections excluding personal info
     for (let j = 0; j < 7; j++) {
-      // Assuming max 7 questions per section
       const questionId = `q${i}_${j}`
       const th = document.createElement('th')
       th.textContent = questionId
@@ -91,13 +92,13 @@ function renderTable(usersToRender = users) {
   usersToRender.forEach((user) => {
     const tr = document.createElement('tr')
     tr.innerHTML = `
-    <td><input type="checkbox" class="user-select" data-id="${
-      user.userId
-    }"></td>
-    <td>${user.userCode || ''}</td>
-    <td>${user.data?.responses?.q0_0 || 'undefined'}</td>
-    <td>${user.data?.responses?.q0_1 || 'undefined'}</td>
-  `
+      <td><input type="checkbox" class="user-select" data-id="${
+        user.userId
+      }"></td>
+      <td>${user.userCode || ''}</td>
+      <td>${user.data?.responses?.q0_0 || ''}</td>
+      <td>${user.data?.responses?.q0_1 || ''}</td>
+    `
 
     // Add question scores
     for (let i = 0; i < 6; i++) {
