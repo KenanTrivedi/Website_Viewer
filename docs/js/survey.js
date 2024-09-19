@@ -439,6 +439,36 @@ const competencyDescriptions = {
 
 let chart1Instance = null
 
+function getLighterColor(hexColor, factor = 0.3) {
+  const r = parseInt(hexColor.slice(1, 3), 16)
+  const g = parseInt(hexColor.slice(3, 5), 16)
+  const b = parseInt(hexColor.slice(5, 7), 16)
+
+  const lighterR = Math.round(r + (255 - r) * factor)
+  const lighterG = Math.round(g + (255 - g) * factor)
+  const lighterB = Math.round(b + (255 - b) * factor)
+
+  return `rgb(${lighterR}, ${lighterG}, ${lighterB})`
+}
+
+function updateDescriptionBox(descriptionBox, competency, description) {
+  const fullLabel = Object.keys(labelMap).find(
+    (key) => labelMap[key] === competency
+  )
+  const color = colorMap[competency]
+  const lighterColor = getLighterColor(color)
+
+  descriptionBox.innerHTML = `
+        <h3>${fullLabel}</h3>
+        <p>${description || 'Beschreibung nicht verfügbar.'}</p>
+    `
+  descriptionBox.style.backgroundColor = lighterColor
+  descriptionBox.style.padding = '15px'
+  descriptionBox.style.borderRadius = '5px'
+  descriptionBox.style.border = `2px solid ${color}`
+  descriptionBox.style.color = '#333' // Ensure text is visible on light background
+}
+
 function createCompetencyChart1(categoryScores) {
   const canvas = document.getElementById('competencyChart1')
   const descriptionBox = document.getElementById('descriptionBox1')
@@ -526,33 +556,31 @@ function createCompetencyChart1(categoryScores) {
           const dataIndex = activeElements[0].index
           if (dataIndex !== currentHoveredIndex) {
             currentHoveredIndex = dataIndex
+            const competency = labels[dataIndex]
             const fullCompetency = Object.keys(labelMap).find(
-              (key) => labelMap[key] === labels[dataIndex]
+              (key) => labelMap[key] === competency
             )
             updateDescriptionBox(
               descriptionBox,
-              fullCompetency,
+              competency,
               competencyDescriptions[fullCompetency]
             )
           }
+        } else {
+          currentHoveredIndex = -1
+          descriptionBox.innerHTML = ''
+          descriptionBox.style.backgroundColor = ''
+          descriptionBox.style.border = ''
         }
       },
     },
   })
 }
-
 document.addEventListener('click', (event) => {
   if (!chartContainer.contains(event.target)) {
     tooltip.style.display = 'none'
   }
 })
-
-function updateDescriptionBox(descriptionBox, competency, description) {
-  descriptionBox.innerHTML = `
-    <h3>${competency}</h3>
-    <p>${description || 'Beschreibung nicht verfügbar.'}</p>
-  `
-}
 
 function downloadChart(event) {
   event.preventDefault()
