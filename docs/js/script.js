@@ -101,30 +101,26 @@ function handleLoginFormSubmission() {
 }
 
 async function handleLogin() {
-  const surveyCompleted = document.querySelector(
-    'input[name="surveyCompleted"]:checked'
-  )?.value
-  const courses = document.getElementById('courses')?.value
-  const loginCode = document.getElementById('loginCode')?.value
+  const courses = document.getElementById('courses').value.trim()
+  const loginCode = document.getElementById('loginCode').value.trim()
 
-  if (surveyCompleted === 'yes' && loginCode) {
-    try {
-      const response = await submitForm('/login', { code: loginCode, courses })
-      if (response.ok) {
-        const data = await response.json()
-        sessionStorage.setItem('userId', data.userId)
-        window.location.href = 'survey.html'
-      } else {
-        alert('Ungültiger Code')
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-      alert('Fehler beim Einloggen. Bitte versuchen Sie es später erneut.')
-    }
-  } else if (surveyCompleted === 'no') {
-    window.location.href = 'generateCode.html'
-  } else {
+  if (!courses || !loginCode) {
     alert('Bitte füllen Sie alle erforderlichen Felder aus.')
+    return
+  }
+
+  try {
+    const response = await submitForm('/login', { code: loginCode, courses })
+    if (response.ok) {
+      const data = await response.json()
+      sessionStorage.setItem('userId', data.userId)
+      window.location.href = 'survey.html'
+    } else {
+      alert('Ungültiger Code')
+    }
+  } catch (error) {
+    console.error('Login error:', error)
+    alert('Fehler beim Einloggen. Bitte versuchen Sie es später erneut.')
   }
 }
 
@@ -228,26 +224,58 @@ function setupLoginPageFunctionality() {
   )
   const coursesList = document.getElementById('coursesList')
   const codeInput = document.getElementById('codeInput')
-  const newUserText = document.getElementById('newUserText')
   const loginButton = document.getElementById('loginButton')
+  const generateCodeButton = document.getElementById('generateCodeButton')
 
-  if (surveyCompletedRadios.length > 0) {
-    surveyCompletedRadios.forEach((radio) => {
-      radio.addEventListener('change', function () {
-        if (this.value === 'yes') {
-          coursesList.style.display = 'block'
-          codeInput.style.display = 'block'
-          newUserText.style.display = 'none'
-        } else {
-          coursesList.style.display = 'none'
-          codeInput.style.display = 'none'
-          newUserText.style.display = 'block'
-        }
-      })
-    })
+  // Check if we're on the login page
+  if (
+    !surveyCompletedRadios.length ||
+    !coursesList ||
+    !codeInput ||
+    !loginButton ||
+    !generateCodeButton
+  ) {
+    return // Exit if we're not on the login page
   }
 
-  if (loginButton) {
-    loginButton.addEventListener('click', handleLogin)
+  surveyCompletedRadios.forEach((radio) => {
+    radio.addEventListener('change', function () {
+      if (this.value === 'yes') {
+        coursesList.style.display = 'block'
+        codeInput.style.display = 'block'
+        generateCodeButton.style.display = 'none'
+        checkInputsAndToggleLoginButton()
+      } else {
+        coursesList.style.display = 'none'
+        codeInput.style.display = 'none'
+        loginButton.style.display = 'none'
+        generateCodeButton.style.display = 'block'
+      }
+    })
+  })
+
+  // Add input event listeners to check when fields are filled
+  document
+    .getElementById('courses')
+    .addEventListener('input', checkInputsAndToggleLoginButton)
+  document
+    .getElementById('loginCode')
+    .addEventListener('input', checkInputsAndToggleLoginButton)
+
+  loginButton.addEventListener('click', handleLogin)
+  generateCodeButton.addEventListener('click', function () {
+    window.location.href = 'generateCode.html'
+  })
+}
+
+function checkInputsAndToggleLoginButton() {
+  const courses = document.getElementById('courses').value.trim()
+  const loginCode = document.getElementById('loginCode').value.trim()
+  const loginButton = document.getElementById('loginButton')
+
+  if (courses && loginCode) {
+    loginButton.style.display = 'block'
+  } else {
+    loginButton.style.display = 'none'
   }
 }

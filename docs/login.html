@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,7 +8,7 @@
   </head>
   <body>
     <div class="login-container">
-      <img src="images/logo.png" alt="Open-Digi Logo" class="logo">
+      <img src="images/logo.png" alt="Open-Digi Logo" class="logo" />
       <h2>Willkommen zurück</h2>
 
       <div class="form-group">
@@ -40,21 +40,20 @@
           name="courses"
           rows="4"
           placeholder="Bitte liste hier alle Kurse mit genauem Titel auf, die du im Rahmen des Projektes auf Ilias absolviert hast."
+          required
         ></textarea>
       </div>
 
-      <div id="codeInput">
+      <div id="codeInput" style="display: none">
         <label for="loginCode">Gebe hier deinen persönlichen Code an:</label>
         <input type="text" id="loginCode" name="loginCode" required />
       </div>
 
-      <button id="loginButton">Login</button>
+      <button id="loginButton" style="display: none">Login</button>
 
-      <p id="newUserText" style="display: none">
-        <a href="generateCode.html"
-          >Klicke hier, um einen neuen Code zu generieren</a
-        >
-      </p>
+      <button id="generateCodeButton" style="display: none">
+        Klicke hier, um einen neuen Code zu generieren
+      </button>
     </div>
     <script src="js/script.js"></script>
   </body>
