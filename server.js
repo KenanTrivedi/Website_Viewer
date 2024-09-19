@@ -73,23 +73,23 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
   const { code, courses } = req.body;
   try {
-    const validCode = await Code.findOne({ code });
-    if (validCode) {
-      // Update the user data with courses information
-      await UserData.findOneAndUpdate(
-        { userId: validCode._id },
-        { $set: { courses: courses } },
-        { upsert: true }
-      );
-      res
-        .status(200)
-        .send({ message: "Login successful", userId: validCode._id });
+    const user = await Code.findOne({ code });
+    if (user) {
+      // Existing user
+      if (courses) {
+        await UserData.findOneAndUpdate(
+          { userId: user._id },
+          { $set: { courses: courses } },
+          { upsert: true }
+        );
+      }
+      res.status(200).json({ message: "Login successful", userId: user._id });
     } else {
-      res.status(401).send("Invalid code");
+      res.status(400).json({ message: "Invalid code" });
     }
   } catch (err) {
     console.error("Error during login:", err);
-    res.status(500).send("Error processing login request");
+    res.status(500).json({ message: "Error processing login request" });
   }
 });
 

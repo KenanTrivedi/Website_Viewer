@@ -4,10 +4,13 @@ document.addEventListener('DOMContentLoaded', function () {
   handleLoginFormSubmission()
   displayGeneratedCode()
   setupLogoutFunctionality()
-  initializeFlatpickr()
   loadStoredSurveyData()
   setupSurveyDataPersistence()
   setupLoginPageFunctionality()
+
+  if (document.getElementById('birthyear')) {
+    initializeFlatpickr()
+  }
 })
 
 function setupNavigationButtons() {
@@ -29,12 +32,19 @@ function handleCodeGenerationFormSubmission() {
       event.preventDefault()
       if (validateFormInputs(form)) {
         const code = generateCodeFromForm(form)
-        const response = await submitForm('/register', { code })
-        if (response.ok) {
-          sessionStorage.setItem('generatedCode', code)
-          window.location.href = 'codeConfirmation.html'
-        } else {
-          alert('Error registering code.')
+        try {
+          const response = await submitForm('/register', { code })
+          if (response.ok) {
+            sessionStorage.setItem('generatedCode', code)
+            window.location.href = 'codeConfirmation.html'
+          } else {
+            alert('Fehler beim Registrieren des Codes.')
+          }
+        } catch (error) {
+          console.error('Error registering code:', error)
+          alert(
+            'Es gab einen Fehler bei der Registrierung. Bitte versuchen Sie es später erneut.'
+          )
         }
       }
     })
@@ -64,11 +74,20 @@ function generateCodeFromForm(form) {
 }
 
 async function submitForm(url, data) {
-  return await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+    return response
+  } catch (error) {
+    console.error('Error submitting form:', error)
+    throw error
+  }
 }
 
 function handleLoginFormSubmission() {
@@ -96,16 +115,16 @@ async function handleLogin() {
         sessionStorage.setItem('userId', data.userId)
         window.location.href = 'survey.html'
       } else {
-        alert('Invalid code')
+        alert('Ungültiger Code')
       }
     } catch (error) {
       console.error('Login error:', error)
-      alert('Error logging in.')
+      alert('Fehler beim Einloggen. Bitte versuchen Sie es später erneut.')
     }
   } else if (surveyCompleted === 'no') {
     window.location.href = 'generateCode.html'
   } else {
-    alert('Please fill in all required fields.')
+    alert('Bitte füllen Sie alle erforderlichen Felder aus.')
   }
 }
 
@@ -120,12 +139,18 @@ function setupLogoutFunctionality() {
 }
 
 function initializeFlatpickr() {
-  flatpickr('#birthyear', {
-    dateFormat: 'Y',
-    maxDate: new Date().getFullYear().toString(),
-    minDate: '1900',
-    defaultDate: '2000',
-  })
+  if (typeof flatpickr === 'function') {
+    flatpickr('#birthyear', {
+      dateFormat: 'Y',
+      maxDate: new Date().getFullYear().toString(),
+      minDate: '1900',
+      defaultDate: '2000',
+    })
+  } else {
+    console.warn(
+      'Flatpickr ist nicht geladen. Die Funktionalität des Datumswählers kann eingeschränkt sein.'
+    )
+  }
 }
 
 function displayGeneratedCode() {
@@ -135,7 +160,8 @@ function displayGeneratedCode() {
   if (codeDisplayElement && generatedCode) {
     codeDisplayElement.textContent = `Dein generierter Code ist: ${generatedCode}`
   } else if (codeDisplayElement) {
-    codeDisplayElement.textContent = 'No code available or session expired.'
+    codeDisplayElement.textContent =
+      'Kein Code verfügbar oder Sitzung abgelaufen.'
   }
 }
 
@@ -150,21 +176,26 @@ function loadStoredSurveyData() {
           populateFormFields(surveyForm, data.data.responses)
         }
       })
-      .catch((error) => console.error('Error loading user data:', error))
+      .catch((error) =>
+        console.error('Fehler beim Laden der Benutzerdaten:', error)
+      )
   }
 }
 
 function populateFormFields(form, data) {
-  for (const key in data) {
+  Object.entries(data).forEach(([key, value]) => {
     const field = form.querySelector(`[name="${key}"]`)
     if (field) {
       if (field.type === 'radio') {
-        if (field.value === data[key]) field.checked = true
+        const radioButton = form.querySelector(
+          `[name="${key}"][value="${value}"]`
+        )
+        if (radioButton) radioButton.checked = true
       } else {
-        field.value = data[key]
+        field.value = value
       }
     }
-  }
+  })
 }
 
 function setupSurveyDataPersistence() {
@@ -184,7 +215,9 @@ function setupSurveyDataPersistence() {
             responses: data,
           },
         }),
-      }).catch((error) => console.error('Error saving user data:', error))
+      }).catch((error) =>
+        console.error('Fehler beim Speichern der Benutzerdaten:', error)
+      )
     })
   }
 }
@@ -196,6 +229,7 @@ function setupLoginPageFunctionality() {
   const coursesList = document.getElementById('coursesList')
   const codeInput = document.getElementById('codeInput')
   const newUserText = document.getElementById('newUserText')
+  const loginButton = document.getElementById('loginButton')
 
   if (surveyCompletedRadios.length > 0) {
     surveyCompletedRadios.forEach((radio) => {
@@ -211,5 +245,9 @@ function setupLoginPageFunctionality() {
         }
       })
     })
+  }
+
+  if (loginButton) {
+    loginButton.addEventListener('click', handleLogin)
   }
 }
