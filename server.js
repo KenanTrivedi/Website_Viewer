@@ -71,10 +71,16 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  const { code } = req.body;
+  const { code, courses } = req.body;
   try {
     const validCode = await Code.findOne({ code });
     if (validCode) {
+      // Update the user data with courses information
+      await UserData.findOneAndUpdate(
+        { userId: validCode._id },
+        { $set: { courses: courses } },
+        { upsert: true }
+      );
       res
         .status(200)
         .send({ message: "Login successful", userId: validCode._id });

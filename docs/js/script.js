@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
   initializeFlatpickr()
   loadStoredSurveyData()
   setupSurveyDataPersistence()
+  setupLoginPageFunctionality()
 })
 
 function setupNavigationButtons() {
@@ -75,21 +76,36 @@ function handleLoginFormSubmission() {
   if (loginForm) {
     loginForm.addEventListener('submit', async function (event) {
       event.preventDefault()
-      const loginCode = loginForm.loginCode.value
-      try {
-        const response = await submitForm('/login', { code: loginCode })
-        if (response.ok) {
-          const data = await response.json()
-          sessionStorage.setItem('userId', data.userId)
-          window.location.href = 'survey.html'
-        } else {
-          alert('Invalid code')
-        }
-      } catch (error) {
-        console.error('Login error:', error)
-        alert('Error logging in.')
-      }
+      await handleLogin()
     })
+  }
+}
+
+async function handleLogin() {
+  const surveyCompleted = document.querySelector(
+    'input[name="surveyCompleted"]:checked'
+  )?.value
+  const courses = document.getElementById('courses')?.value
+  const loginCode = document.getElementById('loginCode')?.value
+
+  if (surveyCompleted === 'yes' && loginCode) {
+    try {
+      const response = await submitForm('/login', { code: loginCode, courses })
+      if (response.ok) {
+        const data = await response.json()
+        sessionStorage.setItem('userId', data.userId)
+        window.location.href = 'survey.html'
+      } else {
+        alert('Invalid code')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      alert('Error logging in.')
+    }
+  } else if (surveyCompleted === 'no') {
+    window.location.href = 'generateCode.html'
+  } else {
+    alert('Please fill in all required fields.')
   }
 }
 
@@ -169,6 +185,31 @@ function setupSurveyDataPersistence() {
           },
         }),
       }).catch((error) => console.error('Error saving user data:', error))
+    })
+  }
+}
+
+function setupLoginPageFunctionality() {
+  const surveyCompletedRadios = document.querySelectorAll(
+    'input[name="surveyCompleted"]'
+  )
+  const coursesList = document.getElementById('coursesList')
+  const codeInput = document.getElementById('codeInput')
+  const newUserText = document.getElementById('newUserText')
+
+  if (surveyCompletedRadios.length > 0) {
+    surveyCompletedRadios.forEach((radio) => {
+      radio.addEventListener('change', function () {
+        if (this.value === 'yes') {
+          coursesList.style.display = 'block'
+          codeInput.style.display = 'block'
+          newUserText.style.display = 'none'
+        } else {
+          coursesList.style.display = 'none'
+          codeInput.style.display = 'none'
+          newUserText.style.display = 'block'
+        }
+      })
     })
   }
 }

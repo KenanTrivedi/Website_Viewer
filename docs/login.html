@@ -8,26 +8,52 @@
   </head>
   <body>
     <div class="login-container">
-      <a href="index.html">
-        <img
-          src="images/logo.png"
-          alt="Open-Digi Logo"
-          style="max-width: 200px; margin-bottom: 20px"
-        />
-      </a>
-      <h1>Willkommen zurück</h1>
-      <form id="loginForm">
-        <input
-          type="text"
-          id="loginCode"
-          placeholder="Dein persönlicher Zugangscode"
-          required
-        />
-        <button type="submit">Login</button>
-      </form>
-      <a href="generateCode.html"
-        >Du hast noch keinen persönlichen Zugangscode? Generiere hier einen.</a
-      >
+      <h2>Willkommen zurück</h2>
+
+      <div class="form-group">
+        <label
+          >Hast du den Fragebogen schon einmal ausgefüllt, also bereits
+          Fortbildungen auf Ilias absolviert?</label
+        >
+        <div>
+          <input
+            type="radio"
+            id="surveyYes"
+            name="surveyCompleted"
+            value="yes"
+          />
+          <label for="surveyYes">Ja</label>
+        </div>
+        <div>
+          <input type="radio" id="surveyNo" name="surveyCompleted" value="no" />
+          <label for="surveyNo">Nein</label>
+        </div>
+      </div>
+
+      <div id="coursesList" style="display: none">
+        <label for="courses"
+          >Welche Kurse bzw. Fortbildungen hast du absolviert?</label
+        >
+        <textarea
+          id="courses"
+          name="courses"
+          rows="4"
+          placeholder="Bitte liste hier alle Kurse mit genauem Titel auf, die du im Rahmen des Projektes auf Ilias absolviert hast."
+        ></textarea>
+      </div>
+
+      <div id="codeInput">
+        <label for="loginCode">Gebe hier deinen persönlichen Code an:</label>
+        <input type="text" id="loginCode" name="loginCode" required />
+      </div>
+
+      <button id="loginButton">Login</button>
+
+      <p id="newUserText" style="display: none">
+        <a href="generateCode.html"
+          >Klicke hier, um einen neuen Code zu generieren</a
+        >
+      </p>
     </div>
     <script src="js/script.js"></script>
   </body>
