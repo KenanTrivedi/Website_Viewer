@@ -1,12 +1,53 @@
+// Global variables
 let currentSection = 0
 let userData = {}
 let isNewUser = true
+let chart1Instance = null
+
+// Constants
+const labelMap = {
+  'Suchen, Verarbeiten und Aufbewahren': 'Suchen',
+  'Kommunikation und Kollaborieren': 'Kommunizieren',
+  'Produzieren und Präsentieren': 'Produzieren',
+  'Schützen und sicher Agieren': 'Schützen',
+  'Problemlösen und Handeln': 'Problemlösen',
+  'Analysieren und Reflektieren': 'Analysieren',
+}
+
+const colorMap = {
+  Suchen: '#00BF63',
+  Kommunizieren: '#0CC0DF',
+  Produzieren: '#FF6D5F',
+  Schützen: '#8C52FF',
+  Problemlösen: '#E884C4',
+  Analysieren: '#FFD473',
+}
+
+const competencyDescriptions = {
+  'Suchen, Verarbeiten und Aufbewahren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, gezielt nach digitalen Daten und Inhalten zu suchen, diese effektiv zu organisieren, zu speichern und abzurufen.',
+  'Kommunikation und Kollaborieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen, dabei die Verhaltensnormen in digitalen Umgebungen zu beachten und digitale Technologien zur gesellschaftlichen Teilhabe und Selbstermächtigung zu nutzen.',
+  'Problemlösen und Handeln':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen und kreative technische Lösungen für spezifische Bedürfnisse zu finden. Zudem gehört zum Kompetenzbereich informatisches Denken, also das strategische Lösen komplexer Probleme in digitalen Umgebungen und die kontinuierliche Weiterentwicklung der eigenen digitalen Kompetenzen.',
+  'Schützen und sicher Agieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Geräte und Inhalte zu schützen, Gesundheits- und Umweltgefahren bei der Nutzung digitaler Technologien zu vermeiden, und persönliche Daten, Identität sowie Privatsphäre in digitalen Umgebungen verantwortungsvoll zu schützen.',
+  'Produzieren und Präsentieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Inhalte in verschiedenen Formaten zu erstellen, zu bearbeiten und zu integrieren, dabei Urheberrecht und Lizenzen zu berücksichtigen, sowie das Programmieren digitaler Produkte.',
+  'Analysieren und Reflektieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, die Auswirkungen und Verbreitung digitaler Medien und Inhalte zu analysieren, deren Glaubwürdigkeit und Zuverlässigkeit kritisch zu bewerten sowie Geschäftsaktivitäten in digitalen Umgebungen zu identifizieren und angemessen darauf zu reagieren.',
+}
 
 document.addEventListener('DOMContentLoaded', function () {
   loadUserData()
   populateSectionDropdown()
   renderSection(currentSection)
   updateProgressBar()
+  setupEventListeners()
+  checkResumeToken()
+})
+
+function setupEventListeners() {
   document
     .getElementById('prevButton')
     .addEventListener('click', previousSection)
@@ -18,8 +59,9 @@ document.addEventListener('DOMContentLoaded', function () {
   document
     .getElementById('section-select')
     .addEventListener('change', handleSectionChange)
+}
 
-  // Check for resume token
+function checkResumeToken() {
   const resumeToken = localStorage.getItem('surveyResumeToken')
   if (resumeToken) {
     const { userId, section } = JSON.parse(atob(resumeToken))
@@ -30,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
       localStorage.removeItem('surveyResumeToken')
     }
   }
-})
+}
 
 function loadUserData() {
   const userId = sessionStorage.getItem('userId')
@@ -120,7 +162,6 @@ function renderSection(index) {
   html += `</div>`
   document.getElementById('surveyForm').innerHTML = html
 
-  // Add event listeners for keyboard navigation on scale buttons
   document.querySelectorAll('.scale-button').forEach((button) => {
     button.addEventListener('keydown', handleScaleKeydown)
   })
@@ -148,7 +189,6 @@ function updateProgressBar() {
     surveyData.length
   }`
 
-  // Update ARIA attributes for accessibility
   progressFill.setAttribute('aria-valuenow', currentSection + 1)
   progressFill.setAttribute('aria-valuemax', surveyData.length)
 }
@@ -409,7 +449,6 @@ function showResults() {
 
   document.getElementById('surveyForm').innerHTML = resultHtml
 
-  // Use requestAnimationFrame to ensure the DOM is updated before creating charts
   requestAnimationFrame(() => {
     createCompetencyChart1(categoryScores)
   })
@@ -421,23 +460,6 @@ function showResults() {
     console.error('Download button not found')
   }
 }
-
-const competencyDescriptions = {
-  'Suchen, Verarbeiten und Aufbewahren':
-    'Umfasst das Wissen, die Motivation und Fähigkeiten, gezielt nach digitalen Daten und Inhalten zu suchen, diese effektiv zu organisieren, zu speichern und abzurufen.',
-  'Kommunikation und Kollaborieren':
-    'Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen, dabei die Verhaltensnormen in digitalen Umgebungen zu beachten und digitale Technologien zur gesellschaftlichen Teilhabe und Selbstermächtigung zu nutzen.',
-  'Problemlösen und Handeln':
-    'Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen und kreative technische Lösungen für spezifische Bedürfnisse zu finden. Zudem gehört zum Kompetenzbereich informatisches Denken, also das strategische Lösen komplexer Probleme in digitalen Umgebungen und die kontinuierliche Weiterentwicklung der eigenen digitalen Kompetenzen.',
-  'Schützen und sicher Agieren':
-    'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Geräte und Inhalte zu schützen, Gesundheits- und Umweltgefahren bei der Nutzung digitaler Technologien zu vermeiden, und persönliche Daten, Identität sowie Privatsphäre in digitalen Umgebungen verantwortungsvoll zu schützen.',
-  'Produzieren und Präsentieren':
-    'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Inhalte in verschiedenen Formaten zu erstellen, zu bearbeiten und zu integrieren, dabei Urheberrecht und Lizenzen zu berücksichtigen, sowie das Programmieren digitaler Produkte.',
-  'Analysieren und Reflektieren':
-    'Umfasst das Wissen, die Motivation und Fähigkeiten, die Auswirkungen und Verbreitung digitaler Medien und Inhalte zu analysieren, deren Glaubwürdigkeit und Zuverlässigkeit kritisch zu bewerten sowie Geschäftsaktivitäten in digitalen Umgebungen zu identifizieren und angemessen darauf zu reagieren.',
-}
-
-let chart1Instance = null
 
 function getLighterColor(hexColor, factor = 0.3) {
   const r = parseInt(hexColor.slice(1, 3), 16)
@@ -466,7 +488,7 @@ function updateDescriptionBox(descriptionBox, competency, description) {
   descriptionBox.style.padding = '15px'
   descriptionBox.style.borderRadius = '5px'
   descriptionBox.style.border = `2px solid ${color}`
-  descriptionBox.style.color = '#333' // Ensure text is visible on light background
+  descriptionBox.style.color = '#333'
 }
 
 function createCompetencyChart1(categoryScores) {
@@ -480,27 +502,10 @@ function createCompetencyChart1(categoryScores) {
   if (chart1Instance) {
     chart1Instance.destroy()
   }
-  const labelMap = {
-    'Suchen, Verarbeiten und Aufbewahren': 'Suchen',
-    'Kommunikation und Kollaborieren': 'Kommunizieren',
-    'Produzieren und Präsentieren': 'Produzieren',
-    'Schützen und sicher Agieren': 'Schützen',
-    'Problemlösen und Handeln': 'Problemlösen',
-    'Analysieren und Reflektieren': 'Analysieren',
-  }
 
   const labels = Object.keys(categoryScores).map((key) => labelMap[key] || key)
   const ctx = canvas.getContext('2d')
   const data = Object.values(categoryScores)
-
-  const colorMap = {
-    Suchen: '#00BF63',
-    Kommunizieren: '#0CC0DF',
-    Produzieren: '#FF6D5F',
-    Schützen: '#8C52FF',
-    Problemlösen: '#E884C4',
-    Analysieren: '#FFD473',
-  }
 
   let currentHoveredIndex = -1
 
@@ -576,11 +581,6 @@ function createCompetencyChart1(categoryScores) {
     },
   })
 }
-document.addEventListener('click', (event) => {
-  if (!chartContainer.contains(event.target)) {
-    tooltip.style.display = 'none'
-  }
-})
 
 function downloadChart(event) {
   event.preventDefault()
