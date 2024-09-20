@@ -4,13 +4,17 @@ document.addEventListener('DOMContentLoaded', function () {
   handleLoginFormSubmission()
   displayGeneratedCode()
   setupLogoutFunctionality()
-  loadStoredSurveyData()
-  setupSurveyDataPersistence()
   setupLoginPageFunctionality()
   setupStartSurveyButton()
 
   if (document.getElementById('birthyear')) {
     initializeFlatpickr()
+  }
+
+  // Only load and set up survey data if we're on the survey page
+  if (document.getElementById('surveyForm')) {
+    loadStoredSurveyData()
+    setupSurveyDataPersistence()
   }
 })
 
@@ -115,6 +119,20 @@ async function handleLogin() {
     if (response.ok) {
       const data = await response.json()
       sessionStorage.setItem('userId', data.userId)
+
+      // Fetch user data after successful login
+      const userDataResponse = await fetch(`/api/user-data/${data.userId}`)
+      if (userDataResponse.ok) {
+        const userData = await userDataResponse.json()
+        if (userData.data && userData.data.responses) {
+          sessionStorage.setItem(
+            'surveyData',
+            JSON.stringify(userData.data.responses)
+          )
+        }
+      }
+
+      // Always redirect to the survey page
       window.location.href = 'survey.html'
     } else {
       alert('Ungültiger Code')
@@ -173,18 +191,10 @@ function setupStartSurveyButton() {
 
 function loadStoredSurveyData() {
   const surveyForm = document.getElementById('surveyForm')
-  const userId = sessionStorage.getItem('userId')
-  if (surveyForm && userId) {
-    fetch(`/api/user-data/${userId}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.data && data.data.responses) {
-          populateFormFields(surveyForm, data.data.responses)
-        }
-      })
-      .catch((error) =>
-        console.error('Fehler beim Laden der Benutzerdaten:', error)
-      )
+  const storedData = sessionStorage.getItem('surveyData')
+  if (surveyForm && storedData) {
+    const data = JSON.parse(storedData)
+    populateFormFields(surveyForm, data)
   }
 }
 
@@ -204,26 +214,59 @@ function populateFormFields(form, data) {
   })
 }
 
+function saveUserData(userId, data) {
+  fetch('/api/save-user-data', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      userId: userId,
+      data: {
+        responses: data,
+      },
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error('Failed to save data')
+      }
+      return response.json()
+    })
+    .then((result) => {
+      console.log('Data saved successfully:', result)
+      sessionStorage.setItem('surveyData', JSON.stringify(data))
+    })
+    .catch((error) => {
+      console.error('Fehler beim Speichern der Benutzerdaten:', error)
+    })
+}
+
 function setupSurveyDataPersistence() {
   const surveyForm = document.getElementById('surveyForm')
   const userId = sessionStorage.getItem('userId')
   if (surveyForm && userId) {
+    // Load existing data if available
+    const storedData = sessionStorage.getItem('surveyData')
+    if (storedData) {
+      const data = JSON.parse(storedData)
+      populateFormFields(surveyForm, data)
+    }
+
+    // Set up event listener for input changes
     surveyForm.addEventListener('input', function () {
       const data = Object.fromEntries(new FormData(surveyForm))
-      fetch('/api/save-user-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: userId,
-          data: {
-            responses: data,
-          },
-        }),
-      }).catch((error) =>
-        console.error('Fehler beim Speichern der Benutzerdaten:', error)
-      )
+      saveUserData(userId, data)
+    })
+
+    // Set up event listener for form submission
+    surveyForm.addEventListener('submit', function (event) {
+      event.preventDefault()
+      const data = Object.fromEntries(new FormData(surveyForm))
+      saveUserData(userId, data)
+      // Handle survey completion (e.g., show a thank you message)
+      alert('Vielen Dank für das Ausfüllen der Umfrage!')
+      // Optionally, redirect to another page or reset the form
     })
   }
 }
