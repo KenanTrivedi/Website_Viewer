@@ -191,7 +191,7 @@ function updateProgressBar() {
   progressFill.setAttribute('aria-valuemax', surveyData.length)
 }
 
-function saveSectionData() {
+function saveSectionData(isComplete = false) {
   const formData = new FormData(document.getElementById('surveyForm'))
   for (let [key, value] of formData.entries()) {
     userData[key] = value
@@ -205,9 +205,10 @@ function saveSectionData() {
       data: {
         responses: userData,
         currentSection: currentSection,
-        overallScore: calculateCompetenzScore(), // Optional: If needed
-        categoryScores: calculateCategoryScores(), // Optional: If needed
+        overallScore: calculateCompetenzScore(),
+        categoryScores: calculateCategoryScores(),
       },
+      isComplete: isComplete,
     }
 
     fetch('/api/save-user-data', {
@@ -400,7 +401,7 @@ function getCoursesSuggestions(score) {
 }
 
 function finishSurvey() {
-  saveSectionData()
+  saveSectionData(true) // Mark the survey as complete
   showDatenschutz()
 }
 

@@ -40,6 +40,8 @@ function handleCodeGenerationFormSubmission() {
         try {
           const response = await submitForm('/register', { code })
           if (response.ok) {
+            const data = await response.json()
+            sessionStorage.setItem('userId', data.userId)
             sessionStorage.setItem('generatedCode', code)
             window.location.href = 'codeConfirmation.html'
           } else {

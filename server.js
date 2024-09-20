@@ -28,7 +28,8 @@ const Code = mongoose.model("Code", codeSchema, "codes");
 const userDataSchema = new mongoose.Schema({
   userId: String,
   data: Object,
-  courses: { type: Array, default: [] }, // Add this if "courses" data is necessary
+  courses: { type: Array, default: [] },
+  isComplete: { type: Boolean, default: false },
 });
 const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
 
@@ -64,7 +65,7 @@ app.post("/register", async (req, res) => {
   const newCode = new Code({ code });
   try {
     await newCode.save();
-    res.status(201).send({ message: "Code saved", codeId: newCode._id });
+    res.status(201).send({ message: "Code saved", userId: newCode._id });
   } catch (err) {
     console.error("Failed to save code:", err);
     res.status(500).send("Error saving code");
@@ -85,7 +86,7 @@ app.post("/login", async (req, res) => {
     // Ensure user data exists in the database
     const userData = await UserData.findOneAndUpdate(
       { userId: user._id },
-      { $setOnInsert: { userId: user._id, data: {} } }, // Insert if doesn't exist
+      { $setOnInsert: { userId: user._id, data: {} } },
       { upsert: true, new: true }
     );
 
@@ -113,7 +114,12 @@ app.post("/api/save-user-data", async (req, res) => {
     // Update or create user data entry
     const result = await UserData.findOneAndUpdate(
       { userId },
-      { $set: { data } },
+      {
+        $set: {
+          "data.responses": data.responses,
+          isComplete: data.isComplete || false,
+        },
+      },
       { upsert: true, new: true }
     );
 
@@ -136,7 +142,10 @@ app.get("/api/user-data/:userId", async (req, res) => {
   try {
     const userData = await UserData.findOne({ userId });
     if (userData) {
-      res.status(200).json({ data: userData.data });
+      res.status(200).json({
+        data: userData.data,
+        isComplete: userData.isComplete,
+      });
     } else {
       res.status(404).json({ message: "User data not found" });
     }
@@ -196,6 +205,7 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
             responses: responses,
           },
           scores: categoryScores,
+          isComplete: user.isComplete || false,
         };
       })
     );
