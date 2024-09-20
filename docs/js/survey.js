@@ -233,25 +233,38 @@ function saveSectionData(isComplete = false) {
   }
 }
 
-function calculateCategoryScores() {
-  let categoryScores = {}
-  surveyData.forEach((section) => {
-    let totalScore = 0
-    let questionCount = 0
-    section.questions.forEach((question, qIndex) => {
-      const questionId = `q${surveyData.indexOf(section)}_${qIndex}`
-      if (userData[questionId] !== undefined && question.type === 'scale') {
-        totalScore += parseInt(userData[questionId])
-        questionCount++
-      }
-    })
+function calculateCategoryScores(responses, surveyData) {
+  const categoryScores = {}
+
+  surveyData.forEach((section, sectionIndex) => {
     if (section.title !== 'Persönliche Angaben') {
-      categoryScores[section.title] =
-        questionCount > 0
-          ? Math.round((totalScore / (questionCount * 6)) * 100)
-          : 0
+      let totalScore = 0
+      let questionCount = 0
+
+      section.questions.forEach((question, questionIndex) => {
+        const questionId = `q${sectionIndex}_${questionIndex}`
+        const markedQuestionId = `${questionId}*`
+        if (
+          (responses[questionId] || responses[markedQuestionId]) &&
+          question.type === 'scale'
+        ) {
+          totalScore += parseInt(
+            responses[questionId] || responses[markedQuestionId]
+          )
+          questionCount++
+        }
+      })
+
+      if (questionCount > 0) {
+        categoryScores[section.title] = Math.round(
+          (totalScore / (questionCount * 6)) * 100
+        )
+      } else {
+        categoryScores[section.title] = 0
+      }
     }
   })
+
   return categoryScores
 }
 
