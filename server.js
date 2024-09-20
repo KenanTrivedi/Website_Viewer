@@ -3,8 +3,6 @@ const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const path = require("path");
-const csvWriter = require("csv-writer").createObjectCsvWriter;
-const fs = require("fs");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
@@ -58,6 +56,8 @@ function authenticate(req, res, next) {
 }
 
 // Routes
+
+// Register a new code for a user
 app.post("/register", async (req, res) => {
   const { code } = req.body;
   const newCode = new Code({ code });
@@ -70,6 +70,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
+// Login with an existing code
 app.post("/login", async (req, res) => {
   const { code, courses } = req.body;
   try {
@@ -93,30 +94,35 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// Save user survey data
 app.post("/api/save-user-data", async (req, res) => {
   const { userId, data } = req.body;
   try {
     if (!userId || !data) {
       throw new Error("Missing userId or data in request body");
     }
+
+    // Find or create user data entry in the database
     const result = await UserData.findOneAndUpdate(
-      { userId },
-      { $set: { data } },
-      { upsert: true, new: true }
+      { userId }, // Search by userId
+      { $set: { data } }, // Update data
+      { upsert: true, new: true } // Create new if not exists
     );
+
     if (!result) {
       throw new Error("Failed to update or insert user data");
     }
-    await updateCSV();
+
     res.status(200).json({ message: "Data saved successfully" });
   } catch (err) {
-    console.error("Failed to save user data:", err);
+    console.error("Error saving user data:", err);
     res
       .status(500)
       .json({ error: "Error saving user data", details: err.message });
   }
 });
 
+// Get user data by userId
 app.get("/api/user-data/:userId", async (req, res) => {
   const { userId } = req.params;
   const userData = await UserData.findOne({ userId });
@@ -127,6 +133,7 @@ app.get("/api/user-data/:userId", async (req, res) => {
   }
 });
 
+// Login to dashboard
 app.post("/api/dashboard-login", async (req, res) => {
   const { userId, password } = req.body;
   if (userId === DASHBOARD_USER_ID && password === DASHBOARD_PASSWORD) {
@@ -137,14 +144,17 @@ app.post("/api/dashboard-login", async (req, res) => {
   }
 });
 
+// Serve the dashboard HTML page
 app.get("/dashboard", (req, res) => {
   res.sendFile(path.resolve(__dirname, "docs", "dashboard.html"));
 });
 
+// Serve the dashboard login page
 app.get("/dashboard-login", (req, res) => {
   res.sendFile(path.resolve(__dirname, "docs", "dashboard-login.html"));
 });
 
+// Get data for the dashboard
 app.get("/api/dashboard-data", authenticate, async (req, res) => {
   try {
     const users = await UserData.find().lean();
@@ -186,11 +196,14 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
   }
 });
 
+// Serve the default index page for all other routes
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "docs", "index.html"));
 });
 
 // Helper Functions
+
+// Calculate category scores based on survey responses
 function calculateCategoryScores(responses, surveyData) {
   const categoryScores = {};
 
@@ -220,6 +233,7 @@ function calculateCategoryScores(responses, surveyData) {
   return categoryScores;
 }
 
+// Function to update the CSV file with user survey data
 async function updateCSV() {
   const allUserData = await UserData.find().lean();
 

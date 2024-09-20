@@ -124,36 +124,34 @@ function renderSection(index) {
         } required> ${option}</label><br>`
       })
     } else if (question.type === 'number') {
-      html += `
-        <div class="input-container">
-          <input type="number" id="${questionId}" name="${questionId}" value="${savedValue}" min="${question.min}" max="${question.max}" required>
-          <label for="${questionId}" class="floating-label">Enter a number</label>
-        </div>`
+      html += `<div class="input-container">
+                <input type="number" id="${questionId}" name="${questionId}" value="${savedValue}" min="${question.min}" max="${question.max}" required>
+                <label for="${questionId}" class="floating-label">Enter a number</label>
+               </div>`
     } else if (question.type === 'scale') {
       html += `<div class="rating-scale" role="group" aria-label="Competency scale from 0 to 6">`
       for (let i = 0; i <= 6; i++) {
-        html += `
-          <label class="scale-label">
-            <input type="radio" name="${questionId}" value="${i}" ${
+        html += `<label class="scale-label">
+                  <input type="radio" name="${questionId}" value="${i}" ${
           !isNewUser && savedValue == i ? 'checked' : ''
         } required>
-            <span class="scale-button" role="radio" aria-checked="${
-              !isNewUser && savedValue == i ? 'true' : 'false'
-            }" tabindex="0">${i}</span>
-            <span class="sr-only">${
-              i === 0
-                ? 'gar nicht kompetent'
-                : i === 6
-                ? 'ausgesprochen kompetent'
-                : ''
-            }</span>
-          </label>`
+                  <span class="scale-button" role="radio" aria-checked="${
+                    !isNewUser && savedValue == i ? 'true' : 'false'
+                  }" tabindex="0">${i}</span>
+                  <span class="sr-only">${
+                    i === 0
+                      ? 'gar nicht kompetent'
+                      : i === 6
+                      ? 'ausgesprochen kompetent'
+                      : ''
+                  }</span>
+                 </label>`
       }
       html += `</div>
-        <div class="scale-labels">
-          <span>gar nicht kompetent</span>
-          <span>ausgesprochen kompetent</span>
-        </div>`
+               <div class="scale-labels">
+                 <span>gar nicht kompetent</span>
+                 <span>ausgesprochen kompetent</span>
+               </div>`
     }
 
     html += `</div>`
@@ -207,8 +205,8 @@ function saveSectionData() {
       data: {
         responses: userData,
         currentSection: currentSection,
-        overallScore: calculateCompetenzScore(),
-        categoryScores: calculateCategoryScores(),
+        overallScore: calculateCompetenzScore(), // Optional: If needed
+        categoryScores: calculateCategoryScores(), // Optional: If needed
       },
     }
 
@@ -410,7 +408,6 @@ function showDatenschutz() {
   const datenschutzHtml = `
     <h1>Datenschutz</h1>
     <h2>Projektleitung: Prof.in Dr. Charlott Rubach & Anne-Kathrin Hirsch</h2>
-    
     <button id="acceptDatenschutz">Akzeptieren und fortfahren</button>
   `
 
