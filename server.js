@@ -28,6 +28,7 @@ const Code = mongoose.model("Code", codeSchema, "codes");
 const userDataSchema = new mongoose.Schema({
   userId: String,
   data: Object,
+  courses: { type: Array, default: [] }, // Add this if "courses" data is necessary
 });
 const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
 
@@ -70,24 +71,31 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// Login with an existing code
+// Login route - to handle both "Nein" and "Ja" flows
 app.post("/login", async (req, res) => {
   const { code, courses } = req.body;
   try {
-    const user = await Code.findOne({ code });
-    if (user) {
-      // Existing user
-      if (courses) {
-        await UserData.findOneAndUpdate(
-          { userId: user._id },
-          { $set: { courses: courses } },
-          { upsert: true }
-        );
-      }
-      res.status(200).json({ message: "Login successful", userId: user._id });
-    } else {
-      res.status(400).json({ message: "Invalid code" });
+    // Find or create a user by code
+    let user = await Code.findOne({ code });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid code" });
     }
+
+    // Ensure user data exists in the database
+    const userData = await UserData.findOneAndUpdate(
+      { userId: user._id },
+      { $setOnInsert: { userId: user._id, data: {} } }, // Insert if doesn't exist
+      { upsert: true, new: true }
+    );
+
+    // Update the user's courses if provided
+    if (courses) {
+      await UserData.updateOne({ userId: user._id }, { $set: { courses } });
+    }
+
+    // Send userId back to client
+    res.status(200).json({ message: "Login successful", userId: user._id });
   } catch (err) {
     console.error("Error during login:", err);
     res.status(500).json({ message: "Error processing login request" });
@@ -99,14 +107,14 @@ app.post("/api/save-user-data", async (req, res) => {
   const { userId, data } = req.body;
   try {
     if (!userId || !data) {
-      throw new Error("Missing userId or data in request body");
+      return res.status(400).json({ message: "Missing userId or data" });
     }
 
-    // Find or create user data entry in the database
+    // Update or create user data entry
     const result = await UserData.findOneAndUpdate(
-      { userId }, // Search by userId
-      { $set: { data } }, // Update data
-      { upsert: true, new: true } // Create new if not exists
+      { userId },
+      { $set: { data } },
+      { upsert: true, new: true }
     );
 
     if (!result) {
@@ -118,18 +126,22 @@ app.post("/api/save-user-data", async (req, res) => {
     console.error("Error saving user data:", err);
     res
       .status(500)
-      .json({ error: "Error saving user data", details: err.message });
+      .json({ message: "Error saving user data", details: err.message });
   }
 });
 
 // Get user data by userId
 app.get("/api/user-data/:userId", async (req, res) => {
   const { userId } = req.params;
-  const userData = await UserData.findOne({ userId });
-  if (userData) {
-    res.status(200).json({ data: userData.data });
-  } else {
-    res.status(404).send("User data not found");
+  try {
+    const userData = await UserData.findOne({ userId });
+    if (userData) {
+      res.status(200).json({ data: userData.data });
+    } else {
+      res.status(404).json({ message: "User data not found" });
+    }
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching user data" });
   }
 });
 
@@ -188,7 +200,6 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
       })
     );
 
-    console.log("Formatted users:", formattedUsers.length);
     res.json({ users: formattedUsers, sections });
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
