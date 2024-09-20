@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
   loadStoredSurveyData()
   setupSurveyDataPersistence()
   setupLoginPageFunctionality()
+  setupStartSurveyButton()
 
   if (document.getElementById('birthyear')) {
     initializeFlatpickr()
@@ -158,6 +159,15 @@ function displayGeneratedCode() {
   } else if (codeDisplayElement) {
     codeDisplayElement.textContent =
       'Kein Code verfügbar oder Sitzung abgelaufen.'
+  }
+}
+
+function setupStartSurveyButton() {
+  const startSurveyButton = document.getElementById('startSurveyButton')
+  if (startSurveyButton) {
+    startSurveyButton.addEventListener('click', function () {
+      window.location.href = 'survey.html'
+    })
   }
 }
 

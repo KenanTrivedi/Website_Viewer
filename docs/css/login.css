@@ -98,14 +98,16 @@ a:hover {
 }
 
 .code-display {
-    padding: 15px;
-    margin: 20px 0;
+    padding: 20px;
+    margin: 30px 0;
     background-color: #e8f0fe;
-    border: 1px dashed #004A99;
+    border: 2px solid #004A99;
+    border-radius: 8px;
     text-align: center;
-    font-size: 20px;
+    font-size: 24px;
     font-weight: bold;
     color: #004A99;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 
@@ -171,6 +173,13 @@ button:hover {
     font-size: 16px;
 }
 
+.login-container p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #333;
+    margin-bottom: 30px;
+}
+
 .login-container a:hover {
     text-decoration: underline;
 }
@@ -180,4 +189,19 @@ button:hover {
         width: 100%;
         padding: 10px;
     }
+}
+
+.primary-button {
+    background-color: #004A99;
+    color: white;
+    font-weight: bold;
+    padding: 15px 20px;
+    font-size: 18px;
+    margin-top: 20px;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.primary-button:hover {
+    background-color: #003366;
+    transform: scale(1.05);
 }
