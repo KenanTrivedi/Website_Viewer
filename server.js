@@ -27,14 +27,10 @@ const Code = mongoose.model("Code", codeSchema, "codes");
 
 const userDataSchema = new mongoose.Schema({
   userId: String,
-  data: {
-    responses: Object,
-    originalResponses: Object,
-  },
+  data: Object,
   courses: { type: Array, default: [] },
   isComplete: { type: Boolean, default: false },
   firstSubmissionTime: { type: Date },
-  lastUpdateTime: { type: Date },
 });
 const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
 
@@ -118,36 +114,22 @@ app.post("/api/save-user-data", async (req, res) => {
 
     const currentTime = new Date();
 
-    // Fetch existing user data
-    let userData = await UserData.findOne({ userId });
-
-    if (!userData) {
-      // If it's a new user, create a new document
-      userData = new UserData({
-        userId,
-        data: {
-          responses: data.responses,
-          originalResponses: data.responses,
+    // Update or create user data entry
+    const result = await UserData.findOneAndUpdate(
+      { userId },
+      {
+        $set: {
+          "data.responses": data.responses,
+          isComplete: data.isComplete || false,
         },
-        firstSubmissionTime: currentTime,
-        lastUpdateTime: currentTime,
-      });
-    } else {
-      // If user exists, update responses and mark updated questions
-      const updatedResponses = {};
-      for (const [key, value] of Object.entries(data.responses)) {
-        if (userData.data.originalResponses[key] !== value) {
-          updatedResponses[key + "*"] = value;
-        } else {
-          updatedResponses[key] = value;
-        }
-      }
-      userData.data.responses = updatedResponses;
-      userData.lastUpdateTime = currentTime;
-    }
+        $setOnInsert: { firstSubmissionTime: currentTime },
+      },
+      { upsert: true, new: true }
+    );
 
-    userData.isComplete = data.isComplete || false;
-    await userData.save();
+    if (!result) {
+      throw new Error("Failed to update or insert user data");
+    }
 
     res.status(200).json({ message: "Data saved successfully" });
   } catch (err) {
@@ -211,27 +193,22 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
       users.map(async (user) => {
         const codeDoc = await Code.findOne({ _id: user.userId });
         const responses = user.data.responses || {};
-        const originalResponses = user.data.originalResponses || {};
         const categoryScores = calculateCategoryScores(responses, surveyData);
-        const originalCategoryScores = calculateCategoryScores(
-          originalResponses,
-          surveyData
-        );
 
         return {
           userId: user.userId,
           userCode: codeDoc ? codeDoc.code : "Unknown",
           gender: responses.q0_0 || "",
           birthYear: responses.q0_1 || "",
+          firstSubmissionTime: user.firstSubmissionTime
+            ? user.firstSubmissionTime.toISOString()
+            : "",
           data: {
             responses: responses,
-            originalResponses: originalResponses,
           },
           scores: categoryScores,
-          originalScores: originalCategoryScores,
           isComplete: user.isComplete || false,
           firstSubmissionTime: user.firstSubmissionTime,
-          lastUpdateTime: user.lastUpdateTime,
         };
       })
     );
