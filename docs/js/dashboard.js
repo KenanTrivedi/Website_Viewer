@@ -111,6 +111,7 @@ function renderTable(usersToRender = users) {
     <th>User Code</th>
     <th>Gender</th>
     <th>Birth Year</th>
+    <th>First Submission</th>
   `
 
   questionIds.forEach((questionId) => {
@@ -133,6 +134,11 @@ function renderTable(usersToRender = users) {
       <td>${user.userCode || ''}</td>
       <td>${user.gender || ''}</td>
       <td>${user.birthYear || ''}</td>
+        <td>${
+          user.firstSubmissionTime
+            ? new Date(user.firstSubmissionTime).toLocaleString()
+            : ''
+        }</td>
     `
 
     questionIds.forEach((questionId) => {
@@ -307,6 +313,9 @@ function exportToExcel(data) {
       'User Code': user.userCode,
       Gender: user.gender,
       'Birth Year': user.birthYear,
+      'First Submission': user.firstSubmissionTime
+        ? new Date(user.firstSubmissionTime).toLocaleString()
+        : '',
       ...questionIds.reduce((acc, questionId) => {
         if (questionId !== 'q0_0' && questionId !== 'q0_1') {
           acc[questionId] = user.data?.responses?.[questionId] || ''

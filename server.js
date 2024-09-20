@@ -200,6 +200,9 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
           userCode: codeDoc ? codeDoc.code : "Unknown",
           gender: responses.q0_0 || "",
           birthYear: responses.q0_1 || "",
+          firstSubmissionTime: user.firstSubmissionTime
+            ? user.firstSubmissionTime.toISOString()
+            : "",
           data: {
             responses: responses,
           },

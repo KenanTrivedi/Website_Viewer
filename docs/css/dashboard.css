@@ -49,3 +49,31 @@
 #userSearch {
     max-width: 300px;
 }
+
+/* New styles for the table and First Submission column */
+.table-responsive {
+    overflow-x: auto;
+}
+
+#userTable th,
+#userTable td {
+    white-space: nowrap;
+    padding: 8px;
+}
+
+#userTable th:nth-child(5),
+#userTable td:nth-child(5) {
+    min-width: 150px;
+    /* Adjust this value as needed for the First Submission column */
+}
+
+/* Ensure the table doesn't break the layout on smaller screens */
+@media (max-width: 1200px) {
+    #mainContent.shifted {
+        margin-right: 0;
+    }
+
+    .sidebar.open {
+        width: 100%;
+    }
+}
