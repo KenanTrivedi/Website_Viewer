@@ -30,6 +30,7 @@ const userDataSchema = new mongoose.Schema({
   data: Object,
   courses: { type: Array, default: [] },
   isComplete: { type: Boolean, default: false },
+  firstSubmissionTime: { type: Date },
 });
 const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
 
@@ -111,6 +112,8 @@ app.post("/api/save-user-data", async (req, res) => {
       return res.status(400).json({ message: "Missing userId or data" });
     }
 
+    const currentTime = new Date();
+
     // Update or create user data entry
     const result = await UserData.findOneAndUpdate(
       { userId },
@@ -119,6 +122,7 @@ app.post("/api/save-user-data", async (req, res) => {
           "data.responses": data.responses,
           isComplete: data.isComplete || false,
         },
+        $setOnInsert: { firstSubmissionTime: currentTime },
       },
       { upsert: true, new: true }
     );
@@ -187,13 +191,8 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
 
     const formattedUsers = await Promise.all(
       users.map(async (user) => {
-        // Fetch the code document using the user's userId
         const codeDoc = await Code.findOne({ _id: user.userId });
-
-        // Include the individual question responses
         const responses = user.data.responses || {};
-
-        // Calculate category scores if needed
         const categoryScores = calculateCategoryScores(responses, surveyData);
 
         return {
@@ -206,6 +205,7 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
           },
           scores: categoryScores,
           isComplete: user.isComplete || false,
+          firstSubmissionTime: user.firstSubmissionTime,
         };
       })
     );
