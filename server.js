@@ -144,7 +144,12 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.data.responses = data.responses;
       userData.isComplete = isComplete || false;
       userData.latestSubmissionTime = currentTime;
-      userData.updatedScores = categoryScores;
+      // Only update scores that are different from initial scores
+      for (const [key, value] of Object.entries(categoryScores)) {
+        if (userData.initialScores[key] !== value) {
+          userData.updatedScores[key] = value;
+        }
+      }
     }
 
     await userData.save();

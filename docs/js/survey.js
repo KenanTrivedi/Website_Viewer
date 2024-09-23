@@ -82,11 +82,7 @@ function loadUserData() {
     fetch(`/api/user-data/${userId}`)
       .then((response) => response.json())
       .then((data) => {
-        if (
-          data.data &&
-          data.data.responses &&
-          Object.keys(data.data.responses).length > 0
-        ) {
+        if (data.data && data.data.responses) {
           userData = data.data.responses
           currentSection = parseInt(data.data.currentSection) || 0
           isNewUser = false
@@ -123,14 +119,14 @@ function renderSection(index) {
 
   section.questions.forEach((question, qIndex) => {
     const questionId = `q${index}_${qIndex}`
-    let savedValue = isNewUser ? '' : userData[questionId] || ''
+    let savedValue = userData[questionId] || ''
 
     html += `<div class="question"><p>${question.text}</p>`
 
     if (question.type === 'radio') {
       question.options.forEach((option) => {
         html += `<label><input type="radio" name="${questionId}" value="${option}" ${
-          !isNewUser && savedValue === option ? 'checked' : ''
+          savedValue === option ? 'checked' : ''
         } required> ${option}</label><br>`
       })
     } else if (question.type === 'number') {
@@ -143,10 +139,10 @@ function renderSection(index) {
       for (let i = 0; i <= 6; i++) {
         html += `<label class="scale-label">
                   <input type="radio" name="${questionId}" value="${i}" ${
-          !isNewUser && savedValue == i ? 'checked' : ''
+          savedValue == i ? 'checked' : ''
         } required>
                   <span class="scale-button" role="radio" aria-checked="${
-                    !isNewUser && savedValue == i ? 'true' : 'false'
+                    savedValue == i ? 'true' : 'false'
                   }" tabindex="0">${i}</span>
                   <span class="sr-only">${
                     i === 0
@@ -230,11 +226,7 @@ function saveSectionData(isComplete = false) {
     })
       .then((response) => {
         if (!response.ok) {
-          return response.text().then((text) => {
-            throw new Error(
-              `Server responded with status ${response.status}: ${text}`
-            )
-          })
+          throw new Error(`Server responded with status ${response.status}`)
         }
         return response.json()
       })
@@ -527,35 +519,17 @@ function createCompetencyChart1(initialScores, updatedScores) {
     return
   }
 
-  // If initialScores is empty, use updatedScores for both datasets
-  const useUpdatedForBoth = Object.keys(initialScores).length === 0
-
-  // Combine initial and updated scores, using initial score if updated is not available
-  const combinedScores = Object.keys(
-    useUpdatedForBoth ? updatedScores : initialScores
-  ).reduce((acc, key) => {
-    acc[key] = {
-      initial: useUpdatedForBoth ? updatedScores[key] : initialScores[key] || 0,
+  // Combine initial and updated scores
+  const combinedScores = {}
+  for (const key in initialScores) {
+    combinedScores[key] = {
+      initial: initialScores[key],
       updated:
         updatedScores[key] !== undefined
           ? updatedScores[key]
-          : initialScores[key] || 0,
+          : initialScores[key],
     }
-    return acc
-  }, {})
-
-  // Check if all scores are 0
-  const allZeros = Object.values(combinedScores).every(
-    (score) => score.initial === 0 && score.updated === 0
-  )
-  if (allZeros) {
-    console.error('All scores are 0, not displaying chart')
-    canvas.style.display = 'none'
-    descriptionBox.innerHTML = '<p>Noch keine Kompetenzdaten verfügbar.</p>'
-    return
   }
-
-  canvas.style.display = 'block'
 
   const labels = Object.keys(combinedScores).map((key) => labelMap[key] || key)
   let currentHoveredIndex = -1
