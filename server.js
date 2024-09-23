@@ -132,7 +132,7 @@ app.post("/api/save-user-data", async (req, res) => {
       // First time submission
       userData = new UserData({
         userId,
-        data: { responses: data.responses },
+        data: data,
         isComplete: isComplete || false,
         firstSubmissionTime: currentTime,
         latestSubmissionTime: currentTime,
@@ -141,18 +141,15 @@ app.post("/api/save-user-data", async (req, res) => {
       });
     } else {
       // Subsequent submission
-      userData.data.responses = data.responses;
+      userData.data = data;
       userData.isComplete = isComplete || false;
       userData.latestSubmissionTime = currentTime;
       userData.updatedScores = categoryScores;
-
-      // Only update initialScores if it's empty
-      if (Object.keys(userData.initialScores).length === 0) {
-        userData.initialScores = categoryScores;
-      }
     }
 
     await userData.save();
+
+    console.log("Saved user data:", userData); // For debugging
 
     res.status(200).json({
       message: "Data saved successfully",

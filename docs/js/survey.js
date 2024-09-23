@@ -78,6 +78,8 @@ function checkResumeToken() {
 function loadUserData() {
   const userId = sessionStorage.getItem('userId')
   const storedData = sessionStorage.getItem('surveyData')
+  const storedInitialScores = sessionStorage.getItem('initialScores')
+  const storedUpdatedScores = sessionStorage.getItem('updatedScores')
 
   if (userId) {
     fetch(`/api/user-data/${userId}`)
@@ -91,12 +93,8 @@ function loadUserData() {
         } else if (storedData) {
           userData = JSON.parse(storedData)
           currentSection = userData.currentSection || 0
-          initialScores = JSON.parse(
-            sessionStorage.getItem('initialScores') || '{}'
-          )
-          updatedScores = JSON.parse(
-            sessionStorage.getItem('updatedScores') || '{}'
-          )
+          initialScores = JSON.parse(storedInitialScores || '{}')
+          updatedScores = JSON.parse(storedUpdatedScores || '{}')
         } else {
           userData = {}
           currentSection = 0
@@ -111,12 +109,8 @@ function loadUserData() {
         if (storedData) {
           userData = JSON.parse(storedData)
           currentSection = userData.currentSection || 0
-          initialScores = JSON.parse(
-            sessionStorage.getItem('initialScores') || '{}'
-          )
-          updatedScores = JSON.parse(
-            sessionStorage.getItem('updatedScores') || '{}'
-          )
+          initialScores = JSON.parse(storedInitialScores || '{}')
+          updatedScores = JSON.parse(storedUpdatedScores || '{}')
         } else {
           userData = {}
           currentSection = 0
@@ -230,9 +224,6 @@ function saveSectionData(isComplete = false) {
   const userId = sessionStorage.getItem('userId')
   if (userId) {
     const categoryScores = calculateCategoryScores()
-    if (Object.keys(initialScores).length === 0) {
-      initialScores = categoryScores
-    }
     const data = {
       userId: userId,
       data: {
@@ -259,11 +250,16 @@ function saveSectionData(isComplete = false) {
       .then((result) => {
         console.log('Data saved successfully:', result)
         sessionStorage.setItem('surveyData', JSON.stringify(userData))
-        sessionStorage.setItem('initialScores', JSON.stringify(initialScores))
+        sessionStorage.setItem(
+          'initialScores',
+          JSON.stringify(result.initialScores)
+        )
         sessionStorage.setItem(
           'updatedScores',
           JSON.stringify(result.updatedScores)
         )
+        initialScores = result.initialScores
+        updatedScores = result.updatedScores
       })
       .catch((error) => console.error('Error saving data:', error))
   }
