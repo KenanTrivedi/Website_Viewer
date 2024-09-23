@@ -31,6 +31,7 @@ const userDataSchema = new mongoose.Schema({
   courses: { type: Array, default: [] },
   isComplete: { type: Boolean, default: false },
   firstSubmissionTime: { type: Date },
+  latestSubmissionTime: { type: Date },
 });
 const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
 
@@ -87,7 +88,16 @@ app.post("/login", async (req, res) => {
     // Ensure user data exists in the database
     const userData = await UserData.findOneAndUpdate(
       { userId: user._id },
-      { $setOnInsert: { userId: user._id, data: {} } },
+      {
+        $setOnInsert: {
+          userId: user._id,
+          data: {},
+          firstSubmissionTime: new Date(),
+        },
+        $set: {
+          latestSubmissionTime: new Date(),
+        },
+      },
       { upsert: true, new: true }
     );
 
@@ -121,6 +131,7 @@ app.post("/api/save-user-data", async (req, res) => {
         $set: {
           "data.responses": data.responses,
           isComplete: data.isComplete || false,
+          latestSubmissionTime: currentTime,
         },
         $setOnInsert: { firstSubmissionTime: currentTime },
       },
@@ -149,6 +160,8 @@ app.get("/api/user-data/:userId", async (req, res) => {
       res.status(200).json({
         data: userData.data,
         isComplete: userData.isComplete,
+        firstSubmissionTime: userData.firstSubmissionTime,
+        latestSubmissionTime: userData.latestSubmissionTime,
       });
     } else {
       res.status(404).json({ message: "User data not found" });
@@ -203,12 +216,14 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
           firstSubmissionTime: user.firstSubmissionTime
             ? user.firstSubmissionTime.toISOString()
             : "",
+          latestSubmissionTime: user.latestSubmissionTime
+            ? user.latestSubmissionTime.toISOString()
+            : "",
           data: {
             responses: responses,
           },
           scores: categoryScores,
           isComplete: user.isComplete || false,
-          firstSubmissionTime: user.firstSubmissionTime,
         };
       })
     );
@@ -267,6 +282,8 @@ async function updateCSV() {
       { id: "userId", title: "User ID" },
       { id: "gender", title: "Gender" },
       { id: "birthYear", title: "Birth Year" },
+      { id: "firstSubmissionTime", title: "First Submission" },
+      { id: "latestSubmissionTime", title: "Latest Submission" },
       ...surveyData.flatMap((section) =>
         section.questions.map((q, i) => ({
           id: `q${surveyData.indexOf(section)}_${i}`,
@@ -281,6 +298,8 @@ async function updateCSV() {
       userId: user.userId,
       gender: user.data.responses.q0_0,
       birthYear: user.data.responses.q0_1,
+      firstSubmissionTime: user.firstSubmissionTime,
+      latestSubmissionTime: user.latestSubmissionTime,
     };
     Object.entries(user.data.responses).forEach(([key, value]) => {
       if (key !== "q0_0" && key !== "q0_1") {

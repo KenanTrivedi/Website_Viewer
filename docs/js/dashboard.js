@@ -112,6 +112,7 @@ function renderTable(usersToRender = users) {
     <th>Gender</th>
     <th>Birth Year</th>
     <th>First Submission</th>
+    <th>Latest Submission</th>
   `
 
   questionIds.forEach((questionId) => {
@@ -134,11 +135,16 @@ function renderTable(usersToRender = users) {
       <td>${user.userCode || ''}</td>
       <td>${user.gender || ''}</td>
       <td>${user.birthYear || ''}</td>
-        <td>${
-          user.firstSubmissionTime
-            ? new Date(user.firstSubmissionTime).toLocaleString()
-            : ''
-        }</td>
+      <td>${
+        user.firstSubmissionTime
+          ? new Date(user.firstSubmissionTime).toLocaleString()
+          : ''
+      }</td>
+      <td>${
+        user.latestSubmissionTime
+          ? new Date(user.latestSubmissionTime).toLocaleString()
+          : ''
+      }</td>
     `
 
     questionIds.forEach((questionId) => {
