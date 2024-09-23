@@ -32,6 +32,8 @@ const userDataSchema = new mongoose.Schema({
   isComplete: { type: Boolean, default: false },
   firstSubmissionTime: { type: Date },
   latestSubmissionTime: { type: Date },
+  initialScores: { type: Object, default: {} },
+  updatedScores: { type: Object, default: {} },
 });
 const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
 
@@ -123,26 +125,36 @@ app.post("/api/save-user-data", async (req, res) => {
     }
 
     const currentTime = new Date();
+    const categoryScores = calculateCategoryScores(data.responses, surveyData);
 
-    // Update or create user data entry
-    const result = await UserData.findOneAndUpdate(
-      { userId },
-      {
-        $set: {
-          "data.responses": data.responses,
-          isComplete: data.isComplete || false,
-          latestSubmissionTime: currentTime,
-        },
-        $setOnInsert: { firstSubmissionTime: currentTime },
-      },
-      { upsert: true, new: true }
-    );
+    let userData = await UserData.findOne({ userId });
 
-    if (!result) {
-      throw new Error("Failed to update or insert user data");
+    if (!userData) {
+      // First time submission
+      userData = new UserData({
+        userId,
+        data: { responses: data.responses },
+        isComplete: data.isComplete || false,
+        firstSubmissionTime: currentTime,
+        latestSubmissionTime: currentTime,
+        initialScores: categoryScores,
+        updatedScores: categoryScores,
+      });
+    } else {
+      // Subsequent submission
+      userData.data.responses = data.responses;
+      userData.isComplete = data.isComplete || false;
+      userData.latestSubmissionTime = currentTime;
+      userData.updatedScores = categoryScores;
     }
 
-    res.status(200).json({ message: "Data saved successfully" });
+    await userData.save();
+
+    res.status(200).json({
+      message: "Data saved successfully",
+      initialScores: userData.initialScores,
+      updatedScores: userData.updatedScores,
+    });
   } catch (err) {
     console.error("Error saving user data:", err);
     res
@@ -160,8 +172,8 @@ app.get("/api/user-data/:userId", async (req, res) => {
       res.status(200).json({
         data: userData.data,
         isComplete: userData.isComplete,
-        firstSubmissionTime: userData.firstSubmissionTime,
-        latestSubmissionTime: userData.latestSubmissionTime,
+        initialScores: userData.initialScores,
+        updatedScores: userData.updatedScores,
       });
     } else {
       res.status(404).json({ message: "User data not found" });

@@ -88,9 +88,13 @@ function loadUserData() {
           userData = data.data.responses
           currentSection = parseInt(data.data.currentSection) || 0
           isNewUser = false
+          initialScores = data.initialScores
+          updatedScores = data.updatedScores
         } else {
           isNewUser = true
           userData = {}
+          initialScores = {}
+          updatedScores = {}
         }
         renderSection(currentSection)
       })
@@ -98,11 +102,15 @@ function loadUserData() {
         console.error('Error loading user data:', error)
         isNewUser = true
         userData = {}
+        initialScores = {}
+        updatedScores = {}
         renderSection(currentSection)
       })
   } else {
     isNewUser = true
     userData = {}
+    initialScores = {}
+    updatedScores = {}
     renderSection(currentSection)
   }
 }
@@ -423,6 +431,8 @@ function showDatenschutz() {
 }
 
 function showResults() {
+  const initialScores = calculateCategoryScores()
+  const updatedScores = calculateCategoryScores() // This should be the most recent scores
   const score = calculateCompetenzScore()
   const courses = getCoursesSuggestions(score)
   const categoryScores = calculateCategoryScores()
@@ -432,23 +442,23 @@ function showResults() {
   }
 
   const resultHtml = `
-  <h2>Ihr Kompetenz-Score: ${score}%</h2>
-  <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse:</p>
-  <ul>
-    ${courses.map((course) => `<li>${course}</li>`).join('')}
-  </ul>
-  <h3>Kompetenzdiagramm</h3>
-  <div style="height: 300px; width: 100%;">
-    <canvas id="competencyChart1"></canvas>
-  </div>
-  <div id="descriptionBox1"></div>
-  <button id="downloadChart" class="btn btn-primary">Diagramm herunterladen</button>
-`
+    <h2>Ihr Kompetenz-Score: ${score}%</h2>
+    <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse:</p>
+    <ul>
+      ${courses.map((course) => `<li>${course}</li>`).join('')}
+    </ul>
+    <h3>Kompetenzdiagramm</h3>
+    <div style="height: 300px; width: 100%;">
+      <canvas id="competencyChart1"></canvas>
+    </div>
+    <div id="descriptionBox1"></div>
+    <button id="downloadChart" class="btn btn-primary">Diagramm herunterladen</button>
+  `
 
   document.getElementById('surveyForm').innerHTML = resultHtml
 
   requestAnimationFrame(() => {
-    createCompetencyChart1(categoryScores)
+    createCompetencyChart1(initialScores, updatedScores)
   })
 
   const downloadButton = document.getElementById('downloadChart')
@@ -489,7 +499,7 @@ function updateDescriptionBox(descriptionBox, competency, description) {
   descriptionBox.style.color = '#333'
 }
 
-function createCompetencyChart1(categoryScores) {
+function createCompetencyChart1(initialScores, updatedScores) {
   const canvas = document.getElementById('competencyChart1')
   const descriptionBox = document.getElementById('descriptionBox1')
   if (!canvas || !descriptionBox) {
@@ -501,9 +511,8 @@ function createCompetencyChart1(categoryScores) {
     chart1Instance.destroy()
   }
 
-  const labels = Object.keys(categoryScores).map((key) => labelMap[key] || key)
+  const labels = Object.keys(initialScores).map((key) => labelMap[key] || key)
   const ctx = canvas.getContext('2d')
-  const data = Object.values(categoryScores)
 
   let currentHoveredIndex = -1
 
@@ -513,7 +522,17 @@ function createCompetencyChart1(categoryScores) {
       labels: labels,
       datasets: [
         {
-          data: Object.values(categoryScores),
+          label: 'Initial Score',
+          data: Object.values(initialScores),
+          backgroundColor: labels.map((label) =>
+            getLighterColor(colorMap[label] || '#999999')
+          ),
+          borderColor: labels.map((label) => colorMap[label] || '#999999'),
+          borderWidth: 1,
+        },
+        {
+          label: 'Updated Score',
+          data: Object.values(updatedScores),
           backgroundColor: labels.map((label) => colorMap[label] || '#999999'),
           borderColor: labels.map((label) => colorMap[label] || '#999999'),
           borderWidth: 1,
@@ -541,7 +560,7 @@ function createCompetencyChart1(categoryScores) {
         },
       },
       plugins: {
-        legend: { display: false },
+        legend: { display: true },
         tooltip: {
           callbacks: {
             title: (tooltipItems) => {
@@ -550,7 +569,8 @@ function createCompetencyChart1(categoryScores) {
               )
               return fullLabel || tooltipItems[0].label
             },
-            label: (context) => `Score: ${context.parsed.y}%`,
+            label: (context) =>
+              `${context.dataset.label}: ${context.parsed.y}%`,
           },
         },
       },
