@@ -142,6 +142,7 @@ async function handleLogin() {
         }
       }
 
+      console.log('User data stored in session storage')
       // Always redirect to the survey page
       window.location.href = 'survey.html'
     } else {
@@ -246,6 +247,14 @@ function saveUserData(userId, data) {
     .then((result) => {
       console.log('Data saved successfully:', result)
       sessionStorage.setItem('surveyData', JSON.stringify(data))
+      sessionStorage.setItem(
+        'initialScores',
+        JSON.stringify(result.initialScores)
+      )
+      sessionStorage.setItem(
+        'updatedScores',
+        JSON.stringify(result.updatedScores)
+      )
     })
     .catch((error) => {
       console.error('Fehler beim Speichern der Benutzerdaten:', error)

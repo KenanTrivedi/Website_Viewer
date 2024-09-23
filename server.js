@@ -145,11 +145,14 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.isComplete = isComplete || false;
       userData.latestSubmissionTime = currentTime;
       userData.updatedScores = categoryScores;
+
+      // Only update initialScores if it's empty
+      if (Object.keys(userData.initialScores).length === 0) {
+        userData.initialScores = categoryScores;
+      }
     }
 
     await userData.save();
-
-    console.log("Saved user data:", userData); // For debugging
 
     res.status(200).json({
       message: "Data saved successfully",

@@ -1,7 +1,6 @@
 // Global variables
 let currentSection = 0
 let userData = {}
-let isNewUser = true
 let chart1Instance = null
 let initialScores = {}
 let updatedScores = {}
@@ -78,6 +77,8 @@ function checkResumeToken() {
 
 function loadUserData() {
   const userId = sessionStorage.getItem('userId')
+  const storedData = sessionStorage.getItem('surveyData')
+
   if (userId) {
     fetch(`/api/user-data/${userId}`)
       .then((response) => response.json())
@@ -85,12 +86,20 @@ function loadUserData() {
         if (data.data && data.data.responses) {
           userData = data.data.responses
           currentSection = parseInt(data.data.currentSection) || 0
-          isNewUser = false
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
+        } else if (storedData) {
+          userData = JSON.parse(storedData)
+          currentSection = userData.currentSection || 0
+          initialScores = JSON.parse(
+            sessionStorage.getItem('initialScores') || '{}'
+          )
+          updatedScores = JSON.parse(
+            sessionStorage.getItem('updatedScores') || '{}'
+          )
         } else {
-          isNewUser = true
           userData = {}
+          currentSection = 0
           initialScores = {}
           updatedScores = {}
         }
@@ -99,16 +108,27 @@ function loadUserData() {
       })
       .catch((error) => {
         console.error('Error loading user data:', error)
-        isNewUser = true
-        userData = {}
-        initialScores = {}
-        updatedScores = {}
+        if (storedData) {
+          userData = JSON.parse(storedData)
+          currentSection = userData.currentSection || 0
+          initialScores = JSON.parse(
+            sessionStorage.getItem('initialScores') || '{}'
+          )
+          updatedScores = JSON.parse(
+            sessionStorage.getItem('updatedScores') || '{}'
+          )
+        } else {
+          userData = {}
+          currentSection = 0
+          initialScores = {}
+          updatedScores = {}
+        }
         renderSection(currentSection)
         updateProgressBar()
       })
   } else {
-    isNewUser = true
     userData = {}
+    currentSection = 0
     initialScores = {}
     updatedScores = {}
     renderSection(currentSection)
@@ -210,6 +230,9 @@ function saveSectionData(isComplete = false) {
   const userId = sessionStorage.getItem('userId')
   if (userId) {
     const categoryScores = calculateCategoryScores()
+    if (Object.keys(initialScores).length === 0) {
+      initialScores = categoryScores
+    }
     const data = {
       userId: userId,
       data: {
@@ -219,8 +242,6 @@ function saveSectionData(isComplete = false) {
       isComplete: isComplete,
       categoryScores: categoryScores,
     }
-
-    console.log('Saving data:', data) // For debugging
 
     fetch('/api/save-user-data', {
       method: 'POST',
@@ -237,9 +258,12 @@ function saveSectionData(isComplete = false) {
       })
       .then((result) => {
         console.log('Data saved successfully:', result)
-        initialScores = result.initialScores
-        updatedScores = result.updatedScores
         sessionStorage.setItem('surveyData', JSON.stringify(userData))
+        sessionStorage.setItem('initialScores', JSON.stringify(initialScores))
+        sessionStorage.setItem(
+          'updatedScores',
+          JSON.stringify(result.updatedScores)
+        )
       })
       .catch((error) => console.error('Error saving data:', error))
   }
@@ -267,7 +291,7 @@ function calculateCategoryScores() {
       }
     }
   })
-  console.log('Calculated category scores:', categoryScores) // For debugging
+  console.log('Calculated category scores:', categoryScores)
   return categoryScores
 }
 
