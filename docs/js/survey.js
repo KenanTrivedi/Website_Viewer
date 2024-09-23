@@ -431,15 +431,8 @@ function showDatenschutz() {
 }
 
 function showResults() {
-  const initialScores = calculateCategoryScores()
-  const updatedScores = calculateCategoryScores() // This should be the most recent scores
   const score = calculateCompetenzScore()
   const courses = getCoursesSuggestions(score)
-  const categoryScores = calculateCategoryScores()
-  if (Object.keys(categoryScores).length === 0) {
-    console.error('No category scores available')
-    return
-  }
 
   const resultHtml = `
     <h2>Ihr Kompetenz-Score: ${score}%</h2>
@@ -516,6 +509,18 @@ function createCompetencyChart1(initialScores, updatedScores) {
 
   let currentHoveredIndex = -1
 
+  // Combine initial and updated scores, using initial score if updated is not available
+  const combinedScores = Object.keys(initialScores).reduce((acc, key) => {
+    acc[key] = {
+      initial: initialScores[key],
+      updated:
+        updatedScores[key] !== undefined
+          ? updatedScores[key]
+          : initialScores[key],
+    }
+    return acc
+  }, {})
+
   chart1Instance = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -523,7 +528,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
       datasets: [
         {
           label: 'Initial Score',
-          data: Object.values(initialScores),
+          data: Object.values(combinedScores).map((score) => score.initial),
           backgroundColor: labels.map((label) =>
             getLighterColor(colorMap[label] || '#999999')
           ),
@@ -532,7 +537,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
         },
         {
           label: 'Updated Score',
-          data: Object.values(updatedScores),
+          data: Object.values(combinedScores).map((score) => score.updated),
           backgroundColor: labels.map((label) => colorMap[label] || '#999999'),
           borderColor: labels.map((label) => colorMap[label] || '#999999'),
           borderWidth: 1,
