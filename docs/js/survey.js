@@ -220,6 +220,8 @@ function saveSectionData(isComplete = false) {
       categoryScores: categoryScores,
     }
 
+    console.log('Saving data:', data) // For debugging
+
     fetch('/api/save-user-data', {
       method: 'POST',
       headers: {
@@ -233,10 +235,11 @@ function saveSectionData(isComplete = false) {
         }
         return response.json()
       })
-      .then((data) => {
-        console.log('Data saved successfully:', data)
-        initialScores = data.initialScores
-        updatedScores = data.updatedScores
+      .then((result) => {
+        console.log('Data saved successfully:', result)
+        initialScores = result.initialScores
+        updatedScores = result.updatedScores
+        sessionStorage.setItem('surveyData', JSON.stringify(userData))
       })
       .catch((error) => console.error('Error saving data:', error))
   }
@@ -244,13 +247,13 @@ function saveSectionData(isComplete = false) {
 
 function calculateCategoryScores() {
   let categoryScores = {}
-  surveyData.forEach((section) => {
+  surveyData.forEach((section, sectionIndex) => {
     if (section.title !== 'Persönliche Angaben') {
       let totalScore = 0
       let questionCount = 0
-      section.questions.forEach((question, qIndex) => {
-        const questionId = `q${surveyData.indexOf(section)}_${qIndex}`
-        if (userData[questionId] !== undefined && question.type === 'scale') {
+      section.questions.forEach((question, questionIndex) => {
+        const questionId = `q${sectionIndex}_${questionIndex}`
+        if (userData[questionId] && question.type === 'scale') {
           totalScore += parseInt(userData[questionId])
           questionCount++
         }
@@ -264,6 +267,7 @@ function calculateCategoryScores() {
       }
     }
   })
+  console.log('Calculated category scores:', categoryScores) // For debugging
   return categoryScores
 }
 
