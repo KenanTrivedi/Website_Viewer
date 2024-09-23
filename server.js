@@ -118,14 +118,13 @@ app.post("/login", async (req, res) => {
 
 // Save user survey data
 app.post("/api/save-user-data", async (req, res) => {
-  const { userId, data } = req.body;
+  const { userId, data, isComplete, categoryScores } = req.body;
   try {
     if (!userId || !data) {
       return res.status(400).json({ message: "Missing userId or data" });
     }
 
     const currentTime = new Date();
-    const categoryScores = calculateCategoryScores(data.responses, surveyData);
 
     let userData = await UserData.findOne({ userId });
 
@@ -134,7 +133,7 @@ app.post("/api/save-user-data", async (req, res) => {
       userData = new UserData({
         userId,
         data: { responses: data.responses },
-        isComplete: data.isComplete || false,
+        isComplete: isComplete || false,
         firstSubmissionTime: currentTime,
         latestSubmissionTime: currentTime,
         initialScores: categoryScores,
@@ -143,14 +142,9 @@ app.post("/api/save-user-data", async (req, res) => {
     } else {
       // Subsequent submission
       userData.data.responses = data.responses;
-      userData.isComplete = data.isComplete || false;
+      userData.isComplete = isComplete || false;
       userData.latestSubmissionTime = currentTime;
-      // Only update scores that have changed
-      Object.keys(categoryScores).forEach((key) => {
-        if (categoryScores[key] !== userData.initialScores[key]) {
-          userData.updatedScores[key] = categoryScores[key];
-        }
-      });
+      userData.updatedScores = categoryScores;
     }
 
     await userData.save();
@@ -177,8 +171,8 @@ app.get("/api/user-data/:userId", async (req, res) => {
       res.status(200).json({
         data: userData.data,
         isComplete: userData.isComplete,
-        initialScores: userData.initialScores || {},
-        updatedScores: userData.updatedScores || {},
+        initialScores: userData.initialScores,
+        updatedScores: userData.updatedScores,
       });
     } else {
       res.status(200).json({

@@ -210,15 +210,15 @@ function saveSectionData(isComplete = false) {
 
   const userId = sessionStorage.getItem('userId')
   if (userId) {
+    const categoryScores = calculateCategoryScores()
     const data = {
       userId: userId,
       data: {
         responses: userData,
         currentSection: currentSection,
-        overallScore: calculateCompetenzScore(),
-        categoryScores: calculateCategoryScores(),
       },
       isComplete: isComplete,
+      categoryScores: categoryScores,
     }
 
     fetch('/api/save-user-data', {
@@ -238,7 +238,11 @@ function saveSectionData(isComplete = false) {
         }
         return response.json()
       })
-      .then((data) => console.log('Data saved successfully:', data))
+      .then((data) => {
+        console.log('Data saved successfully:', data)
+        initialScores = data.initialScores
+        updatedScores = data.updatedScores
+      })
       .catch((error) => console.error('Error saving data:', error))
   }
 }
@@ -246,20 +250,23 @@ function saveSectionData(isComplete = false) {
 function calculateCategoryScores() {
   let categoryScores = {}
   surveyData.forEach((section) => {
-    let totalScore = 0
-    let questionCount = 0
-    section.questions.forEach((question, qIndex) => {
-      const questionId = `q${surveyData.indexOf(section)}_${qIndex}`
-      if (userData[questionId] !== undefined && question.type === 'scale') {
-        totalScore += parseInt(userData[questionId])
-        questionCount++
-      }
-    })
     if (section.title !== 'Persönliche Angaben') {
-      categoryScores[section.title] =
-        questionCount > 0
-          ? Math.round((totalScore / (questionCount * 6)) * 100)
-          : 0
+      let totalScore = 0
+      let questionCount = 0
+      section.questions.forEach((question, qIndex) => {
+        const questionId = `q${surveyData.indexOf(section)}_${qIndex}`
+        if (userData[questionId] !== undefined && question.type === 'scale') {
+          totalScore += parseInt(userData[questionId])
+          questionCount++
+        }
+      })
+      if (questionCount > 0) {
+        categoryScores[section.title] = Math.round(
+          (totalScore / (questionCount * 6)) * 100
+        )
+      } else {
+        categoryScores[section.title] = 0
+      }
     }
   })
   return categoryScores
@@ -507,10 +514,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
     chart1Instance.destroy()
   }
 
-  const labels = Object.keys(initialScores).map((key) => labelMap[key] || key)
   const ctx = canvas.getContext('2d')
-
-  let currentHoveredIndex = -1
 
   // Ensure we have data to display
   if (
@@ -518,6 +522,8 @@ function createCompetencyChart1(initialScores, updatedScores) {
     Object.keys(updatedScores).length === 0
   ) {
     console.error('No scores available to display')
+    canvas.style.display = 'none'
+    descriptionBox.innerHTML = '<p>Noch keine Kompetenzdaten verfügbar.</p>'
     return
   }
 
@@ -537,6 +543,22 @@ function createCompetencyChart1(initialScores, updatedScores) {
     }
     return acc
   }, {})
+
+  // Check if all scores are 0
+  const allZeros = Object.values(combinedScores).every(
+    (score) => score.initial === 0 && score.updated === 0
+  )
+  if (allZeros) {
+    console.error('All scores are 0, not displaying chart')
+    canvas.style.display = 'none'
+    descriptionBox.innerHTML = '<p>Noch keine Kompetenzdaten verfügbar.</p>'
+    return
+  }
+
+  canvas.style.display = 'block'
+
+  const labels = Object.keys(combinedScores).map((key) => labelMap[key] || key)
+  let currentHoveredIndex = -1
 
   chart1Instance = new Chart(ctx, {
     type: 'bar',
