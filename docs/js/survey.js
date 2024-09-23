@@ -95,6 +95,7 @@ function loadUserData() {
           updatedScores = {}
         }
         renderSection(currentSection)
+        updateProgressBar()
       })
       .catch((error) => {
         console.error('Error loading user data:', error)
@@ -103,6 +104,7 @@ function loadUserData() {
         initialScores = {}
         updatedScores = {}
         renderSection(currentSection)
+        updateProgressBar()
       })
   } else {
     isNewUser = true
@@ -110,6 +112,7 @@ function loadUserData() {
     initialScores = {}
     updatedScores = {}
     renderSection(currentSection)
+    updateProgressBar()
   }
 }
 

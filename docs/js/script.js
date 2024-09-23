@@ -131,6 +131,14 @@ async function handleLogin() {
             'surveyData',
             JSON.stringify(userData.data.responses)
           )
+          sessionStorage.setItem(
+            'initialScores',
+            JSON.stringify(userData.initialScores)
+          )
+          sessionStorage.setItem(
+            'updatedScores',
+            JSON.stringify(userData.updatedScores)
+          )
         }
       }
 
