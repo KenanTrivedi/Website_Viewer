@@ -142,10 +142,10 @@ function renderSection(index) {
       for (let i = 0; i <= 6; i++) {
         html += `<label class="scale-label">
                   <input type="radio" name="${questionId}" value="${i}" ${
-          savedValue == i ? 'checked' : ''
+          savedValue === i.toString() ? 'checked' : ''
         } required>
                   <span class="scale-button" role="radio" aria-checked="${
-                    savedValue == i ? 'true' : 'false'
+                    savedValue === i.toString() ? 'true' : 'false'
                   }" tabindex="0">${i}</span>
                   <span class="sr-only">${
                     i === 0
