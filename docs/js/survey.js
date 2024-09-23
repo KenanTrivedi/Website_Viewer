@@ -3,6 +3,8 @@ let currentSection = 0
 let userData = {}
 let isNewUser = true
 let chart1Instance = null
+let initialScores = {}
+let updatedScores = {}
 
 // Constants
 const labelMap = {
@@ -88,8 +90,8 @@ function loadUserData() {
           userData = data.data.responses
           currentSection = parseInt(data.data.currentSection) || 0
           isNewUser = false
-          initialScores = data.initialScores
-          updatedScores = data.updatedScores
+          initialScores = data.initialScores || {}
+          updatedScores = data.updatedScores || {}
         } else {
           isNewUser = true
           userData = {}
@@ -450,9 +452,10 @@ function showResults() {
 
   document.getElementById('surveyForm').innerHTML = resultHtml
 
-  requestAnimationFrame(() => {
+  // Use a short delay to ensure the canvas is in the DOM
+  setTimeout(() => {
     createCompetencyChart1(initialScores, updatedScores)
-  })
+  }, 100)
 
   const downloadButton = document.getElementById('downloadChart')
   if (downloadButton) {
@@ -509,14 +512,28 @@ function createCompetencyChart1(initialScores, updatedScores) {
 
   let currentHoveredIndex = -1
 
+  // Ensure we have data to display
+  if (
+    Object.keys(initialScores).length === 0 &&
+    Object.keys(updatedScores).length === 0
+  ) {
+    console.error('No scores available to display')
+    return
+  }
+
+  // If initialScores is empty, use updatedScores for both datasets
+  const useUpdatedForBoth = Object.keys(initialScores).length === 0
+
   // Combine initial and updated scores, using initial score if updated is not available
-  const combinedScores = Object.keys(initialScores).reduce((acc, key) => {
+  const combinedScores = Object.keys(
+    useUpdatedForBoth ? updatedScores : initialScores
+  ).reduce((acc, key) => {
     acc[key] = {
-      initial: initialScores[key],
+      initial: useUpdatedForBoth ? updatedScores[key] : initialScores[key] || 0,
       updated:
         updatedScores[key] !== undefined
           ? updatedScores[key]
-          : initialScores[key],
+          : initialScores[key] || 0,
     }
     return acc
   }, {})

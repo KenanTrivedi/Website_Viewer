@@ -177,13 +177,19 @@ app.get("/api/user-data/:userId", async (req, res) => {
       res.status(200).json({
         data: userData.data,
         isComplete: userData.isComplete,
-        initialScores: userData.initialScores,
-        updatedScores: userData.updatedScores,
+        initialScores: userData.initialScores || {},
+        updatedScores: userData.updatedScores || {},
       });
     } else {
-      res.status(404).json({ message: "User data not found" });
+      res.status(200).json({
+        data: { responses: {} },
+        isComplete: false,
+        initialScores: {},
+        updatedScores: {},
+      });
     }
   } catch (err) {
+    console.error("Error fetching user data:", err);
     res.status(500).json({ message: "Error fetching user data" });
   }
 });
