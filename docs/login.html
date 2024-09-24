@@ -11,49 +11,67 @@
       <img src="images/logo.png" alt="Open-Digi Logo" class="logo" />
       <h2>Willkommen zurück</h2>
 
-      <div class="form-group">
-        <label
-          >Hast du den Fragebogen schon einmal ausgefüllt, also bereits
-          Fortbildungen auf Ilias absolviert?</label
-        >
-        <div>
-          <input
-            type="radio"
-            id="surveyYes"
-            name="surveyCompleted"
-            value="yes"
-          />
-          <label for="surveyYes">Ja</label>
+      <form id="loginForm">
+        <div class="form-group">
+          <legend>
+            Hast du den Fragebogen schon einmal ausgefüllt, also bereits
+            Fortbildungen auf Ilias absolviert?
+          </legend>
+          <div>
+            <input
+              type="radio"
+              id="surveyYes"
+              name="surveyCompleted"
+              value="yes"
+              required
+            />
+            <label for="surveyYes">Ja</label>
+          </div>
+          <div>
+            <input
+              type="radio"
+              id="surveyNo"
+              name="surveyCompleted"
+              value="no"
+              required
+            />
+            <label for="surveyNo">Nein</label>
+          </div>
         </div>
-        <div>
-          <input type="radio" id="surveyNo" name="surveyCompleted" value="no" />
-          <label for="surveyNo">Nein</label>
+
+        <div id="coursesList" style="display: none">
+          <label for="courses"
+            >Welche Kurse bzw. Fortbildungen hast du absolviert?</label
+          >
+          <textarea
+            id="courses"
+            name="courses"
+            rows="4"
+            placeholder="Bitte liste hier alle Kurse mit genauem Titel auf, die du im Rahmen des Projektes auf Ilias absolviert hast."
+            required
+          ></textarea>
         </div>
-      </div>
 
-      <div id="coursesList" style="display: none">
-        <label for="courses"
-          >Welche Kurse bzw. Fortbildungen hast du absolviert?</label
-        >
-        <textarea
-          id="courses"
-          name="courses"
-          rows="4"
-          placeholder="Bitte liste hier alle Kurse mit genauem Titel auf, die du im Rahmen des Projektes auf Ilias absolviert hast."
-          required
-        ></textarea>
-      </div>
+        <div id="codeInput" style="display: none">
+          <label for="loginCode">Gebe hier deinen persönlichen Code an:</label>
+          <input type="text" id="loginCode" name="loginCode" required />
+        </div>
 
-      <div id="codeInput" style="display: none">
-        <label for="loginCode">Gebe hier deinen persönlichen Code an:</label>
-        <input type="text" id="loginCode" name="loginCode" required />
-      </div>
-
-      <button id="loginButton" style="display: none">Login</button>
+        <button type="submit" id="loginButton" style="display: none">
+          Login
+        </button>
+      </form>
 
       <button id="generateCodeButton" style="display: none">
         Klicke hier, um einen neuen Code zu generieren
       </button>
+
+      <div
+        id="errorMessage"
+        class="error-message"
+        role="alert"
+        aria-live="assertive"
+      ></div>
     </div>
     <script src="js/script.js"></script>
   </body>
