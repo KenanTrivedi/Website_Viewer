@@ -120,11 +120,11 @@ app.post("/login", async (req, res) => {
 // Save user survey data
 app.post("/api/save-user-data", async (req, res) => {
   const { userId, data, isComplete, categoryScores } = req.body;
-  if (!userId || !data) {
-    return res.status(400).json({ message: "Missing userId or data" });
-  }
-
   try {
+    if (!userId || !data) {
+      return res.status(400).json({ message: "Missing userId or data" });
+    }
+
     let userData = await UserData.findOne({ userId });
     const currentTime = new Date();
 
@@ -145,11 +145,12 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.isComplete = isComplete || false;
       userData.latestSubmissionTime = currentTime;
 
-      // Update initial scores only if they're empty and this is a complete submission
-      if (isComplete && Object.keys(userData.initialScores).length === 0) {
+      // Only set initialScores if they are all zero (i.e., first complete submission)
+      if (Object.values(userData.initialScores).every((score) => score === 0)) {
         userData.initialScores = { ...categoryScores };
       }
 
+      // Always update the updatedScores
       userData.updatedScores = categoryScores;
     }
 
