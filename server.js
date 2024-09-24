@@ -124,9 +124,8 @@ app.post("/api/save-user-data", async (req, res) => {
       return res.status(400).json({ message: "Missing userId or data" });
     }
 
-    const currentTime = new Date();
-
     let userData = await UserData.findOne({ userId });
+    const currentTime = new Date();
 
     if (!userData) {
       // First time submission
@@ -144,11 +143,20 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.data = data;
       userData.isComplete = isComplete || false;
       userData.latestSubmissionTime = currentTime;
-      userData.updatedScores = categoryScores;
-      // Only update initialScores if they're empty (i.e., first complete submission)
-      if (Object.keys(userData.initialScores).length === 0) {
+
+      // Check if initialScores are empty or all zero
+      const areInitialScoresEmpty = Object.values(userData.initialScores).every(
+        (score) => score === 0
+      );
+      if (areInitialScoresEmpty) {
         userData.initialScores = categoryScores;
       }
+
+      userData.updatedScores = categoryScores;
+    }
+
+    if (req.body.courses) {
+      userData.courses = req.body.courses;
     }
 
     await userData.save();
