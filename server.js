@@ -66,23 +66,29 @@ function authenticate(req, res, next) {
 // Register a new code for a user
 app.post("/register", async (req, res) => {
   const { code } = req.body;
+  if (!code) {
+    return res.status(400).json({ message: "Code is required" });
+  }
+
   const newCode = new Code({ code });
   try {
     await newCode.save();
-    res.status(201).send({ message: "Code saved", userId: newCode._id });
+    res.status(201).json({ message: "Code saved", userId: newCode._id });
   } catch (err) {
     console.error("Failed to save code:", err);
-    res.status(500).send("Error saving code");
+    res.status(500).json({ message: "Error saving code" });
   }
 });
 
 // Login route - to handle both "Nein" and "Ja" flows
 app.post("/login", async (req, res) => {
   const { code, courses } = req.body;
-  try {
-    // Find or create a user by code
-    let user = await Code.findOne({ code });
+  if (!code) {
+    return res.status(400).json({ message: "Code is required" });
+  }
 
+  try {
+    const user = await Code.findOne({ code });
     if (!user) {
       return res.status(400).json({ message: "Invalid code" });
     }
@@ -98,17 +104,12 @@ app.post("/login", async (req, res) => {
         },
         $set: {
           latestSubmissionTime: new Date(),
+          courses: courses || [],
         },
       },
       { upsert: true, new: true }
     );
 
-    // Update the user's courses if provided
-    if (courses) {
-      await UserData.updateOne({ userId: user._id }, { $set: { courses } });
-    }
-
-    // Send userId back to client
     res.status(200).json({ message: "Login successful", userId: user._id });
   } catch (err) {
     console.error("Error during login:", err);
@@ -119,11 +120,11 @@ app.post("/login", async (req, res) => {
 // Save user survey data
 app.post("/api/save-user-data", async (req, res) => {
   const { userId, data, isComplete, categoryScores } = req.body;
-  try {
-    if (!userId || !data) {
-      return res.status(400).json({ message: "Missing userId or data" });
-    }
+  if (!userId || !data) {
+    return res.status(400).json({ message: "Missing userId or data" });
+  }
 
+  try {
     let userData = await UserData.findOne({ userId });
     const currentTime = new Date();
 
@@ -144,12 +145,9 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.isComplete = isComplete || false;
       userData.latestSubmissionTime = currentTime;
 
-      // Only update initialScores if they're empty or all zero
-      if (
-        Object.keys(userData.initialScores).length === 0 ||
-        Object.values(userData.initialScores).every((score) => score === 0)
-      ) {
-        userData.initialScores = categoryScores;
+      // Update initial scores only if they're empty and this is a complete submission
+      if (isComplete && Object.keys(userData.initialScores).length === 0) {
+        userData.initialScores = { ...categoryScores };
       }
 
       userData.updatedScores = categoryScores;
@@ -189,12 +187,7 @@ app.get("/api/user-data/:userId", async (req, res) => {
         updatedScores: userData.updatedScores,
       });
     } else {
-      res.status(200).json({
-        data: { responses: {} },
-        isComplete: false,
-        initialScores: {},
-        updatedScores: {},
-      });
+      res.status(404).json({ message: "User data not found" });
     }
   } catch (err) {
     console.error("Error fetching user data:", err);
@@ -203,7 +196,7 @@ app.get("/api/user-data/:userId", async (req, res) => {
 });
 
 // Login to dashboard
-app.post("/api/dashboard-login", async (req, res) => {
+app.post("/api/dashboard-login", (req, res) => {
   const { userId, password } = req.body;
   if (userId === DASHBOARD_USER_ID && password === DASHBOARD_PASSWORD) {
     const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: "1h" });
@@ -327,12 +320,12 @@ async function updateCSV() {
   const records = allUserData.map((user) => {
     const record = {
       userId: user.userId,
-      gender: user.data.responses.q0_0,
-      birthYear: user.data.responses.q0_1,
+      gender: user.data.responses?.q0_0 || "",
+      birthYear: user.data.responses?.q0_1 || "",
       firstSubmissionTime: user.firstSubmissionTime,
       latestSubmissionTime: user.latestSubmissionTime,
     };
-    Object.entries(user.data.responses).forEach(([key, value]) => {
+    Object.entries(user.data.responses || {}).forEach(([key, value]) => {
       if (key !== "q0_0" && key !== "q0_1") {
         record[key] = value;
       }
@@ -340,7 +333,12 @@ async function updateCSV() {
     return record;
   });
 
-  await csvWriter.writeRecords(records);
+  try {
+    await csvWriter.writeRecords(records);
+    console.log("CSV file updated successfully");
+  } catch (error) {
+    console.error("Error updating CSV file:", error);
+  }
 }
 
 // Start the server

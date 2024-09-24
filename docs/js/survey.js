@@ -83,7 +83,12 @@ function loadUserData() {
 
   if (userId) {
     fetch(`/api/user-data/${userId}`)
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data')
+        }
+        return response.json()
+      })
       .then((data) => {
         if (data.data && data.data.responses) {
           userData = data.data.responses
@@ -96,10 +101,7 @@ function loadUserData() {
           initialScores = JSON.parse(storedInitialScores || '{}')
           updatedScores = JSON.parse(storedUpdatedScores || '{}')
         } else {
-          userData = {}
-          currentSection = 0
-          initialScores = {}
-          updatedScores = {}
+          resetUserData()
         }
         renderSection(currentSection)
         updateProgressBar()
@@ -112,22 +114,23 @@ function loadUserData() {
           initialScores = JSON.parse(storedInitialScores || '{}')
           updatedScores = JSON.parse(storedUpdatedScores || '{}')
         } else {
-          userData = {}
-          currentSection = 0
-          initialScores = {}
-          updatedScores = {}
+          resetUserData()
         }
         renderSection(currentSection)
         updateProgressBar()
       })
   } else {
-    userData = {}
-    currentSection = 0
-    initialScores = {}
-    updatedScores = {}
+    resetUserData()
     renderSection(currentSection)
     updateProgressBar()
   }
+}
+
+function resetUserData() {
+  userData = {}
+  currentSection = 0
+  initialScores = {}
+  updatedScores = {}
 }
 
 function renderSection(index) {
@@ -287,7 +290,6 @@ function calculateCategoryScores() {
       }
     }
   })
-  console.log('Calculated category scores:', categoryScores)
   return categoryScores
 }
 
@@ -386,8 +388,8 @@ function handleSectionChange(e) {
       alert(
         'Bitte beantworten Sie alle Fragen in diesem Abschnitt, bevor Sie zu einem anderen wechseln.'
       )
-      e.target.value = currentSection
     }
+    e.target.value = currentSection
   }
 }
 
@@ -409,13 +411,15 @@ function calculateCompetenzScore() {
   let totalQuestions = 0
 
   surveyData.forEach((section) => {
-    section.questions.forEach((question, qIndex) => {
-      const questionId = `q${surveyData.indexOf(section)}_${qIndex}`
-      if (userData[questionId] !== undefined && question.type === 'scale') {
-        totalScore += parseInt(userData[questionId])
-        totalQuestions++
-      }
-    })
+    if (section.title !== 'Persönliche Angaben') {
+      section.questions.forEach((question, qIndex) => {
+        const questionId = `q${surveyData.indexOf(section)}_${qIndex}`
+        if (userData[questionId] !== undefined && question.type === 'scale') {
+          totalScore += parseInt(userData[questionId])
+          totalQuestions++
+        }
+      })
+    }
   })
 
   if (totalQuestions === 0) return 0
@@ -511,9 +515,9 @@ function updateDescriptionBox(descriptionBox, competency, description) {
   const lighterColor = getLighterColor(color)
 
   descriptionBox.innerHTML = `
-        <h3>${fullLabel}</h3>
-        <p>${description || 'Beschreibung nicht verfügbar.'}</p>
-    `
+    <h3>${fullLabel}</h3>
+    <p>${description || 'Beschreibung nicht verfügbar.'}</p>
+  `
   descriptionBox.style.backgroundColor = lighterColor
   descriptionBox.style.padding = '15px'
   descriptionBox.style.borderRadius = '5px'
@@ -635,6 +639,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
   // Force chart update
   chart1Instance.update()
 }
+
 function downloadChart(event) {
   event.preventDefault()
   const canvas1 = document.getElementById('competencyChart1')
