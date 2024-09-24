@@ -546,19 +546,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
     return
   }
 
-  // Combine initial and updated scores
-  const combinedScores = {}
-  for (const key in initialScores) {
-    combinedScores[key] = {
-      initial: initialScores[key],
-      updated:
-        updatedScores[key] !== undefined
-          ? updatedScores[key]
-          : initialScores[key],
-    }
-  }
-
-  const labels = Object.keys(combinedScores).map((key) => labelMap[key] || key)
+  const labels = Object.keys(initialScores).map((key) => labelMap[key] || key)
   let currentHoveredIndex = -1
 
   chart1Instance = new Chart(ctx, {
@@ -568,7 +556,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
       datasets: [
         {
           label: 'Initial Score',
-          data: Object.values(combinedScores).map((score) => score.initial),
+          data: Object.values(initialScores),
           backgroundColor: labels.map((label) =>
             getLighterColor(colorMap[label] || '#999999')
           ),
@@ -577,7 +565,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
         },
         {
           label: 'Updated Score',
-          data: Object.values(combinedScores).map((score) => score.updated),
+          data: Object.values(updatedScores),
           backgroundColor: labels.map((label) => colorMap[label] || '#999999'),
           borderColor: labels.map((label) => colorMap[label] || '#999999'),
           borderWidth: 1,
