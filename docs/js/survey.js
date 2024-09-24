@@ -631,8 +631,10 @@ function createCompetencyChart1(initialScores, updatedScores) {
       },
     },
   })
-}
 
+  // Force chart update
+  chart1Instance.update()
+}
 function downloadChart(event) {
   event.preventDefault()
   const canvas1 = document.getElementById('competencyChart1')

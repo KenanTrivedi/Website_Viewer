@@ -144,11 +144,11 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.isComplete = isComplete || false;
       userData.latestSubmissionTime = currentTime;
 
-      // Check if initialScores are empty or all zero
-      const areInitialScoresEmpty = Object.values(userData.initialScores).every(
-        (score) => score === 0
-      );
-      if (areInitialScoresEmpty) {
+      // Only update initialScores if they're empty or all zero
+      if (
+        Object.keys(userData.initialScores).length === 0 ||
+        Object.values(userData.initialScores).every((score) => score === 0)
+      ) {
         userData.initialScores = categoryScores;
       }
 
