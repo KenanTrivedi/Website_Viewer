@@ -133,24 +133,27 @@ app.post("/api/save-user-data", async (req, res) => {
       userData = new UserData({
         userId,
         data: data,
-        isComplete: isComplete || false,
+        isComplete: isComplete,
         firstSubmissionTime: currentTime,
         latestSubmissionTime: currentTime,
-        initialScores: categoryScores,
+        initialScores: isComplete ? categoryScores : {},
         updatedScores: categoryScores,
       });
     } else {
       // Subsequent submission
       userData.data = data;
-      userData.isComplete = isComplete || false;
       userData.latestSubmissionTime = currentTime;
 
-      // Only set initialScores if they are all zero (i.e., first complete submission)
-      if (Object.values(userData.initialScores).every((score) => score === 0)) {
-        userData.initialScores = { ...categoryScores };
+      // Update isComplete if it's changing from false to true
+      if (isComplete && !userData.isComplete) {
+        userData.isComplete = true;
+        // Set initialScores only if they haven't been set yet
+        if (Object.keys(userData.initialScores).length === 0) {
+          userData.initialScores = categoryScores;
+        }
       }
 
-      // Always update the updatedScores
+      // Always update updatedScores
       userData.updatedScores = categoryScores;
     }
 
@@ -166,6 +169,7 @@ app.post("/api/save-user-data", async (req, res) => {
       message: "Data saved successfully",
       initialScores: userData.initialScores,
       updatedScores: userData.updatedScores,
+      isComplete: userData.isComplete,
     });
   } catch (err) {
     console.error("Error saving user data:", err);

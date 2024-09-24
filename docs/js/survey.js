@@ -268,6 +268,11 @@ function saveSectionData(isComplete = false) {
   }
 }
 
+// Make sure to call saveSectionData with isComplete = true when finishing the survey
+function finishSurvey() {
+  saveSectionData(true)
+  showDatenschutz()
+}
 function calculateCategoryScores() {
   let categoryScores = {}
   surveyData.forEach((section, sectionIndex) => {
@@ -438,11 +443,6 @@ function getCoursesSuggestions(score) {
   } else {
     return ['Advanced Digital Competencies', 'Digital Leadership in Education']
   }
-}
-
-function finishSurvey() {
-  saveSectionData(true) // Mark the survey as complete
-  showDatenschutz()
 }
 
 function showDatenschutz() {
