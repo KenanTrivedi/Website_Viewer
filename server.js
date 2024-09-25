@@ -161,8 +161,8 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.latestSubmissionTime = currentTime;
       userData.isComplete = isComplete;
 
-      // If initialScores are all 0, update them (this fixes the issue for the first submission)
-      if (Object.values(userData.initialScores).every((score) => score === 0)) {
+      // If any initialScore is 0, update all initialScores
+      if (Object.values(userData.initialScores).some((score) => score === 0)) {
         userData.initialScores = categoryScores;
       }
 
@@ -171,10 +171,9 @@ app.post("/api/save-user-data", async (req, res) => {
 
       // Update courses without duplicates
       if (data.courses) {
-        const newCourses = data.courses.filter(
-          (course) => !userData.courses.includes(course)
+        userData.courses = Array.from(
+          new Set([...userData.courses, ...data.courses])
         );
-        userData.courses = [...userData.courses, ...newCourses];
       }
     }
 
