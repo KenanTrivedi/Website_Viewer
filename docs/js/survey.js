@@ -16,12 +16,12 @@ const labelMap = {
 }
 
 const colorMap = {
-  Suchen: '#00BF63',
-  Kommunizieren: '#0CC0DF',
-  Produzieren: '#FF6D5F',
-  Schützen: '#8C52FF',
-  Problemlösen: '#E884C4',
-  Analysieren: '#FFD473',
+  Suchen: '#00FF00', // Bright Green
+  Kommunizieren: '#00FFFF', // Cyan
+  Produzieren: '#FF0000', // Bright Red
+  Schützen: '#8000FF', // Purple
+  Problemlösen: '#FF00FF', // Magenta
+  Analysieren: '#FFD700', // Gold
 }
 
 const competencyDescriptions = {
@@ -505,16 +505,19 @@ function showResults() {
   }
 }
 
-function getLighterColor(hexColor, factor = 0.3) {
-  const r = parseInt(hexColor.slice(1, 3), 16)
-  const g = parseInt(hexColor.slice(3, 5), 16)
-  const b = parseInt(hexColor.slice(5, 7), 16)
+function getLighterColor(hexColor) {
+  let r = parseInt(hexColor.slice(1, 3), 16)
+  let g = parseInt(hexColor.slice(3, 5), 16)
+  let b = parseInt(hexColor.slice(5, 7), 16)
 
-  const lighterR = Math.round(r + (255 - r) * factor)
-  const lighterG = Math.round(g + (255 - g) * factor)
-  const lighterB = Math.round(b + (255 - b) * factor)
+  // Increase lightness more significantly
+  r = Math.min(255, r + 150)
+  g = Math.min(255, g + 150)
+  b = Math.min(255, b + 150)
 
-  return `rgb(${lighterR}, ${lighterG}, ${lighterB})`
+  return `#${r.toString(16).padStart(2, '0')}${g
+    .toString(16)
+    .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 
 function updateDescriptionBox(descriptionBox, competency, description) {
@@ -532,7 +535,15 @@ function updateDescriptionBox(descriptionBox, competency, description) {
   descriptionBox.style.padding = '15px'
   descriptionBox.style.borderRadius = '5px'
   descriptionBox.style.border = `2px solid ${color}`
-  descriptionBox.style.color = '#333'
+  descriptionBox.style.color = getContrastColor(lighterColor)
+}
+
+function getContrastColor(hexColor) {
+  const r = parseInt(hexColor.slice(1, 3), 16)
+  const g = parseInt(hexColor.slice(3, 5), 16)
+  const b = parseInt(hexColor.slice(5, 7), 16)
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000
+  return yiq >= 128 ? 'black' : 'white'
 }
 
 function createCompetencyChart1(initialScores, updatedScores) {
@@ -607,7 +618,24 @@ function createCompetencyChart1(initialScores, updatedScores) {
         },
       },
       plugins: {
-        legend: { display: true },
+        legend: {
+          display: true,
+          labels: {
+            generateLabels: (chart) => {
+              return chart.data.datasets.map((dataset, i) => ({
+                text: dataset.label,
+                fillStyle:
+                  i === 0
+                    ? getLighterColor(colorMap[labels[0]])
+                    : colorMap[labels[0]],
+                strokeStyle: colorMap[labels[0]],
+                lineWidth: 1,
+                hidden: false,
+                index: i,
+              }))
+            },
+          },
+        },
         tooltip: {
           callbacks: {
             title: (tooltipItems) => {
