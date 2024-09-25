@@ -226,7 +226,7 @@ function saveSectionData(isComplete = false) {
 
   const userId = sessionStorage.getItem('userId')
   if (userId) {
-    const categoryScores = calculateCategoryScores()
+    const categoryScores = isComplete ? calculateCategoryScores() : {}
     const data = {
       userId: userId,
       data: {
@@ -236,7 +236,6 @@ function saveSectionData(isComplete = false) {
       isComplete: isComplete,
       categoryScores: categoryScores,
     }
-
     fetch('/api/save-user-data', {
       method: 'POST',
       headers: {

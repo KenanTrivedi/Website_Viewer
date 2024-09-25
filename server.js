@@ -152,7 +152,7 @@ app.post("/api/save-user-data", async (req, res) => {
         isComplete: isComplete,
         firstSubmissionTime: currentTime,
         latestSubmissionTime: currentTime,
-        initialScores: categoryScores,
+        initialScores: isComplete ? categoryScores : {},
         updatedScores: categoryScores,
       });
     } else {
@@ -160,8 +160,8 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.latestSubmissionTime = currentTime;
       userData.isComplete = isComplete;
 
-      // Only update initialScores if they are empty (all values are 0)
-      if (Object.values(userData.initialScores).every((score) => score === 0)) {
+      // Only set initialScores if the survey is complete and initialScores is empty
+      if (isComplete && Object.keys(userData.initialScores).length === 0) {
         userData.initialScores = categoryScores;
       }
       userData.updatedScores = categoryScores;
