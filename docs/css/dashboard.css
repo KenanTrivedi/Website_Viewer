@@ -31,6 +31,11 @@
 
 .sortable {
     cursor: pointer;
+    user-select: none;
+}
+
+.sortable:hover {
+    background-color: #f0f0f0;
 }
 
 .sort-icon {

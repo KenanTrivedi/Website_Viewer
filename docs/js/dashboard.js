@@ -106,17 +106,76 @@ function renderTable(usersToRender = users) {
   const thead = document.querySelector('#userTable thead tr')
   const tbody = document.querySelector('#userTable tbody')
 
+  const sortableColumns = [
+    'birthYear',
+    'firstSubmission',
+    'latestSubmission',
+    'q1_0',
+    'q1_1',
+    'q1_2',
+    'q1_3',
+    'q1_4',
+    'q1_5',
+    'q2_0',
+    'q2_1',
+    'q2_2',
+    'q2_3',
+    'q2_4',
+    'q2_5',
+    'q2_6',
+    'q3_0',
+    'q3_1',
+    'q3_2',
+    'q3_3',
+    'q3_4',
+    'q3_5',
+    'q3_6',
+    'q4_0',
+    'q4_1',
+    'q4_2',
+    'q4_3',
+    'q4_4',
+    'q4_5',
+    'q5_0',
+    'q5_1',
+    'q5_2',
+    'q5_3',
+    'q5_4',
+    'q5_5',
+    'q5_6',
+    'q6_0',
+    'q6_1',
+    'q6_2',
+    'q6_3',
+    'q6_4',
+    'q6_5',
+  ]
+
   thead.innerHTML = `
     <th><input type="checkbox" id="selectAll"></th>
     <th>User Code</th>
     <th>Gender</th>
-    <th class="sortable" data-field="birthYear">Birth Year</th>
+    <th class="sortable" data-field="birthYear">Birth Year ${getSortIcon(
+      'birthYear'
+    )}</th>
     <th>Lehramt</th>
     <th>Fächer</th>
-    <th class="sortable" data-field="firstSubmission">First Submission</th>
-    <th class="sortable" data-field="latestSubmission">Latest Submission</th>
+    <th class="sortable" data-field="firstSubmission">First Submission ${getSortIcon(
+      'firstSubmission'
+    )}</th>
+    <th class="sortable" data-field="latestSubmission">Latest Submission ${getSortIcon(
+      'latestSubmission'
+    )}</th>
+    ${sortableColumns
+      .filter((col) => col.startsWith('q'))
+      .map(
+        (col) =>
+          `<th class="sortable" data-field="${col}">${col} ${getSortIcon(
+            col
+          )}</th>`
+      )
+      .join('')}
   `
-
   // Add sortable headers for specified question responses
   const sortableQuestions = [
     'q1_0',
@@ -214,6 +273,10 @@ function renderTable(usersToRender = users) {
     .getElementById('selectAll')
     .addEventListener('change', toggleSelectAll)
 }
+function getSortIcon(field) {
+  if (currentSort.field !== field) return '↕️'
+  return currentSort.ascending ? '↑' : '↓'
+}
 
 function setupSortingListeners() {
   const thead = document.querySelector('#userTable thead')
@@ -227,18 +290,37 @@ function setupSortingListeners() {
         currentSort = { field, ascending: true }
       }
       sortUsers()
+      renderTable() // Re-render to update sort icons
     }
   })
 }
 
 function sortUsers() {
-  if (currentSort.questionId) {
+  if (currentSort.field) {
     users.sort((a, b) => {
-      const valueA = parseInt(a.data?.responses?.[currentSort.questionId]) || 0
-      const valueB = parseInt(b.data?.responses?.[currentSort.questionId]) || 0
-      return currentSort.ascending ? valueA - valueB : valueB - valueA
+      let valueA, valueB
+      switch (currentSort.field) {
+        case 'birthYear':
+          valueA = parseInt(a.birthYear) || 0
+          valueB = parseInt(b.birthYear) || 0
+          break
+        case 'firstSubmission':
+        case 'latestSubmission':
+          valueA = a[currentSort.field]
+            ? new Date(a[currentSort.field]).getTime()
+            : 0
+          valueB = b[currentSort.field]
+            ? new Date(b[currentSort.field]).getTime()
+            : 0
+          break
+        default:
+          valueA = parseFloat(a.data?.responses?.[currentSort.field]) || 0
+          valueB = parseFloat(b.data?.responses?.[currentSort.field]) || 0
+      }
+      if (valueA < valueB) return currentSort.ascending ? -1 : 1
+      if (valueA > valueB) return currentSort.ascending ? 1 : -1
+      return 0
     })
-    renderTable()
   }
 }
 
