@@ -110,45 +110,14 @@ function renderTable(usersToRender = users) {
     'birthYear',
     'firstSubmission',
     'latestSubmission',
-    'q1_0',
-    'q1_1',
-    'q1_2',
-    'q1_3',
-    'q1_4',
-    'q1_5',
-    'q2_0',
-    'q2_1',
-    'q2_2',
-    'q2_3',
-    'q2_4',
-    'q2_5',
-    'q2_6',
-    'q3_0',
-    'q3_1',
-    'q3_2',
-    'q3_3',
-    'q3_4',
-    'q3_5',
-    'q3_6',
-    'q4_0',
-    'q4_1',
-    'q4_2',
-    'q4_3',
-    'q4_4',
-    'q4_5',
-    'q5_0',
-    'q5_1',
-    'q5_2',
-    'q5_3',
-    'q5_4',
-    'q5_5',
-    'q5_6',
-    'q6_0',
-    'q6_1',
-    'q6_2',
-    'q6_3',
-    'q6_4',
-    'q6_5',
+    ...questionIds.filter(
+      (id) =>
+        id.startsWith('q') &&
+        id !== 'q0_0' &&
+        id !== 'q0_1' &&
+        id !== 'q0_2' &&
+        id !== 'q0_3'
+    ),
   ]
 
   thead.innerHTML = `
@@ -176,56 +145,6 @@ function renderTable(usersToRender = users) {
       )
       .join('')}
   `
-  // Add sortable headers for specified question responses
-  const sortableQuestions = [
-    'q1_0',
-    'q1_1',
-    'q1_2',
-    'q1_3',
-    'q1_4',
-    'q1_5',
-    'q2_0',
-    'q2_1',
-    'q2_2',
-    'q2_3',
-    'q2_4',
-    'q2_5',
-    'q2_6',
-    'q3_0',
-    'q3_1',
-    'q3_2',
-    'q3_3',
-    'q3_4',
-    'q3_5',
-    'q3_6',
-    'q4_0',
-    'q4_1',
-    'q4_2',
-    'q4_3',
-    'q4_4',
-    'q4_5',
-    'q5_0',
-    'q5_1',
-    'q5_2',
-    'q5_3',
-    'q5_4',
-    'q5_5',
-    'q5_6',
-    'q6_0',
-    'q6_1',
-    'q6_2',
-    'q6_3',
-    'q6_4',
-    'q6_5',
-  ]
-
-  sortableQuestions.forEach((questionId) => {
-    const th = document.createElement('th')
-    th.textContent = questionId
-    th.classList.add('sortable')
-    th.dataset.field = questionId
-    thead.appendChild(th)
-  })
 
   tbody.innerHTML = ''
   usersToRender.forEach((user) => {
@@ -249,13 +168,11 @@ function renderTable(usersToRender = users) {
           ? new Date(user.latestSubmissionTime).toLocaleString()
           : ''
       }</td>
+      ${sortableColumns
+        .filter((col) => col.startsWith('q'))
+        .map((col) => `<td>${user.data?.responses?.[col] || ''}</td>`)
+        .join('')}
     `
-
-    sortableQuestions.forEach((questionId) => {
-      const response = user.data?.responses?.[questionId] || ''
-      tr.innerHTML += `<td>${response}</td>`
-    })
-
     tbody.appendChild(tr)
   })
 
@@ -272,7 +189,9 @@ function renderTable(usersToRender = users) {
   document
     .getElementById('selectAll')
     .addEventListener('change', toggleSelectAll)
+  setupSortingListeners()
 }
+
 function getSortIcon(field) {
   if (currentSort.field !== field) return '↕️'
   return currentSort.ascending ? '↑' : '↓'
@@ -281,8 +200,8 @@ function getSortIcon(field) {
 function setupSortingListeners() {
   const thead = document.querySelector('#userTable thead')
   thead.addEventListener('click', function (e) {
-    const target = e.target.closest('th')
-    if (target && target.classList.contains('sortable')) {
+    const target = e.target.closest('.sortable')
+    if (target) {
       const field = target.dataset.field
       if (currentSort.field === field) {
         currentSort.ascending = !currentSort.ascending
@@ -290,7 +209,6 @@ function setupSortingListeners() {
         currentSort = { field, ascending: true }
       }
       sortUsers()
-      renderTable() // Re-render to update sort icons
     }
   })
 }
@@ -305,12 +223,19 @@ function sortUsers() {
           valueB = parseInt(b.birthYear) || 0
           break
         case 'firstSubmission':
-        case 'latestSubmission':
-          valueA = a[currentSort.field]
-            ? new Date(a[currentSort.field]).getTime()
+          valueA = a.firstSubmissionTime
+            ? new Date(a.firstSubmissionTime).getTime()
             : 0
-          valueB = b[currentSort.field]
-            ? new Date(b[currentSort.field]).getTime()
+          valueB = b.firstSubmissionTime
+            ? new Date(b.firstSubmissionTime).getTime()
+            : 0
+          break
+        case 'latestSubmission':
+          valueA = a.latestSubmissionTime
+            ? new Date(a.latestSubmissionTime).getTime()
+            : 0
+          valueB = b.latestSubmissionTime
+            ? new Date(b.latestSubmissionTime).getTime()
             : 0
           break
         default:
@@ -321,6 +246,7 @@ function sortUsers() {
       if (valueA > valueB) return currentSort.ascending ? 1 : -1
       return 0
     })
+    renderTable() // Re-render the table after sorting
   }
 }
 
