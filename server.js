@@ -99,7 +99,7 @@ app.post("/login", async (req, res) => {
       // New user
       userData = new UserData({
         userId: user._id,
-        data: {},
+        data: { responses: {}, currentSection: 0 },
         courses: courses ? [courses] : [],
         firstSubmissionTime: new Date(),
         latestSubmissionTime: new Date(),
@@ -110,7 +110,9 @@ app.post("/login", async (req, res) => {
       // Returning user
       userData.latestSubmissionTime = new Date();
       if (courses) {
-        userData.courses.push(courses);
+        userData.courses = userData.courses.concat(
+          courses.filter((course) => !userData.courses.includes(course))
+        );
       }
     }
 
@@ -123,6 +125,7 @@ app.post("/login", async (req, res) => {
         !userData.initialScores ||
         Object.keys(userData.initialScores).length === 0,
       courses: userData.courses,
+      data: userData.data,
     });
   } catch (err) {
     console.error("Error during login:", err);

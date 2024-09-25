@@ -124,24 +124,19 @@ async function handleLogin() {
       sessionStorage.setItem('isNewUser', data.isNewUser)
       sessionStorage.setItem('courses', JSON.stringify(data.courses))
 
-      // Fetch user data after successful login
-      const userDataResponse = await fetch(`/api/user-data/${data.userId}`)
-      if (userDataResponse.ok) {
-        const userData = await userDataResponse.json()
-        if (userData.data && userData.data.responses) {
-          sessionStorage.setItem(
-            'surveyData',
-            JSON.stringify(userData.data.responses)
-          )
-          sessionStorage.setItem(
-            'initialScores',
-            JSON.stringify(userData.initialScores)
-          )
-          sessionStorage.setItem(
-            'updatedScores',
-            JSON.stringify(userData.updatedScores)
-          )
-        }
+      if (data.data && data.data.responses) {
+        sessionStorage.setItem(
+          'surveyData',
+          JSON.stringify(data.data.responses)
+        )
+        sessionStorage.setItem(
+          'initialScores',
+          JSON.stringify(data.initialScores || {})
+        )
+        sessionStorage.setItem(
+          'updatedScores',
+          JSON.stringify(data.updatedScores || {})
+        )
       }
 
       console.log('User data stored in session storage')
@@ -164,7 +159,10 @@ function setupLogoutFunctionality() {
     })
   }
 }
-
+// Add a function to check if the user is new or returning
+function isNewUser() {
+  return sessionStorage.getItem('isNewUser') === 'true'
+}
 function initializeFlatpickr() {
   if (typeof flatpickr === 'function') {
     flatpickr('#birthyear', {
@@ -318,12 +316,15 @@ function setupSurveyDataPersistence() {
       event.preventDefault()
       const data = Object.fromEntries(new FormData(surveyForm))
       saveUserData(userId, data, true) // true indicates survey completion
-      // Handle survey completion (e.g., show results)
+
+      // Use the existing showResults function from survey.js
       if (typeof showResults === 'function') {
         showResults()
       } else {
+        console.error(
+          'showResults function not found. Make sure survey.js is loaded correctly.'
+        )
         alert('Vielen Dank für das Ausfüllen der Umfrage!')
-        // Redirect to a thank you page or show results inline
       }
     })
   }

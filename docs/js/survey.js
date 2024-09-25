@@ -90,26 +90,21 @@ function loadUserData() {
         return response.json()
       })
       .then((data) => {
-        if (data.userId === userId) {
-          if (data.data && data.data.responses) {
-            userData = data.data.responses
-            currentSection = parseInt(data.data.currentSection) || 0
-            initialScores = data.initialScores || {}
-            updatedScores = data.updatedScores || {}
-          } else if (storedData) {
-            userData = JSON.parse(storedData)
-            currentSection = userData.currentSection || 0
-            initialScores = JSON.parse(storedInitialScores || '{}')
-            updatedScores = JSON.parse(storedUpdatedScores || '{}')
-          } else {
-            resetUserData()
-          }
-          renderSection(currentSection)
-          updateProgressBar()
+        if (data.data && data.data.responses) {
+          userData = data.data.responses
+          currentSection = parseInt(data.data.currentSection) || 0
+          initialScores = data.initialScores || {}
+          updatedScores = data.updatedScores || {}
+        } else if (storedData) {
+          userData = JSON.parse(storedData)
+          currentSection = userData.currentSection || 0
+          initialScores = JSON.parse(storedInitialScores || '{}')
+          updatedScores = JSON.parse(storedUpdatedScores || '{}')
         } else {
-          console.error('Received data for incorrect user')
           resetUserData()
         }
+        renderSection(currentSection)
+        updateProgressBar()
       })
       .catch((error) => {
         console.error('Error loading user data:', error)
@@ -232,7 +227,6 @@ function saveSectionData(isComplete = false) {
   const userId = sessionStorage.getItem('userId')
   if (userId) {
     const categoryScores = calculateCategoryScores()
-    const courses = JSON.parse(sessionStorage.getItem('courses') || '[]')
     const data = {
       userId: userId,
       data: {
@@ -241,7 +235,6 @@ function saveSectionData(isComplete = false) {
       },
       isComplete: isComplete,
       categoryScores: categoryScores,
-      courses: courses,
     }
 
     fetch('/api/save-user-data', {
