@@ -16,12 +16,12 @@ const labelMap = {
 }
 
 const colorMap = {
-  Suchen: '#00FF00', // Bright Green
-  Kommunizieren: '#00FFFF', // Cyan
-  Produzieren: '#FF0000', // Bright Red
-  Schützen: '#8000FF', // Purple
-  Problemlösen: '#FF00FF', // Magenta
-  Analysieren: '#FFD700', // Gold
+  Suchen: '#00BF63', // Green
+  Kommunizieren: '#0CC0DF', // Blue
+  Produzieren: '#FF6D5F', // Red
+  Schützen: '#8C52FF', // Purple
+  Problemlösen: '#E884C4', // Pink
+  Analysieren: '#FFD473', // Yellow
 }
 
 const competencyDescriptions = {
@@ -510,10 +510,10 @@ function getLighterColor(hexColor) {
   let g = parseInt(hexColor.slice(3, 5), 16)
   let b = parseInt(hexColor.slice(5, 7), 16)
 
-  // Increase lightness more significantly
-  r = Math.min(255, r + 150)
-  g = Math.min(255, g + 150)
-  b = Math.min(255, b + 150)
+  // Make the color significantly lighter
+  r = Math.min(255, r + Math.floor((255 - r) * 0.7))
+  g = Math.min(255, g + Math.floor((255 - g) * 0.7))
+  b = Math.min(255, b + Math.floor((255 - b) * 0.7))
 
   return `#${r.toString(16).padStart(2, '0')}${g
     .toString(16)
