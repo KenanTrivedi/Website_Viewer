@@ -110,21 +110,62 @@ function renderTable(usersToRender = users) {
     <th><input type="checkbox" id="selectAll"></th>
     <th>User Code</th>
     <th>Gender</th>
-    <th>Birth Year</th>
+    <th class="sortable" data-field="birthYear">Birth Year</th>
     <th>Lehramt</th>
     <th>Fächer</th>
-    <th>First Submission</th>
-    <th>Latest Submission</th>
+    <th class="sortable" data-field="firstSubmission">First Submission</th>
+    <th class="sortable" data-field="latestSubmission">Latest Submission</th>
   `
 
-  questionIds.forEach((questionId) => {
-    if (questionId !== 'q0_0' && questionId !== 'q0_1') {
-      const th = document.createElement('th')
-      th.textContent = questionId
-      th.classList.add('sortable')
-      th.dataset.questionId = questionId
-      thead.appendChild(th)
-    }
+  // Add sortable headers for specified question responses
+  const sortableQuestions = [
+    'q1_0',
+    'q1_1',
+    'q1_2',
+    'q1_3',
+    'q1_4',
+    'q1_5',
+    'q2_0',
+    'q2_1',
+    'q2_2',
+    'q2_3',
+    'q2_4',
+    'q2_5',
+    'q2_6',
+    'q3_0',
+    'q3_1',
+    'q3_2',
+    'q3_3',
+    'q3_4',
+    'q3_5',
+    'q3_6',
+    'q4_0',
+    'q4_1',
+    'q4_2',
+    'q4_3',
+    'q4_4',
+    'q4_5',
+    'q5_0',
+    'q5_1',
+    'q5_2',
+    'q5_3',
+    'q5_4',
+    'q5_5',
+    'q5_6',
+    'q6_0',
+    'q6_1',
+    'q6_2',
+    'q6_3',
+    'q6_4',
+    'q6_5',
+  ]
+
+  sortableQuestions.forEach((questionId) => {
+    const th = document.createElement('th')
+    th.textContent = questionId
+    th.classList.add('sortable')
+    th.dataset.field = questionId
+    thead.appendChild(th)
   })
 
   tbody.innerHTML = ''
@@ -151,11 +192,9 @@ function renderTable(usersToRender = users) {
       }</td>
     `
 
-    questionIds.forEach((questionId) => {
-      if (questionId !== 'q0_0' && questionId !== 'q0_1') {
-        const response = user.data?.responses?.[questionId] || ''
-        tr.innerHTML += `<td>${response}</td>`
-      }
+    sortableQuestions.forEach((questionId) => {
+      const response = user.data?.responses?.[questionId] || ''
+      tr.innerHTML += `<td>${response}</td>`
     })
 
     tbody.appendChild(tr)
@@ -174,19 +213,18 @@ function renderTable(usersToRender = users) {
   document
     .getElementById('selectAll')
     .addEventListener('change', toggleSelectAll)
-  setupSortingListeners()
 }
 
 function setupSortingListeners() {
   const thead = document.querySelector('#userTable thead')
   thead.addEventListener('click', function (e) {
-    const target = e.target.closest('.sortable')
-    if (target) {
-      const questionId = target.dataset.questionId
-      if (currentSort.questionId === questionId) {
+    const target = e.target.closest('th')
+    if (target && target.classList.contains('sortable')) {
+      const field = target.dataset.field
+      if (currentSort.field === field) {
         currentSort.ascending = !currentSort.ascending
       } else {
-        currentSort = { questionId, ascending: true }
+        currentSort = { field, ascending: true }
       }
       sortUsers()
     }
@@ -407,7 +445,17 @@ function searchUsers() {
       (user.data?.responses?.q0_2 &&
         user.data.responses.q0_2.toLowerCase().includes(searchTerm)) ||
       (user.data?.responses?.q0_3 &&
-        user.data.responses.q0_3.toLowerCase().includes(searchTerm))
+        user.data.responses.q0_3.toLowerCase().includes(searchTerm)) ||
+      (user.firstSubmissionTime &&
+        new Date(user.firstSubmissionTime)
+          .toLocaleString()
+          .toLowerCase()
+          .includes(searchTerm)) ||
+      (user.latestSubmissionTime &&
+        new Date(user.latestSubmissionTime)
+          .toLocaleString()
+          .toLowerCase()
+          .includes(searchTerm))
   )
   renderTable(filteredUsers)
 }
