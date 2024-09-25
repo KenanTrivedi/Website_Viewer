@@ -230,7 +230,7 @@ function saveSectionData(isComplete = false) {
 
   const userId = sessionStorage.getItem('userId')
   if (userId) {
-    const categoryScores = isComplete ? calculateCategoryScores() : {}
+    const categoryScores = calculateCategoryScores()
     const data = {
       userId: userId,
       data: {
@@ -240,6 +240,7 @@ function saveSectionData(isComplete = false) {
       isComplete: isComplete,
       categoryScores: categoryScores,
     }
+
     fetch('/api/save-user-data', {
       method: 'POST',
       headers: {
@@ -298,14 +299,6 @@ function calculateCategoryScores() {
       }
     }
   })
-
-  // Ensure we're not overwriting initial scores for returning users
-  const isNewUser = Object.keys(initialScores).length === 0
-  if (isNewUser) {
-    initialScores = { ...categoryScores }
-  }
-  updatedScores = { ...categoryScores }
-
   return categoryScores
 }
 
