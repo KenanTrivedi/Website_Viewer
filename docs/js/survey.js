@@ -95,6 +95,10 @@ function loadUserData() {
           currentSection = parseInt(data.data.currentSection) || 0
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
+
+          // Store the scores in session storage
+          sessionStorage.setItem('initialScores', JSON.stringify(initialScores))
+          sessionStorage.setItem('updatedScores', JSON.stringify(updatedScores))
         } else if (storedData) {
           userData = JSON.parse(storedData)
           currentSection = userData.currentSection || 0
@@ -472,6 +476,10 @@ function showDatenschutz() {
 function showResults() {
   const score = calculateCompetenzScore()
   const courses = getCoursesSuggestions(score)
+
+  // Retrieve scores from session storage
+  initialScores = JSON.parse(sessionStorage.getItem('initialScores') || '{}')
+  updatedScores = JSON.parse(sessionStorage.getItem('updatedScores') || '{}')
 
   const resultHtml = `
     <h2>Ihr Kompetenz-Score: ${score}%</h2>
