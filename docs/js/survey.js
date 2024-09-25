@@ -90,21 +90,26 @@ function loadUserData() {
         return response.json()
       })
       .then((data) => {
-        if (data.data && data.data.responses) {
-          userData = data.data.responses
-          currentSection = parseInt(data.data.currentSection) || 0
-          initialScores = data.initialScores || {}
-          updatedScores = data.updatedScores || {}
-        } else if (storedData) {
-          userData = JSON.parse(storedData)
-          currentSection = userData.currentSection || 0
-          initialScores = JSON.parse(storedInitialScores || '{}')
-          updatedScores = JSON.parse(storedUpdatedScores || '{}')
+        if (data.userId === userId) {
+          if (data.data && data.data.responses) {
+            userData = data.data.responses
+            currentSection = parseInt(data.data.currentSection) || 0
+            initialScores = data.initialScores || {}
+            updatedScores = data.updatedScores || {}
+          } else if (storedData) {
+            userData = JSON.parse(storedData)
+            currentSection = userData.currentSection || 0
+            initialScores = JSON.parse(storedInitialScores || '{}')
+            updatedScores = JSON.parse(storedUpdatedScores || '{}')
+          } else {
+            resetUserData()
+          }
+          renderSection(currentSection)
+          updateProgressBar()
         } else {
+          console.error('Received data for incorrect user')
           resetUserData()
         }
-        renderSection(currentSection)
-        updateProgressBar()
       })
       .catch((error) => {
         console.error('Error loading user data:', error)
@@ -227,6 +232,7 @@ function saveSectionData(isComplete = false) {
   const userId = sessionStorage.getItem('userId')
   if (userId) {
     const categoryScores = calculateCategoryScores()
+    const courses = JSON.parse(sessionStorage.getItem('courses') || '[]')
     const data = {
       userId: userId,
       data: {
@@ -235,6 +241,7 @@ function saveSectionData(isComplete = false) {
       },
       isComplete: isComplete,
       categoryScores: categoryScores,
+      courses: courses,
     }
 
     fetch('/api/save-user-data', {
@@ -268,11 +275,11 @@ function saveSectionData(isComplete = false) {
   }
 }
 
-// Make sure to call saveSectionData with isComplete = true when finishing the survey
 function finishSurvey() {
   saveSectionData(true)
   showDatenschutz()
 }
+
 function calculateCategoryScores() {
   let categoryScores = {}
   surveyData.forEach((section, sectionIndex) => {
@@ -295,6 +302,14 @@ function calculateCategoryScores() {
       }
     }
   })
+
+  // Ensure we're not overwriting initial scores for returning users
+  const isNewUser = Object.keys(initialScores).length === 0
+  if (isNewUser) {
+    initialScores = { ...categoryScores }
+  }
+  updatedScores = { ...categoryScores }
+
   return categoryScores
 }
 
@@ -468,11 +483,14 @@ function showResults() {
 
   const resultHtml = `
     <h2>Ihr Kompetenz-Score: ${score}%</h2>
-    <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse:</p>
+    <p>Dieser Score repräsentiert Ihren aktuellen Stand in digitalen Kompetenzen basierend auf Ihren Antworten.</p>
+    <h3>Kursempfehlungen</h3>
+    <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse zur Verbesserung Ihrer digitalen Kompetenzen:</p>
     <ul>
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
     <h3>Kompetenzdiagramm</h3>
+    <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen. Die helleren Balken repräsentieren Ihre initialen Scores, während die dunkleren Balken Ihre aktuellen Scores darstellen.</p>
     <div style="height: 300px; width: 100%;">
       <canvas id="competencyChart1"></canvas>
     </div>
@@ -482,7 +500,6 @@ function showResults() {
 
   document.getElementById('surveyForm').innerHTML = resultHtml
 
-  // Use a short delay to ensure the canvas is in the DOM
   setTimeout(() => {
     createCompetencyChart1(initialScores, updatedScores)
   }, 100)
@@ -650,3 +667,14 @@ function downloadChart(event) {
     link.click()
   }
 }
+
+// Make sure surveyData is available
+if (typeof surveyData === 'undefined') {
+  console.error(
+    'surveyData is not defined. Please ensure it is loaded before using this script.'
+  )
+}
+
+// Expose necessary functions globally
+window.showResults = showResults
+window.saveSectionData = saveSectionData

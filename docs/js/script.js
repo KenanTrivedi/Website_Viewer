@@ -111,8 +111,8 @@ async function handleLogin() {
   const courses = document.getElementById('courses').value.trim()
   const loginCode = document.getElementById('loginCode').value.trim()
 
-  if (!courses || !loginCode) {
-    alert('Bitte füllen Sie alle erforderlichen Felder aus.')
+  if (!loginCode) {
+    alert('Bitte geben Sie Ihren persönlichen Code ein.')
     return
   }
 
@@ -121,6 +121,8 @@ async function handleLogin() {
     if (response.ok) {
       const data = await response.json()
       sessionStorage.setItem('userId', data.userId)
+      sessionStorage.setItem('isNewUser', data.isNewUser)
+      sessionStorage.setItem('courses', JSON.stringify(data.courses))
 
       // Fetch user data after successful login
       const userDataResponse = await fetch(`/api/user-data/${data.userId}`)
@@ -143,7 +145,6 @@ async function handleLogin() {
       }
 
       console.log('User data stored in session storage')
-      // Always redirect to the survey page
       window.location.href = 'survey.html'
     } else {
       alert('Ungültiger Code')
@@ -225,7 +226,8 @@ function populateFormFields(form, data) {
   })
 }
 
-function saveUserData(userId, data) {
+function saveUserData(userId, data, isComplete = false) {
+  const categoryScores = calculateCategoryScores(data)
   fetch('/api/save-user-data', {
     method: 'POST',
     headers: {
@@ -236,6 +238,8 @@ function saveUserData(userId, data) {
       data: {
         responses: data,
       },
+      isComplete: isComplete,
+      categoryScores: categoryScores,
     }),
   })
     .then((response) => {
@@ -261,6 +265,37 @@ function saveUserData(userId, data) {
     })
 }
 
+function calculateCategoryScores(data) {
+  const categoryScores = {}
+  const maxScorePerQuestion = 6 // Assuming the scale is 0-6
+
+  surveyData.forEach((section, sectionIndex) => {
+    if (section.title !== 'Persönliche Angaben') {
+      let totalScore = 0
+      let questionCount = 0
+
+      section.questions.forEach((question, questionIndex) => {
+        const questionId = `q${sectionIndex}_${questionIndex}`
+        if (data[questionId] && question.type === 'scale') {
+          totalScore += parseInt(data[questionId])
+          questionCount++
+        }
+      })
+
+      if (questionCount > 0) {
+        const maxPossibleScore = questionCount * maxScorePerQuestion
+        categoryScores[section.title] = Math.round(
+          (totalScore / maxPossibleScore) * 100
+        )
+      } else {
+        categoryScores[section.title] = 0
+      }
+    }
+  })
+
+  return categoryScores
+}
+
 function setupSurveyDataPersistence() {
   const surveyForm = document.getElementById('surveyForm')
   const userId = sessionStorage.getItem('userId')
@@ -282,10 +317,14 @@ function setupSurveyDataPersistence() {
     surveyForm.addEventListener('submit', function (event) {
       event.preventDefault()
       const data = Object.fromEntries(new FormData(surveyForm))
-      saveUserData(userId, data)
-      // Handle survey completion (e.g., show a thank you message)
-      alert('Vielen Dank für das Ausfüllen der Umfrage!')
-      // Optionally, redirect to another page or reset the form
+      saveUserData(userId, data, true) // true indicates survey completion
+      // Handle survey completion (e.g., show results)
+      if (typeof showResults === 'function') {
+        showResults()
+      } else {
+        alert('Vielen Dank für das Ausfüllen der Umfrage!')
+        // Redirect to a thank you page or show results inline
+      }
     })
   }
 }
@@ -350,4 +389,11 @@ function checkInputsAndToggleLoginButton() {
   } else {
     loginButton.style.display = 'none'
   }
+}
+
+// Make sure surveyData is available
+if (typeof surveyData === 'undefined') {
+  console.error(
+    'surveyData is not defined. Please ensure it is loaded before using this script.'
+  )
 }

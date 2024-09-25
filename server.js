@@ -93,24 +93,37 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid code" });
     }
 
-    // Ensure user data exists in the database
-    const userData = await UserData.findOneAndUpdate(
-      { userId: user._id },
-      {
-        $setOnInsert: {
-          userId: user._id,
-          data: {},
-          firstSubmissionTime: new Date(),
-        },
-        $set: {
-          latestSubmissionTime: new Date(),
-          courses: courses || [],
-        },
-      },
-      { upsert: true, new: true }
-    );
+    let userData = await UserData.findOne({ userId: user._id });
 
-    res.status(200).json({ message: "Login successful", userId: user._id });
+    if (!userData) {
+      // New user
+      userData = new UserData({
+        userId: user._id,
+        data: {},
+        courses: courses ? [courses] : [],
+        firstSubmissionTime: new Date(),
+        latestSubmissionTime: new Date(),
+        initialScores: {},
+        updatedScores: {},
+      });
+    } else {
+      // Returning user
+      userData.latestSubmissionTime = new Date();
+      if (courses) {
+        userData.courses.push(courses);
+      }
+    }
+
+    await userData.save();
+
+    res.status(200).json({
+      message: "Login successful",
+      userId: user._id,
+      isNewUser:
+        !userData.initialScores ||
+        Object.keys(userData.initialScores).length === 0,
+      courses: userData.courses,
+    });
   } catch (err) {
     console.error("Error during login:", err);
     res.status(500).json({ message: "Error processing login request" });
@@ -129,41 +142,31 @@ app.post("/api/save-user-data", async (req, res) => {
     const currentTime = new Date();
 
     if (!userData) {
-      // First time submission
       userData = new UserData({
         userId,
         data: data,
         isComplete: isComplete,
         firstSubmissionTime: currentTime,
         latestSubmissionTime: currentTime,
-        initialScores: isComplete ? categoryScores : {},
+        initialScores: categoryScores,
         updatedScores: categoryScores,
       });
     } else {
-      // Subsequent submission
       userData.data = data;
       userData.latestSubmissionTime = currentTime;
+      userData.isComplete = isComplete;
 
-      // Update isComplete if it's changing from false to true
-      if (isComplete && !userData.isComplete) {
-        userData.isComplete = true;
-        // Set initialScores only if they haven't been set yet
-        if (Object.keys(userData.initialScores).length === 0) {
-          userData.initialScores = categoryScores;
-        }
+      // Only update initialScores if they haven't been set yet
+      if (
+        !userData.initialScores ||
+        Object.keys(userData.initialScores).length === 0
+      ) {
+        userData.initialScores = categoryScores;
       }
-
-      // Always update updatedScores
       userData.updatedScores = categoryScores;
     }
 
-    if (req.body.courses) {
-      userData.courses = req.body.courses;
-    }
-
     await userData.save();
-
-    console.log("Saved user data:", userData); // For debugging
 
     res.status(200).json({
       message: "Data saved successfully",
@@ -187,6 +190,7 @@ app.get("/api/user-data/:userId", async (req, res) => {
     if (userData) {
       res.status(200).json({
         data: userData.data,
+        courses: userData.courses,
         isComplete: userData.isComplete,
         initialScores: userData.initialScores,
         updatedScores: userData.updatedScores,
@@ -253,6 +257,7 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
           },
           scores: categoryScores,
           isComplete: user.isComplete || false,
+          courses: user.courses || [],
         };
       })
     );
@@ -313,6 +318,7 @@ async function updateCSV() {
       { id: "birthYear", title: "Birth Year" },
       { id: "firstSubmissionTime", title: "First Submission" },
       { id: "latestSubmissionTime", title: "Latest Submission" },
+      { id: "courses", title: "Completed Courses" },
       ...surveyData.flatMap((section) =>
         section.questions.map((q, i) => ({
           id: `q${surveyData.indexOf(section)}_${i}`,
@@ -329,6 +335,7 @@ async function updateCSV() {
       birthYear: user.data.responses?.q0_1 || "",
       firstSubmissionTime: user.firstSubmissionTime,
       latestSubmissionTime: user.latestSubmissionTime,
+      courses: user.courses ? user.courses.join(", ") : "",
     };
     Object.entries(user.data.responses || {}).forEach(([key, value]) => {
       if (key !== "q0_0" && key !== "q0_1") {
