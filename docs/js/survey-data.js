@@ -13,6 +13,24 @@ const surveyData = [
         min: 1900,
         max: new Date().getFullYear(),
       },
+      {
+        text: 'Welches Lehramt studieren Sie?',
+        type: 'dropdown',
+        options: [
+          'Lehramt an Grundschulen',
+          'Lehramt an Regionalen Schulen',
+          'Lehramt an Gymnasien',
+          'Lehramt für Sonderpädagogik',
+          'Berufspädagogik (B.A.)',
+          'Berufspädagogik (M.A.)',
+          'Wirtschaftspädagogik (B.A.)',
+          'Wirtschaftspädagogik (M.A.)',
+        ],
+      },
+      {
+        text: 'Welche Fächer studieren Sie aktuell in Ihrem Lehramtsstudium?',
+        type: 'text',
+      },
     ],
   },
   {

@@ -111,6 +111,8 @@ function renderTable(usersToRender = users) {
     <th>User Code</th>
     <th>Gender</th>
     <th>Birth Year</th>
+    <th>Lehramt</th>
+    <th>Fächer</th>
     <th>First Submission</th>
     <th>Latest Submission</th>
   `
@@ -135,6 +137,8 @@ function renderTable(usersToRender = users) {
       <td>${user.userCode || ''}</td>
       <td>${user.gender || ''}</td>
       <td>${user.birthYear || ''}</td>
+      <td>${user.data?.responses?.q0_2 || ''}</td>
+      <td>${user.data?.responses?.q0_3 || ''}</td>
       <td>${
         user.firstSubmissionTime
           ? new Date(user.firstSubmissionTime).toLocaleString()
@@ -319,11 +323,18 @@ function exportToExcel(data) {
       'User Code': user.userCode,
       Gender: user.gender,
       'Birth Year': user.birthYear,
+      Lehramt: user.data?.responses?.q0_2 || '',
+      Fächer: user.data?.responses?.q0_3 || '',
       'First Submission': user.firstSubmissionTime
         ? new Date(user.firstSubmissionTime).toLocaleString()
         : '',
       ...questionIds.reduce((acc, questionId) => {
-        if (questionId !== 'q0_0' && questionId !== 'q0_1') {
+        if (
+          questionId !== 'q0_0' &&
+          questionId !== 'q0_1' &&
+          questionId !== 'q0_2' &&
+          questionId !== 'q0_3'
+        ) {
           acc[questionId] = user.data?.responses?.[questionId] || ''
         }
         return acc
@@ -392,7 +403,11 @@ function searchUsers() {
     (user) =>
       (user.userCode && user.userCode.toLowerCase().includes(searchTerm)) ||
       (user.gender && user.gender.toLowerCase().includes(searchTerm)) ||
-      (user.birthYear && user.birthYear.toString().includes(searchTerm))
+      (user.birthYear && user.birthYear.toString().includes(searchTerm)) ||
+      (user.data?.responses?.q0_2 &&
+        user.data.responses.q0_2.toLowerCase().includes(searchTerm)) ||
+      (user.data?.responses?.q0_3 &&
+        user.data.responses.q0_3.toLowerCase().includes(searchTerm))
   )
   renderTable(filteredUsers)
 }
