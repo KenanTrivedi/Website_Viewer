@@ -145,6 +145,7 @@ app.post("/api/save-user-data", async (req, res) => {
     const currentTime = new Date();
 
     if (!userData) {
+      // This is the first time the user is submitting data
       userData = new UserData({
         userId,
         data: data,
@@ -159,11 +160,8 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.latestSubmissionTime = currentTime;
       userData.isComplete = isComplete;
 
-      // Only update initialScores if they haven't been set yet
-      if (
-        !userData.initialScores ||
-        Object.keys(userData.initialScores).length === 0
-      ) {
+      // Only update initialScores if they are empty (all values are 0)
+      if (Object.values(userData.initialScores).every((score) => score === 0)) {
         userData.initialScores = categoryScores;
       }
       userData.updatedScores = categoryScores;
