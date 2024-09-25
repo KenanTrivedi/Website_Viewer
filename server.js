@@ -161,7 +161,12 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.latestSubmissionTime = currentTime;
       userData.isComplete = isComplete;
 
-      // Only update updatedScores, leave initialScores unchanged
+      // If initialScores are all 0, update them (this fixes the issue for the first submission)
+      if (Object.values(userData.initialScores).every((score) => score === 0)) {
+        userData.initialScores = categoryScores;
+      }
+
+      // Always update updatedScores
       userData.updatedScores = categoryScores;
 
       // Update courses without duplicates
