@@ -142,7 +142,8 @@ async function handleLogin() {
       console.log('User data stored in session storage')
       window.location.href = 'survey.html'
     } else {
-      alert('Ungültiger Code')
+      const errorData = await response.json()
+      alert(`Login fehlgeschlagen: ${errorData.message}`)
     }
   } catch (error) {
     console.error('Login error:', error)

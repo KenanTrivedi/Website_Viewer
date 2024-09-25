@@ -110,9 +110,12 @@ app.post("/login", async (req, res) => {
       // Returning user
       userData.latestSubmissionTime = new Date();
       if (courses) {
-        userData.courses = userData.courses.concat(
-          courses.filter((course) => !userData.courses.includes(course))
-        );
+        if (!userData.courses) {
+          userData.courses = [];
+        }
+        if (!userData.courses.includes(courses)) {
+          userData.courses.push(courses);
+        }
       }
     }
 
@@ -126,10 +129,14 @@ app.post("/login", async (req, res) => {
         Object.keys(userData.initialScores).length === 0,
       courses: userData.courses,
       data: userData.data,
+      initialScores: userData.initialScores,
+      updatedScores: userData.updatedScores,
     });
   } catch (err) {
     console.error("Error during login:", err);
-    res.status(500).json({ message: "Error processing login request" });
+    res
+      .status(500)
+      .json({ message: "Error processing login request", error: err.message });
   }
 });
 
