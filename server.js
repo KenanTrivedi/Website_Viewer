@@ -109,13 +109,8 @@ app.post("/login", async (req, res) => {
     } else {
       // Returning user
       userData.latestSubmissionTime = new Date();
-      if (courses) {
-        if (!userData.courses) {
-          userData.courses = [];
-        }
-        if (!userData.courses.includes(courses)) {
-          userData.courses.push(courses);
-        }
+      if (courses && !userData.courses.includes(courses)) {
+        userData.courses.push(courses);
       }
     }
 
@@ -124,9 +119,7 @@ app.post("/login", async (req, res) => {
     res.status(200).json({
       message: "Login successful",
       userId: user._id,
-      isNewUser:
-        !userData.initialScores ||
-        Object.keys(userData.initialScores).length === 0,
+      isNewUser: Object.keys(userData.initialScores).length === 0,
       courses: userData.courses,
       data: userData.data,
       initialScores: userData.initialScores,
@@ -152,6 +145,7 @@ app.post("/api/save-user-data", async (req, res) => {
     const currentTime = new Date();
 
     if (!userData) {
+      // First-time user: set both initial and updated scores
       userData = new UserData({
         userId,
         data: data,
@@ -162,12 +156,21 @@ app.post("/api/save-user-data", async (req, res) => {
         updatedScores: categoryScores,
       });
     } else {
+      // Returning user: update only the necessary fields
       userData.data = data;
       userData.latestSubmissionTime = currentTime;
       userData.isComplete = isComplete;
 
-      // Always update the updatedScores
+      // Only update updatedScores, leave initialScores unchanged
       userData.updatedScores = categoryScores;
+
+      // Update courses without duplicates
+      if (data.courses) {
+        const newCourses = data.courses.filter(
+          (course) => !userData.courses.includes(course)
+        );
+        userData.courses = [...userData.courses, ...newCourses];
+      }
     }
 
     await userData.save();
