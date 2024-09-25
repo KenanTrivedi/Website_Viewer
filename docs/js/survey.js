@@ -182,6 +182,22 @@ function renderSection(index) {
                  <span>gar nicht kompetent</span>
                  <span>ausgesprochen kompetent</span>
                </div>`
+    } else if (question.type === 'dropdown') {
+      html += `<select id="${questionId}" name="${questionId}" required>
+                <option value="" disabled ${
+                  !savedValue ? 'selected' : ''
+                }>Bitte wählen Sie eine Option</option>
+                ${question.options
+                  .map(
+                    (option) =>
+                      `<option value="${option}" ${
+                        savedValue === option ? 'selected' : ''
+                      }>${option}</option>`
+                  )
+                  .join('')}
+               </select>`
+    } else if (question.type === 'text') {
+      html += `<input type="text" id="${questionId}" name="${questionId}" value="${savedValue}" required>`
     }
 
     html += `</div>`
