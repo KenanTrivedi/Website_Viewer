@@ -61,9 +61,6 @@ document.addEventListener('DOMContentLoaded', function () {
     .addEventListener('click', exportSelected)
   document.getElementById('exportAll').addEventListener('click', exportAll)
   document
-    .getElementById('selectAll')
-    .addEventListener('change', toggleSelectAll)
-  document
     .getElementById('toggleVisualization')
     .addEventListener('click', toggleVisualizationSidebar)
   document
@@ -72,13 +69,7 @@ document.addEventListener('DOMContentLoaded', function () {
   document
     .getElementById('downloadChart')
     .addEventListener('click', downloadChart)
-  document.getElementById('userSearch').addEventListener('input', searchUsers)
-  document
-    .getElementById('prevPage')
-    .addEventListener('click', () => changePage(-1))
-  document
-    .getElementById('nextPage')
-    .addEventListener('click', () => changePage(1))
+  document.getElementById('searchButton').addEventListener('click', searchUsers)
   document
     .getElementById('applyDateFilter')
     .addEventListener('click', applyDateFilter)
@@ -114,13 +105,8 @@ function clearDateFilter() {
   startDate = null
   endDate = null
   currentPage = 1
-  renderTable(users.slice(0, usersPerPage))
-  updatePagination(users.length)
-}
-
-function parseDate(dateString) {
-  const [day, month, year] = dateString.split('/')
-  return new Date(year, month - 1, day)
+  renderTable()
+  updatePagination()
 }
 
 async function fetchData() {
@@ -242,6 +228,7 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
   })
   tbody.appendChild(fragment)
 
+  // Attach event listeners after rendering
   document.querySelectorAll('.user-select').forEach((checkbox) => {
     checkbox.addEventListener('change', function () {
       const userId = this.dataset.id
@@ -255,6 +242,7 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
   document
     .getElementById('selectAll')
     .addEventListener('change', toggleSelectAll)
+
   setupSortingListeners()
 }
 
@@ -296,7 +284,6 @@ function setupSortingListeners() {
 
 function sortUsers() {
   if (currentSort.field) {
-    const startTime = performance.now()
     users.sort((a, b) => {
       let valueA, valueB
       switch (currentSort.field) {
@@ -328,7 +315,6 @@ function sortUsers() {
       if (valueA > valueB) return currentSort.ascending ? 1 : -1
       return 0
     })
-    console.log(`Sorting took ${performance.now() - startTime} milliseconds`)
     currentPage = 1
     renderTable()
     updatePagination()
@@ -442,25 +428,13 @@ function exportSelected() {
       document.querySelector(`.user-select[data-id="${user.userId}"]`)?.checked
   )
 
-  let dataToExport = selectedUsers
-  if (startDate && endDate) {
-    dataToExport = selectedUsers.filter((user) => {
-      const submissionDate = new Date(user.firstSubmissionTime)
-      return submissionDate >= startDate && submissionDate <= endDate
-    })
-  }
+  let dataToExport = selectedUsers.filter(filterByDateRange)
 
   exportToExcel(dataToExport)
 }
 
 function exportAll() {
-  let dataToExport = users
-  if (startDate && endDate) {
-    dataToExport = users.filter((user) => {
-      const submissionDate = new Date(user.firstSubmissionTime)
-      return submissionDate >= startDate && submissionDate <= endDate
-    })
-  }
+  let dataToExport = users.filter(filterByDateRange)
   exportToExcel(dataToExport)
 }
 
@@ -497,7 +471,6 @@ function exportToExcel(data) {
 }
 
 function toggleVisualizationSidebar() {
-  console.log('Toggle function called')
   const sidebar = document.getElementById('visualizationSidebar')
   const mainContent = document.getElementById('mainContent')
   const toggleBtn = document.getElementById('toggleVisualization')
@@ -565,7 +538,11 @@ function searchUsers() {
 }
 
 function searchUser(user) {
-  const searchTerm = document.getElementById('userSearch').value.toLowerCase()
+  const searchTerm = document
+    .getElementById('userSearch')
+    .value.toLowerCase()
+    .trim()
+  if (!searchTerm) return true
   return (
     (user.userCode && user.userCode.toLowerCase().includes(searchTerm)) ||
     (user.gender && user.gender.toLowerCase().includes(searchTerm)) ||
@@ -599,7 +576,7 @@ function updateSortIcons() {
 }
 
 function changePage(direction) {
-  const totalPages = Math.ceil(users.length / usersPerPage)
+  const totalPages = Math.ceil(filterUsers().length / usersPerPage)
   currentPage += direction
   if (currentPage < 1) currentPage = 1
   if (currentPage > totalPages) currentPage = totalPages
@@ -620,6 +597,7 @@ function updatePagination() {
       currentPage === totalPages ? 'disabled' : ''
     }>Next</button>
   `
+  // Attach event listeners to pagination buttons
   document
     .getElementById('prevPage')
     .addEventListener('click', () => changePage(-1))

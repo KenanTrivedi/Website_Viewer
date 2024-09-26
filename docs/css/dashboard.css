@@ -1,3 +1,4 @@
+/* Existing CSS */
 .sidebar {
     height: 100%;
     width: 0;
@@ -125,6 +126,7 @@
     background: #fff;
     border: 1px solid #e6e6e6;
     box-shadow: 0 3px 13px rgba(0, 0, 0, 0.08);
+    z-index: 1060 !important;
 }
 
 .flatpickr-day.selected {
