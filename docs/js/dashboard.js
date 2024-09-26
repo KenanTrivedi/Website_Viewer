@@ -79,31 +79,28 @@ document.addEventListener('DOMContentLoaded', function () {
   document
     .getElementById('nextPage')
     .addEventListener('click', () => changePage(1))
-  $('.date-range-picker').datepicker({
-    format: 'dd/mm/yyyy',
-    autoclose: true,
-    clearBtn: true,
-    todayHighlight: true,
-    toggleActive: true,
-    multidateSeparator: ' - ',
-    multidate: 2,
-  })
-
   document
     .getElementById('applyDateFilter')
     .addEventListener('click', applyDateFilter)
   document
     .getElementById('clearDateFilter')
     .addEventListener('click', clearDateFilter)
+
+  flatpickr('#dateRange', {
+    mode: 'range',
+    dateFormat: 'd/m/Y',
+    onClose: function (selectedDates, dateStr, instance) {
+      if (selectedDates.length == 2) {
+        startDate = selectedDates[0]
+        endDate = selectedDates[1]
+      }
+    },
+    disableMobile: true,
+  })
 })
 
 function applyDateFilter() {
-  const dateRange = document.getElementById('dateRange').value
-  const [start, end] = dateRange.split(' - ')
-
-  if (start && end) {
-    startDate = parseDate(start)
-    endDate = parseDate(end)
+  if (startDate && endDate) {
     currentPage = 1
     renderTable()
     updatePagination()
@@ -114,7 +111,6 @@ function applyDateFilter() {
 
 function clearDateFilter() {
   document.getElementById('dateRange').value = ''
-  $('.date-range-picker').datepicker('clearDates')
   startDate = null
   endDate = null
   currentPage = 1
@@ -501,6 +497,7 @@ function exportToExcel(data) {
 }
 
 function toggleVisualizationSidebar() {
+  console.log('Toggle function called')
   const sidebar = document.getElementById('visualizationSidebar')
   const mainContent = document.getElementById('mainContent')
   const toggleBtn = document.getElementById('toggleVisualization')
@@ -553,8 +550,12 @@ function downloadChart() {
 
 function filterByDateRange(user) {
   if (!startDate || !endDate) return true
-  const submissionDate = new Date(user.firstSubmissionTime)
-  return submissionDate >= startDate && submissionDate <= endDate
+  const firstSubmissionDate = new Date(user.firstSubmissionTime)
+  const latestSubmissionDate = new Date(user.latestSubmissionTime)
+  return (
+    (firstSubmissionDate >= startDate && firstSubmissionDate <= endDate) ||
+    (latestSubmissionDate >= startDate && latestSubmissionDate <= endDate)
+  )
 }
 
 function searchUsers() {

@@ -2,7 +2,7 @@
     height: 100%;
     width: 0;
     position: fixed;
-    z-index: 1;
+    z-index: 1050;
     top: 0;
     right: 0;
     background-color: #f8f9fa;
@@ -82,6 +82,8 @@
 
 .date-range-picker {
     min-width: 220px;
+    background-color: #fff !important;
+    cursor: pointer;
 }
 
 #loadingIndicator,
@@ -99,4 +101,37 @@
 #prevPage,
 #nextPage {
     min-width: 100px;
+}
+
+#visualizationSidebar {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 400px;
+    height: 100%;
+    background-color: #f8f9fa;
+    transition: right 0.3s ease;
+    padding: 20px;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 1050;
+    overflow-y: auto;
+}
+
+#visualizationSidebar.open {
+    right: 0;
+}
+
+.flatpickr-calendar {
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    box-shadow: 0 3px 13px rgba(0, 0, 0, 0.08);
+}
+
+.flatpickr-day.selected {
+    background: #007bff;
+    border-color: #007bff;
+}
+
+.flatpickr-calendar.open {
+    z-index: 1060 !important;
 }
