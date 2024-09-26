@@ -79,9 +79,14 @@ document.addEventListener('DOMContentLoaded', function () {
   document
     .getElementById('nextPage')
     .addEventListener('click', () => changePage(1))
-  $('.datepicker').datepicker({
-    format: 'yyyy-mm-dd',
+  $('.date-range-picker').datepicker({
+    format: 'dd/mm/yyyy',
     autoclose: true,
+    clearBtn: true,
+    todayHighlight: true,
+    toggleActive: true,
+    multidateSeparator: ' - ',
+    multidate: 2,
   })
 
   document
@@ -91,35 +96,35 @@ document.addEventListener('DOMContentLoaded', function () {
     .getElementById('clearDateFilter')
     .addEventListener('click', clearDateFilter)
 })
+
 function applyDateFilter() {
-  startDate = document.getElementById('startDate').value
-  endDate = document.getElementById('endDate').value
+  const dateRange = document.getElementById('dateRange').value
+  const [start, end] = dateRange.split(' - ')
 
-  if (startDate && endDate) {
-    const filteredUsers = users.filter((user) => {
-      const submissionDate = new Date(user.firstSubmissionTime)
-      return (
-        submissionDate >= new Date(startDate) &&
-        submissionDate <= new Date(endDate)
-      )
-    })
-
+  if (start && end) {
+    startDate = parseDate(start)
+    endDate = parseDate(end)
     currentPage = 1
-    renderTable(filteredUsers.slice(0, usersPerPage))
-    updatePagination(filteredUsers.length)
+    renderTable()
+    updatePagination()
   } else {
     alert('Please select both start and end dates.')
   }
 }
 
 function clearDateFilter() {
-  document.getElementById('startDate').value = ''
-  document.getElementById('endDate').value = ''
+  document.getElementById('dateRange').value = ''
+  $('.date-range-picker').datepicker('clearDates')
   startDate = null
   endDate = null
   currentPage = 1
   renderTable(users.slice(0, usersPerPage))
   updatePagination(users.length)
+}
+
+function parseDate(dateString) {
+  const [day, month, year] = dateString.split('/')
+  return new Date(year, month - 1, day)
 }
 
 async function fetchData() {
@@ -153,12 +158,7 @@ async function fetchData() {
   }
 }
 
-function renderTable(
-  usersToRender = users.slice(
-    (currentPage - 1) * usersPerPage,
-    currentPage * usersPerPage
-  )
-) {
+function renderTable(usersToRender = getUsersForCurrentPage()) {
   const thead = document.querySelector('#userTable thead tr')
   const tbody = document.querySelector('#userTable tbody')
 
@@ -260,6 +260,20 @@ function renderTable(
     .getElementById('selectAll')
     .addEventListener('change', toggleSelectAll)
   setupSortingListeners()
+}
+
+function getUsersForCurrentPage() {
+  const startIndex = (currentPage - 1) * usersPerPage
+  const endIndex = startIndex + usersPerPage
+  return filterUsers().slice(startIndex, endIndex)
+}
+
+function filterUsers() {
+  return users.filter((user) => {
+    const matchesSearch = searchUser(user)
+    const matchesDateRange = filterByDateRange(user)
+    return matchesSearch && matchesDateRange
+  })
 }
 
 function getSortIcon(field) {
@@ -436,10 +450,7 @@ function exportSelected() {
   if (startDate && endDate) {
     dataToExport = selectedUsers.filter((user) => {
       const submissionDate = new Date(user.firstSubmissionTime)
-      return (
-        submissionDate >= new Date(startDate) &&
-        submissionDate <= new Date(endDate)
-      )
+      return submissionDate >= startDate && submissionDate <= endDate
     })
   }
 
@@ -451,10 +462,7 @@ function exportAll() {
   if (startDate && endDate) {
     dataToExport = users.filter((user) => {
       const submissionDate = new Date(user.firstSubmissionTime)
-      return (
-        submissionDate >= new Date(startDate) &&
-        submissionDate <= new Date(endDate)
-      )
+      return submissionDate >= startDate && submissionDate <= endDate
     })
   }
   exportToExcel(dataToExport)
@@ -543,31 +551,39 @@ function downloadChart() {
   link.click()
 }
 
+function filterByDateRange(user) {
+  if (!startDate || !endDate) return true
+  const submissionDate = new Date(user.firstSubmissionTime)
+  return submissionDate >= startDate && submissionDate <= endDate
+}
+
 function searchUsers() {
-  const searchTerm = document.getElementById('userSearch').value.toLowerCase()
-  const filteredUsers = users.filter(
-    (user) =>
-      (user.userCode && user.userCode.toLowerCase().includes(searchTerm)) ||
-      (user.gender && user.gender.toLowerCase().includes(searchTerm)) ||
-      (user.birthYear && user.birthYear.toString().includes(searchTerm)) ||
-      (user.data?.responses?.q0_2 &&
-        user.data.responses.q0_2.toLowerCase().includes(searchTerm)) ||
-      (user.data?.responses?.q0_3 &&
-        user.data.responses.q0_3.toLowerCase().includes(searchTerm)) ||
-      (user.firstSubmissionTime &&
-        new Date(user.firstSubmissionTime)
-          .toLocaleString()
-          .toLowerCase()
-          .includes(searchTerm)) ||
-      (user.latestSubmissionTime &&
-        new Date(user.latestSubmissionTime)
-          .toLocaleString()
-          .toLowerCase()
-          .includes(searchTerm))
-  )
   currentPage = 1
-  renderTable(filteredUsers.slice(0, usersPerPage))
-  updatePagination(filteredUsers.length)
+  renderTable()
+  updatePagination()
+}
+
+function searchUser(user) {
+  const searchTerm = document.getElementById('userSearch').value.toLowerCase()
+  return (
+    (user.userCode && user.userCode.toLowerCase().includes(searchTerm)) ||
+    (user.gender && user.gender.toLowerCase().includes(searchTerm)) ||
+    (user.birthYear && user.birthYear.toString().includes(searchTerm)) ||
+    (user.data?.responses?.q0_2 &&
+      user.data.responses.q0_2.toLowerCase().includes(searchTerm)) ||
+    (user.data?.responses?.q0_3 &&
+      user.data.responses.q0_3.toLowerCase().includes(searchTerm)) ||
+    (user.firstSubmissionTime &&
+      new Date(user.firstSubmissionTime)
+        .toLocaleString()
+        .toLowerCase()
+        .includes(searchTerm)) ||
+    (user.latestSubmissionTime &&
+      new Date(user.latestSubmissionTime)
+        .toLocaleString()
+        .toLowerCase()
+        .includes(searchTerm))
+  )
 }
 
 function updateSortIcons() {
@@ -591,7 +607,8 @@ function changePage(direction) {
 }
 
 function updatePagination() {
-  const totalPages = Math.ceil(users.length / usersPerPage)
+  const filteredUsers = filterUsers()
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage)
   const paginationElement = document.getElementById('pagination')
   paginationElement.innerHTML = `
     <button id="prevPage" ${
