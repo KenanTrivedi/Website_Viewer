@@ -43,8 +43,10 @@ let questionIds = [
   'q6_5',
 ]
 let currentUser = null
-let currentSort = { questionId: null, ascending: true }
+let currentSort = { field: null, ascending: true }
 let chart = null
+let currentPage = 1
+const usersPerPage = 100
 
 function getAuthToken() {
   return localStorage.getItem('dashboardToken')
@@ -69,6 +71,12 @@ document.addEventListener('DOMContentLoaded', function () {
     .getElementById('downloadChart')
     .addEventListener('click', downloadChart)
   document.getElementById('userSearch').addEventListener('input', searchUsers)
+  document
+    .getElementById('prevPage')
+    .addEventListener('click', () => changePage(-1))
+  document
+    .getElementById('nextPage')
+    .addEventListener('click', () => changePage(1))
 })
 
 async function fetchData() {
@@ -85,7 +93,6 @@ async function fetchData() {
     const data = await response.json()
     console.log('Received data from server:', data)
 
-    // Map the received users to the format needed
     users = data.users.map((user) => ({
       ...user,
       userCode: user.userCode || user.userId,
@@ -95,6 +102,7 @@ async function fetchData() {
     }))
     console.log('Processed users:', users)
     renderTable()
+    updatePagination()
   } catch (error) {
     console.error('Error fetching data:', error)
     document.getElementById('userTable').innerHTML =
@@ -102,7 +110,12 @@ async function fetchData() {
   }
 }
 
-function renderTable(usersToRender = users) {
+function renderTable(
+  usersToRender = users.slice(
+    (currentPage - 1) * usersPerPage,
+    currentPage * usersPerPage
+  )
+) {
   const thead = document.querySelector('#userTable thead tr')
   const tbody = document.querySelector('#userTable tbody')
 
@@ -263,7 +276,9 @@ function sortUsers() {
       return 0
     })
     console.log(`Sorting took ${performance.now() - startTime} milliseconds`)
-    renderTable(users.slice(0, 100)) // Render only the first 100 rows initially
+    currentPage = 1
+    renderTable()
+    updatePagination()
   }
 }
 
@@ -371,7 +386,7 @@ function toggleSelectAll(event) {
 function exportSelected() {
   const selectedUsers = users.filter(
     (user) =>
-      document.querySelector(`.user-select[data-id="${user.userId}"]`).checked
+      document.querySelector(`.user-select[data-id="${user.userId}"]`)?.checked
   )
   exportToExcel(selectedUsers)
 }
@@ -485,7 +500,9 @@ function searchUsers() {
           .toLowerCase()
           .includes(searchTerm))
   )
-  renderTable(filteredUsers)
+  currentPage = 1
+  renderTable(filteredUsers.slice(0, usersPerPage))
+  updatePagination(filteredUsers.length)
 }
 
 function updateSortIcons() {
@@ -497,4 +514,33 @@ function updateSortIcons() {
       icon.textContent = '↕️'
     }
   })
+}
+
+function changePage(direction) {
+  const totalPages = Math.ceil(users.length / usersPerPage)
+  currentPage += direction
+  if (currentPage < 1) currentPage = 1
+  if (currentPage > totalPages) currentPage = totalPages
+  renderTable()
+  updatePagination()
+}
+
+function updatePagination() {
+  const totalPages = Math.ceil(users.length / usersPerPage)
+  const paginationElement = document.getElementById('pagination')
+  paginationElement.innerHTML = `
+    <button id="prevPage" ${
+      currentPage === 1 ? 'disabled' : ''
+    }>Previous</button>
+    <span>Page ${currentPage} of ${totalPages}</span>
+    <button id="nextPage" ${
+      currentPage === totalPages ? 'disabled' : ''
+    }>Next</button>
+  `
+  document
+    .getElementById('prevPage')
+    .addEventListener('click', () => changePage(-1))
+  document
+    .getElementById('nextPage')
+    .addEventListener('click', () => changePage(1))
 }
