@@ -82,3 +82,7 @@
         width: 100%;
     }
 }
+
+.input-group .datepicker {
+    width: 120px;
+}

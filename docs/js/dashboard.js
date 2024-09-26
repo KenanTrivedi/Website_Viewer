@@ -46,6 +46,8 @@ let currentUser = null
 let currentSort = { field: null, ascending: true }
 let chart = null
 let currentPage = 1
+let startDate = null
+let endDate = null
 const usersPerPage = 100
 
 function getAuthToken() {
@@ -77,7 +79,48 @@ document.addEventListener('DOMContentLoaded', function () {
   document
     .getElementById('nextPage')
     .addEventListener('click', () => changePage(1))
+  $('.datepicker').datepicker({
+    format: 'yyyy-mm-dd',
+    autoclose: true,
+  })
+
+  document
+    .getElementById('applyDateFilter')
+    .addEventListener('click', applyDateFilter)
+  document
+    .getElementById('clearDateFilter')
+    .addEventListener('click', clearDateFilter)
 })
+function applyDateFilter() {
+  startDate = document.getElementById('startDate').value
+  endDate = document.getElementById('endDate').value
+
+  if (startDate && endDate) {
+    const filteredUsers = users.filter((user) => {
+      const submissionDate = new Date(user.firstSubmissionTime)
+      return (
+        submissionDate >= new Date(startDate) &&
+        submissionDate <= new Date(endDate)
+      )
+    })
+
+    currentPage = 1
+    renderTable(filteredUsers.slice(0, usersPerPage))
+    updatePagination(filteredUsers.length)
+  } else {
+    alert('Please select both start and end dates.')
+  }
+}
+
+function clearDateFilter() {
+  document.getElementById('startDate').value = ''
+  document.getElementById('endDate').value = ''
+  startDate = null
+  endDate = null
+  currentPage = 1
+  renderTable(users.slice(0, usersPerPage))
+  updatePagination(users.length)
+}
 
 async function fetchData() {
   try {
@@ -388,11 +431,33 @@ function exportSelected() {
     (user) =>
       document.querySelector(`.user-select[data-id="${user.userId}"]`)?.checked
   )
-  exportToExcel(selectedUsers)
+
+  let dataToExport = selectedUsers
+  if (startDate && endDate) {
+    dataToExport = selectedUsers.filter((user) => {
+      const submissionDate = new Date(user.firstSubmissionTime)
+      return (
+        submissionDate >= new Date(startDate) &&
+        submissionDate <= new Date(endDate)
+      )
+    })
+  }
+
+  exportToExcel(dataToExport)
 }
 
 function exportAll() {
-  exportToExcel(users)
+  let dataToExport = users
+  if (startDate && endDate) {
+    dataToExport = users.filter((user) => {
+      const submissionDate = new Date(user.firstSubmissionTime)
+      return (
+        submissionDate >= new Date(startDate) &&
+        submissionDate <= new Date(endDate)
+      )
+    })
+  }
+  exportToExcel(dataToExport)
 }
 
 function exportToExcel(data) {
