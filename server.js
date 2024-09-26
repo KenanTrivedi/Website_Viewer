@@ -1,3 +1,5 @@
+// server.js
+
 const express = require("express");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const mongoose = require("mongoose");
@@ -46,6 +48,18 @@ const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "password";
 
 // Import survey data
 const surveyData = require("./docs/js/survey-data.js");
+
+// Calculate expected counts
+const expectedQuestionCount = surveyData.reduce((count, section) => {
+  if (section.title !== "Persönliche Angaben") {
+    return count + section.questions.length;
+  }
+  return count;
+}, 0);
+
+const expectedCategoryCount = surveyData.filter(
+  (section) => section.title !== "Persönliche Angaben"
+).length;
 
 // Authentication Middleware
 function authenticate(req, res, next) {
@@ -156,10 +170,10 @@ app.post("/api/save-user-data", async (req, res) => {
         isComplete: isComplete,
         firstSubmissionTime: currentTime,
         latestSubmissionTime: currentTime,
-        initialScores: categoryScores,
+        initialScores: isComplete ? categoryScores : {},
         updatedScores: categoryScores,
-        initialResponses: data.responses, // Store initial responses
-        updatedResponses: data.responses, // Also set as updated responses
+        initialResponses: isComplete ? data.responses : {}, // Only store initial responses if complete
+        updatedResponses: data.responses,
       });
     } else {
       // Returning user
@@ -167,23 +181,26 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.latestSubmissionTime = currentTime;
       userData.isComplete = isComplete;
 
-      // Set initialResponses if not already set
-      if (
-        !userData.initialResponses ||
-        Object.keys(userData.initialResponses).length === 0
-      ) {
-        userData.initialResponses = data.responses;
+      // If survey is complete and initialResponses are incomplete or missing, set them
+      if (isComplete) {
+        const initialResponsesCount = Object.keys(
+          userData.initialResponses || {}
+        ).length;
+        const initialScoresCount = Object.keys(
+          userData.initialScores || {}
+        ).length;
+
+        if (initialResponsesCount < expectedQuestionCount) {
+          userData.initialResponses = data.responses;
+        }
+
+        if (initialScoresCount < expectedCategoryCount) {
+          userData.initialScores = categoryScores;
+        }
       }
 
-      // Always update updatedResponses
+      // Always update updatedResponses and updatedScores
       userData.updatedResponses = data.responses;
-
-      // Update initialScores if they are not set
-      if (Object.values(userData.initialScores).some((score) => score === 0)) {
-        userData.initialScores = categoryScores;
-      }
-
-      // Always update updatedScores
       userData.updatedScores = categoryScores;
 
       // Update courses without duplicates
