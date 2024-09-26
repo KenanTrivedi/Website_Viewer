@@ -137,3 +137,8 @@
 .flatpickr-calendar.open {
     z-index: 1060 !important;
 }
+
+/* New CSS for highlighting changed scores */
+.score-changed {
+    background-color: #ffeeba;
+}

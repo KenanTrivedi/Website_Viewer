@@ -34,6 +34,8 @@ const userDataSchema = new mongoose.Schema({
   latestSubmissionTime: { type: Date },
   initialScores: { type: Object, default: {} },
   updatedScores: { type: Object, default: {} },
+  initialResponses: { type: Object, default: {} }, // New field
+  updatedResponses: { type: Object, default: {} }, // New field
 });
 const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
 
@@ -105,6 +107,8 @@ app.post("/login", async (req, res) => {
         latestSubmissionTime: new Date(),
         initialScores: {},
         updatedScores: {},
+        initialResponses: {}, // Initialize empty initialResponses
+        updatedResponses: {}, // Initialize empty updatedResponses
       });
     } else {
       // Returning user
@@ -145,7 +149,7 @@ app.post("/api/save-user-data", async (req, res) => {
     const currentTime = new Date();
 
     if (!userData) {
-      // First-time user: set both initial and updated scores
+      // First-time user
       userData = new UserData({
         userId,
         data: data,
@@ -154,14 +158,27 @@ app.post("/api/save-user-data", async (req, res) => {
         latestSubmissionTime: currentTime,
         initialScores: categoryScores,
         updatedScores: categoryScores,
+        initialResponses: data.responses, // Store initial responses
+        updatedResponses: data.responses, // Also set as updated responses
       });
     } else {
-      // Returning user: update only the necessary fields
+      // Returning user
       userData.data = data;
       userData.latestSubmissionTime = currentTime;
       userData.isComplete = isComplete;
 
-      // If any initialScore is 0, update all initialScores
+      // Set initialResponses if not already set
+      if (
+        !userData.initialResponses ||
+        Object.keys(userData.initialResponses).length === 0
+      ) {
+        userData.initialResponses = data.responses;
+      }
+
+      // Always update updatedResponses
+      userData.updatedResponses = data.responses;
+
+      // Update initialScores if they are not set
       if (Object.values(userData.initialScores).some((score) => score === 0)) {
         userData.initialScores = categoryScores;
       }
@@ -240,7 +257,6 @@ app.get("/dashboard-login", (req, res) => {
 app.get("/api/dashboard-data", authenticate, async (req, res) => {
   try {
     const users = await UserData.find().lean();
-    console.log("Found users:", users.length);
 
     const sections = surveyData
       .map((section) => section.title)
@@ -250,7 +266,6 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
       users.map(async (user) => {
         const codeDoc = await Code.findOne({ _id: user.userId });
         const responses = user.data.responses || {};
-        const categoryScores = calculateCategoryScores(responses, surveyData);
 
         return {
           userId: user.userId,
@@ -266,9 +281,12 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
           data: {
             responses: responses,
           },
-          scores: categoryScores,
           isComplete: user.isComplete || false,
           courses: user.courses || [],
+          initialScores: user.initialScores || {},
+          updatedScores: user.updatedScores || {},
+          initialResponses: user.initialResponses || {}, // Include initial responses
+          updatedResponses: user.updatedResponses || {}, // Include updated responses
         };
       })
     );
@@ -325,36 +343,70 @@ async function updateCSV() {
     path: "survey_data.csv",
     header: [
       { id: "userId", title: "User ID" },
+      { id: "userCode", title: "User Code" },
       { id: "gender", title: "Gender" },
       { id: "birthYear", title: "Birth Year" },
       { id: "firstSubmissionTime", title: "First Submission" },
       { id: "latestSubmissionTime", title: "Latest Submission" },
       { id: "courses", title: "Completed Courses" },
-      ...surveyData.flatMap((section) =>
-        section.questions.map((q, i) => ({
-          id: `q${surveyData.indexOf(section)}_${i}`,
+      ...surveyData.flatMap((section, sectionIndex) =>
+        section.questions.map((q, questionIndex) => ({
+          id: `q${sectionIndex}_${questionIndex}`,
           title: q.text,
         }))
       ),
     ],
   });
 
-  const records = allUserData.map((user) => {
-    const record = {
-      userId: user.userId,
-      gender: user.data.responses?.q0_0 || "",
-      birthYear: user.data.responses?.q0_1 || "",
-      firstSubmissionTime: user.firstSubmissionTime,
-      latestSubmissionTime: user.latestSubmissionTime,
-      courses: user.courses ? user.courses.join(", ") : "",
-    };
-    Object.entries(user.data.responses || {}).forEach(([key, value]) => {
-      if (key !== "q0_0" && key !== "q0_1") {
-        record[key] = value;
-      }
-    });
-    return record;
-  });
+  const records = await Promise.all(
+    allUserData.map(async (user) => {
+      const codeDoc = await Code.findOne({ _id: user.userId });
+      const record = {
+        userId: user.userId,
+        userCode: codeDoc ? codeDoc.code : "Unknown",
+        gender: user.data.responses?.q0_0 || "",
+        birthYear: user.data.responses?.q0_1 || "",
+        firstSubmissionTime: user.firstSubmissionTime,
+        latestSubmissionTime: user.latestSubmissionTime,
+        courses: user.courses ? user.courses.join(", ") : "",
+      };
+
+      surveyData.forEach((section, sectionIndex) => {
+        section.questions.forEach((question, questionIndex) => {
+          const questionId = `q${sectionIndex}_${questionIndex}`;
+          if (
+            questionId !== "q0_0" &&
+            questionId !== "q0_1" &&
+            questionId !== "q0_2" &&
+            questionId !== "q0_3"
+          ) {
+            const initialResponse = user.initialResponses?.[questionId];
+            const updatedResponse = user.updatedResponses?.[questionId];
+            let cellContent = "";
+
+            if (
+              initialResponse !== undefined &&
+              updatedResponse !== undefined
+            ) {
+              if (initialResponse === updatedResponse) {
+                cellContent = initialResponse;
+              } else {
+                cellContent = `${initialResponse} → ${updatedResponse}`;
+              }
+            } else if (updatedResponse !== undefined) {
+              cellContent = updatedResponse;
+            } else {
+              cellContent = "";
+            }
+
+            record[questionId] = cellContent;
+          }
+        });
+      });
+
+      return record;
+    })
+  );
 
   try {
     await csvWriter.writeRecords(records);

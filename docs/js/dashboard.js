@@ -1,3 +1,4 @@
+// Global variables
 let users = []
 let questionIds = [
   'q0_0',
@@ -49,6 +50,40 @@ let currentPage = 1
 let startDate = null
 let endDate = null
 const usersPerPage = 100
+
+// Constants (Extracted from survey.js)
+const labelMap = {
+  'Suchen, Verarbeiten und Aufbewahren': 'Suchen',
+  'Kommunikation und Kollaborieren': 'Kommunizieren',
+  'Produzieren und Präsentieren': 'Produzieren',
+  'Schützen und sicher Agieren': 'Schützen',
+  'Problemlösen und Handeln': 'Problemlösen',
+  'Analysieren und Reflektieren': 'Analysieren',
+}
+
+const colorMap = {
+  'Suchen, Verarbeiten und Aufbewahren': '#00BF63', // Green
+  'Kommunikation und Kollaborieren': '#0CC0DF', // Blue
+  'Produzieren und Präsentieren': '#FF6D5F', // Red
+  'Schützen und sicher Agieren': '#8C52FF', // Purple
+  'Problemlösen und Handeln': '#E884C4', // Pink
+  'Analysieren und Reflektieren': '#FFD473', // Yellow
+}
+
+function getLighterColor(hexColor) {
+  let r = parseInt(hexColor.slice(1, 3), 16)
+  let g = parseInt(hexColor.slice(3, 5), 16)
+  let b = parseInt(hexColor.slice(5, 7), 16)
+
+  // Make the color significantly lighter
+  r = Math.min(255, r + Math.floor((255 - r) * 0.7))
+  g = Math.min(255, g + Math.floor((255 - g) * 0.7))
+  b = Math.min(255, b + Math.floor((255 - b) * 0.7))
+
+  return `#${r.toString(16).padStart(2, '0')}${g
+    .toString(16)
+    .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
+}
 
 function getAuthToken() {
   return localStorage.getItem('dashboardToken')
@@ -129,6 +164,8 @@ async function fetchData() {
       gender: user.gender || '',
       birthYear: user.birthYear || '',
       data: user.data || { responses: {} },
+      initialScores: user.initialScores || {},
+      updatedScores: user.updatedScores || {},
     }))
     console.log('Processed users:', users)
     renderTable()
@@ -183,7 +220,7 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
   usersToRender.forEach((user) => {
     const tr = document.createElement('tr')
 
-    const createCell = (content, isCheckbox = false) => {
+    const createCell = (content, isCheckbox = false, isChanged = false) => {
       const td = document.createElement('td')
       if (isCheckbox) {
         const checkbox = document.createElement('input')
@@ -193,6 +230,9 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
         td.appendChild(checkbox)
       } else {
         td.textContent = content
+        if (isChanged) {
+          td.classList.add('score-changed')
+        }
       }
       return td
     }
@@ -221,7 +261,25 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
     sortableColumns
       .filter((col) => col.startsWith('q'))
       .forEach((col) => {
-        tr.appendChild(createCell(user.data?.responses?.[col] || ''))
+        const initialResponse = user.initialResponses?.[col]
+        const updatedResponse = user.updatedResponses?.[col]
+
+        let cellContent = ''
+
+        if (initialResponse !== undefined && updatedResponse !== undefined) {
+          if (initialResponse === updatedResponse) {
+            cellContent = initialResponse
+          } else {
+            cellContent = `${initialResponse} → ${updatedResponse}`
+          }
+        } else if (updatedResponse !== undefined) {
+          cellContent = updatedResponse
+        } else {
+          cellContent = ''
+        }
+
+        let isChanged = initialResponse !== updatedResponse
+        tr.appendChild(createCell(cellContent, false, isChanged))
       })
 
     fragment.appendChild(tr)
@@ -308,8 +366,9 @@ function sortUsers() {
             : 0
           break
         default:
-          valueA = parseFloat(a.data?.responses?.[currentSort.field]) || 0
-          valueB = parseFloat(b.data?.responses?.[currentSort.field]) || 0
+          // For question columns, sort based on updated responses
+          valueA = parseFloat(a.updatedResponses?.[currentSort.field]) || 0
+          valueB = parseFloat(b.updatedResponses?.[currentSort.field]) || 0
       }
       if (valueA < valueB) return currentSort.ascending ? -1 : 1
       if (valueA > valueB) return currentSort.ascending ? 1 : -1
@@ -335,7 +394,11 @@ function showUserDetails(user) {
 }
 
 function updateVisualization() {
-  if (!currentUser || !currentUser.scores) {
+  if (
+    !currentUser ||
+    !currentUser.initialScores ||
+    !currentUser.updatedScores
+  ) {
     console.error('User data or category scores not available')
     return
   }
@@ -348,17 +411,10 @@ function updateVisualization() {
 
   const ctx = canvas.getContext('2d')
 
-  const labels = Object.keys(currentUser.scores)
-  const data = Object.values(currentUser.scores)
-
-  const colorMap = {
-    'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
-    'Kommunikation und Kollaborieren': '#0CC0DF',
-    'Produzieren und Präsentieren': '#FF6D5F',
-    'Schützen und sicher Agieren': '#8C52FF',
-    'Problemlösen und Handeln': '#E884C4',
-    'Analysieren und Reflektieren': '#FFD473',
-  }
+  const fullLabels = Object.keys(currentUser.initialScores)
+  const labels = fullLabels.map((key) => labelMap[key] || key)
+  const initialData = Object.values(currentUser.initialScores)
+  const updatedData = Object.values(currentUser.updatedScores)
 
   chart = new Chart(ctx, {
     type: 'bar',
@@ -366,9 +422,21 @@ function updateVisualization() {
       labels: labels,
       datasets: [
         {
-          data: data,
-          backgroundColor: labels.map((label) => colorMap[label] || '#999999'),
-          borderColor: labels.map((label) => colorMap[label] || '#999999'),
+          label: 'Initial Score',
+          data: initialData,
+          backgroundColor: fullLabels.map((label) =>
+            getLighterColor(colorMap[label] || '#999999')
+          ),
+          borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+          borderWidth: 1,
+        },
+        {
+          label: 'Updated Score',
+          data: updatedData,
+          backgroundColor: fullLabels.map(
+            (label) => colorMap[label] || '#999999'
+          ),
+          borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
           borderWidth: 1,
         },
       ],
@@ -390,17 +458,11 @@ function updateVisualization() {
             autoSkip: false,
             maxRotation: 45,
             minRotation: 45,
-            callback: function (value) {
-              if (typeof value === 'string') {
-                return value.split(' ').length > 1 ? value.split(' ') : value
-              }
-              return value
-            },
           },
         },
       },
       plugins: {
-        legend: { display: false },
+        legend: { display: true },
         title: {
           display: true,
           text: `Scores for User: ${currentUser.userCode}`,
@@ -408,8 +470,12 @@ function updateVisualization() {
         tooltip: {
           enabled: true,
           callbacks: {
-            title: (tooltipItems) => tooltipItems[0].label,
-            label: (context) => `Score: ${context.parsed.y}%`,
+            title: (tooltipItems) => {
+              const fullLabel = fullLabels[tooltipItems[0].dataIndex]
+              return fullLabel || tooltipItems[0].label
+            },
+            label: (context) =>
+              `${context.dataset.label}: ${context.parsed.y}%`,
           },
         },
       },
@@ -459,7 +525,23 @@ function exportToExcel(data) {
           questionId !== 'q0_2' &&
           questionId !== 'q0_3'
         ) {
-          acc[questionId] = user.data?.responses?.[questionId] || ''
+          const initialResponse = user.initialResponses?.[questionId]
+          const updatedResponse = user.updatedResponses?.[questionId]
+          let cellContent = ''
+
+          if (initialResponse !== undefined && updatedResponse !== undefined) {
+            if (initialResponse === updatedResponse) {
+              cellContent = initialResponse
+            } else {
+              cellContent = `${initialResponse} → ${updatedResponse}`
+            }
+          } else if (updatedResponse !== undefined) {
+            cellContent = updatedResponse
+          } else {
+            cellContent = ''
+          }
+
+          acc[questionId] = cellContent
         }
         return acc
       }, {}),
