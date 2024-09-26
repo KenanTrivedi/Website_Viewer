@@ -124,57 +124,71 @@ function renderTable(usersToRender = users) {
     <th><input type="checkbox" id="selectAll"></th>
     <th>User Code</th>
     <th>Gender</th>
-    <th class="sortable" data-field="birthYear">Birth Year ${getSortIcon(
-      'birthYear'
-    )}</th>
+    <th class="sortable" data-field="birthYear">Birth Year <span class="sort-icon">↕️</span></th>
     <th>Lehramt</th>
     <th>Fächer</th>
-    <th class="sortable" data-field="firstSubmission">First Submission ${getSortIcon(
-      'firstSubmission'
-    )}</th>
-    <th class="sortable" data-field="latestSubmission">Latest Submission ${getSortIcon(
-      'latestSubmission'
-    )}</th>
+    <th class="sortable" data-field="firstSubmission">First Submission <span class="sort-icon">↕️</span></th>
+    <th class="sortable" data-field="latestSubmission">Latest Submission <span class="sort-icon">↕️</span></th>
     ${sortableColumns
       .filter((col) => col.startsWith('q'))
       .map(
         (col) =>
-          `<th class="sortable" data-field="${col}">${col} ${getSortIcon(
-            col
-          )}</th>`
+          `<th class="sortable" data-field="${col}">${col} <span class="sort-icon">↕️</span></th>`
       )
       .join('')}
   `
 
+  updateSortIcons()
+
   tbody.innerHTML = ''
+  const fragment = document.createDocumentFragment()
   usersToRender.forEach((user) => {
     const tr = document.createElement('tr')
-    tr.innerHTML = `
-      <td><input type="checkbox" class="user-select" data-id="${
-        user.userId
-      }"></td>
-      <td>${user.userCode || ''}</td>
-      <td>${user.gender || ''}</td>
-      <td>${user.birthYear || ''}</td>
-      <td>${user.data?.responses?.q0_2 || ''}</td>
-      <td>${user.data?.responses?.q0_3 || ''}</td>
-      <td>${
+
+    const createCell = (content, isCheckbox = false) => {
+      const td = document.createElement('td')
+      if (isCheckbox) {
+        const checkbox = document.createElement('input')
+        checkbox.type = 'checkbox'
+        checkbox.className = 'user-select'
+        checkbox.dataset.id = user.userId
+        td.appendChild(checkbox)
+      } else {
+        td.textContent = content
+      }
+      return td
+    }
+
+    tr.appendChild(createCell('', true)) // Checkbox
+    tr.appendChild(createCell(user.userCode || ''))
+    tr.appendChild(createCell(user.gender || ''))
+    tr.appendChild(createCell(user.birthYear || ''))
+    tr.appendChild(createCell(user.data?.responses?.q0_2 || ''))
+    tr.appendChild(createCell(user.data?.responses?.q0_3 || ''))
+    tr.appendChild(
+      createCell(
         user.firstSubmissionTime
           ? new Date(user.firstSubmissionTime).toLocaleString()
           : ''
-      }</td>
-      <td>${
+      )
+    )
+    tr.appendChild(
+      createCell(
         user.latestSubmissionTime
           ? new Date(user.latestSubmissionTime).toLocaleString()
           : ''
-      }</td>
-      ${sortableColumns
-        .filter((col) => col.startsWith('q'))
-        .map((col) => `<td>${user.data?.responses?.[col] || ''}</td>`)
-        .join('')}
-    `
-    tbody.appendChild(tr)
+      )
+    )
+
+    sortableColumns
+      .filter((col) => col.startsWith('q'))
+      .forEach((col) => {
+        tr.appendChild(createCell(user.data?.responses?.[col] || ''))
+      })
+
+    fragment.appendChild(tr)
   })
+  tbody.appendChild(fragment)
 
   document.querySelectorAll('.user-select').forEach((checkbox) => {
     checkbox.addEventListener('change', function () {
@@ -209,12 +223,14 @@ function setupSortingListeners() {
         currentSort = { field, ascending: true }
       }
       sortUsers()
+      updateSortIcons()
     }
   })
 }
 
 function sortUsers() {
   if (currentSort.field) {
+    const startTime = performance.now()
     users.sort((a, b) => {
       let valueA, valueB
       switch (currentSort.field) {
@@ -246,7 +262,8 @@ function sortUsers() {
       if (valueA > valueB) return currentSort.ascending ? 1 : -1
       return 0
     })
-    renderTable() // Re-render the table after sorting
+    console.log(`Sorting took ${performance.now() - startTime} milliseconds`)
+    renderTable(users.slice(0, 100)) // Render only the first 100 rows initially
   }
 }
 
@@ -374,6 +391,9 @@ function exportToExcel(data) {
       'First Submission': user.firstSubmissionTime
         ? new Date(user.firstSubmissionTime).toLocaleString()
         : '',
+      'Latest Submission': user.latestSubmissionTime
+        ? new Date(user.latestSubmissionTime).toLocaleString()
+        : '',
       ...questionIds.reduce((acc, questionId) => {
         if (
           questionId !== 'q0_0' &&
@@ -466,4 +486,15 @@ function searchUsers() {
           .includes(searchTerm))
   )
   renderTable(filteredUsers)
+}
+
+function updateSortIcons() {
+  document.querySelectorAll('.sortable').forEach((th) => {
+    const icon = th.querySelector('.sort-icon')
+    if (th.dataset.field === currentSort.field) {
+      icon.textContent = currentSort.ascending ? '↑' : '↓'
+    } else {
+      icon.textContent = '↕️'
+    }
+  })
 }
