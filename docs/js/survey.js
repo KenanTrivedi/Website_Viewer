@@ -1,3 +1,5 @@
+// survey.js
+
 // Global variables
 let currentSection = 0
 let userData = {}
@@ -29,15 +31,18 @@ const competencyDescriptions = {
     'Umfasst das Wissen, die Motivation und Fähigkeiten, gezielt nach digitalen Daten und Inhalten zu suchen, diese effektiv zu organisieren, zu speichern und abzurufen.',
   'Kommunikation und Kollaborieren':
     'Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen, dabei die Verhaltensnormen in digitalen Umgebungen zu beachten und digitale Technologien zur gesellschaftlichen Teilhabe und Selbstermächtigung zu nutzen.',
-  'Problemlösen und Handeln':
-    'Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen und kreative technische Lösungen für spezifische Bedürfnisse zu finden. Zudem gehört zum Kompetenzbereich informatisches Denken, also das strategische Lösen komplexer Probleme in digitalen Umgebungen und die kontinuierliche Weiterentwicklung der eigenen digitalen Kompetenzen.',
-  'Schützen und sicher Agieren':
-    'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Geräte und Inhalte zu schützen, Gesundheits- und Umweltgefahren bei der Nutzung digitaler Technologien zu vermeiden, und persönliche Daten, Identität sowie Privatsphäre in digitalen Umgebungen verantwortungsvoll zu schützen.',
   'Produzieren und Präsentieren':
     'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Inhalte in verschiedenen Formaten zu erstellen, zu bearbeiten und zu integrieren, dabei Urheberrecht und Lizenzen zu berücksichtigen, sowie das Programmieren digitaler Produkte.',
+  'Schützen und sicher Agieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Geräte und Inhalte zu schützen, Gesundheits- und Umweltgefahren bei der Nutzung digitaler Technologien zu vermeiden, und persönliche Daten, Identität sowie Privatsphäre in digitalen Umgebungen verantwortungsvoll zu schützen.',
+  'Problemlösen und Handeln':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen und kreative technische Lösungen für spezifische Bedürfnisse zu finden. Zudem gehört zum Kompetenzbereich informatisches Denken, also das strategische Lösen komplexer Probleme in digitalen Umgebungen und die kontinuierliche Weiterentwicklung der eigenen digitalen Kompetenzen.',
   'Analysieren und Reflektieren':
     'Umfasst das Wissen, die Motivation und Fähigkeiten, die Auswirkungen und Verbreitung digitaler Medien und Inhalte zu analysieren, deren Glaubwürdigkeit und Zuverlässigkeit kritisch zu bewerten sowie Geschäftsaktivitäten in digitalen Umgebungen zu identifizieren und angemessen darauf zu reagieren.',
 }
+
+// Load the survey data (ensure that surveyData is available globally)
+// If surveyData is in a separate file, make sure to include it before this script.
 
 document.addEventListener('DOMContentLoaded', function () {
   loadUserData()
@@ -159,7 +164,7 @@ function renderSection(index) {
                 <label for="${questionId}" class="floating-label">Enter a number</label>
                </div>`
     } else if (question.type === 'scale') {
-      html += `<div class="rating-scale" role="group" aria-label="Competency scale from 0 to 6">`
+      html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`
       for (let i = 0; i <= 6; i++) {
         html += `<label class="scale-label">
                   <input type="radio" name="${questionId}" value="${i}" ${
@@ -289,8 +294,12 @@ function saveSectionData(isComplete = false) {
 }
 
 function finishSurvey() {
-  saveSectionData(true)
-  showDatenschutz()
+  if (validateSection()) {
+    saveSectionData(true)
+    showDatenschutz()
+  } else {
+    alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
+  }
 }
 
 function calculateCategoryScores() {
@@ -457,18 +466,28 @@ function calculateCompetenzScore() {
 
 function getCoursesSuggestions(score) {
   if (score < 30) {
-    return ['Basic Digital Skills', 'Introduction to Online Safety']
+    return [
+      'Grundlegende digitale Fähigkeiten',
+      'Einführung in die Online-Sicherheit',
+    ]
   } else if (score < 60) {
-    return ['Intermediate Digital Literacy', 'Effective Online Communication']
+    return [
+      'Digitale Kompetenz für Fortgeschrittene',
+      'Effektive Online-Kommunikation',
+    ]
   } else {
-    return ['Advanced Digital Competencies', 'Digital Leadership in Education']
+    return [
+      'Fortgeschrittene digitale Kompetenzen',
+      'Digital Leadership in der Bildung',
+    ]
   }
 }
 
 function showDatenschutz() {
   const datenschutzHtml = `
-    <h1>Datenschutz</h1>
+    <h1>Datenschutzerklärung</h1>
     <h2>Projektleitung: Prof.in Dr. Charlott Rubach & Anne-Kathrin Hirsch</h2>
+    <p>Bitte lesen Sie die Datenschutzerklärung sorgfältig durch.</p>
     <button id="acceptDatenschutz">Akzeptieren und fortfahren</button>
   `
 
@@ -539,15 +558,21 @@ function getLighterColor(hexColor) {
     .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 
-function updateDescriptionBox(descriptionBox, competency, description) {
-  const fullLabel = Object.keys(labelMap).find(
-    (key) => labelMap[key] === competency
-  )
-  const color = colorMap[competency]
+function getContrastColor(hexColor) {
+  const r = parseInt(hexColor.slice(1, 3), 16)
+  const g = parseInt(hexColor.slice(3, 5), 16)
+  const b = parseInt(hexColor.slice(5, 7), 16)
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000
+  return yiq >= 128 ? 'black' : 'white'
+}
+
+function updateDescriptionBox(descriptionBox, fullCompetency, description) {
+  const competency = labelMap[fullCompetency] || fullCompetency
+  const color = colorMap[fullCompetency] || '#999999'
   const lighterColor = getLighterColor(color)
 
   descriptionBox.innerHTML = `
-    <h3>${fullLabel}</h3>
+    <h3>${fullCompetency}</h3>
     <p>${description || 'Beschreibung nicht verfügbar.'}</p>
   `
   descriptionBox.style.backgroundColor = lighterColor
@@ -555,14 +580,6 @@ function updateDescriptionBox(descriptionBox, competency, description) {
   descriptionBox.style.borderRadius = '5px'
   descriptionBox.style.border = `2px solid ${color}`
   descriptionBox.style.color = getContrastColor(lighterColor)
-}
-
-function getContrastColor(hexColor) {
-  const r = parseInt(hexColor.slice(1, 3), 16)
-  const g = parseInt(hexColor.slice(3, 5), 16)
-  const b = parseInt(hexColor.slice(5, 7), 16)
-  const yiq = (r * 299 + g * 587 + b * 114) / 1000
-  return yiq >= 128 ? 'black' : 'white'
 }
 
 function createCompetencyChart1(initialScores, updatedScores) {
@@ -674,11 +691,10 @@ function createCompetencyChart1(initialScores, updatedScores) {
           const dataIndex = activeElements[0].index
           if (dataIndex !== currentHoveredIndex) {
             currentHoveredIndex = dataIndex
-            const competency = labels[dataIndex]
             const fullCompetency = fullLabels[dataIndex]
             updateDescriptionBox(
               descriptionBox,
-              competency,
+              fullCompetency,
               competencyDescriptions[fullCompetency]
             )
           }
@@ -701,7 +717,7 @@ function downloadChart(event) {
   const canvas1 = document.getElementById('competencyChart1')
   if (canvas1) {
     const link = document.createElement('a')
-    link.download = 'competency-chart.png'
+    link.download = 'kompetenz-diagramm.png'
     link.href = canvas1.toDataURL()
     link.click()
   }
