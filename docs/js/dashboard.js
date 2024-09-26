@@ -71,6 +71,9 @@ const colorMap = {
 }
 
 function getLighterColor(hexColor) {
+  if (!hexColor || hexColor.length !== 7 || hexColor[0] !== '#') {
+    return '#cccccc' // Return a default color if invalid
+  }
   let r = parseInt(hexColor.slice(1, 3), 16)
   let g = parseInt(hexColor.slice(3, 5), 16)
   let b = parseInt(hexColor.slice(5, 7), 16)
@@ -413,8 +416,12 @@ function updateVisualization() {
 
   const fullLabels = Object.keys(currentUser.initialScores)
   const labels = fullLabels.map((key) => labelMap[key] || key)
-  const initialData = Object.values(currentUser.initialScores)
-  const updatedData = Object.values(currentUser.updatedScores)
+  const initialData = fullLabels.map(
+    (label) => currentUser.initialScores[label] || 0
+  )
+  const updatedData = fullLabels.map(
+    (label) => currentUser.updatedScores[label] || 0
+  )
 
   chart = new Chart(ctx, {
     type: 'bar',

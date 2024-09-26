@@ -16,12 +16,12 @@ const labelMap = {
 }
 
 const colorMap = {
-  Suchen: '#00BF63', // Green
-  Kommunizieren: '#0CC0DF', // Blue
-  Produzieren: '#FF6D5F', // Red
-  Schützen: '#8C52FF', // Purple
-  Problemlösen: '#E884C4', // Pink
-  Analysieren: '#FFD473', // Yellow
+  'Suchen, Verarbeiten und Aufbewahren': '#00BF63', // Green
+  'Kommunikation und Kollaborieren': '#0CC0DF', // Blue
+  'Produzieren und Präsentieren': '#FF6D5F', // Red
+  'Schützen und sicher Agieren': '#8C52FF', // Purple
+  'Problemlösen und Handeln': '#E884C4', // Pink
+  'Analysieren und Reflektieren': '#FFD473', // Yellow
 }
 
 const competencyDescriptions = {
@@ -522,6 +522,9 @@ function showResults() {
 }
 
 function getLighterColor(hexColor) {
+  if (!hexColor || hexColor.length !== 7 || hexColor[0] !== '#') {
+    return '#cccccc' // Return a default color if invalid
+  }
   let r = parseInt(hexColor.slice(1, 3), 16)
   let g = parseInt(hexColor.slice(3, 5), 16)
   let b = parseInt(hexColor.slice(5, 7), 16)
@@ -587,7 +590,9 @@ function createCompetencyChart1(initialScores, updatedScores) {
     return
   }
 
-  const labels = Object.keys(initialScores).map((key) => labelMap[key] || key)
+  // Use full competency titles as labels
+  const fullLabels = Object.keys(updatedScores)
+  const labels = fullLabels.map((key) => labelMap[key] || key)
   let currentHoveredIndex = -1
 
   chart1Instance = new Chart(ctx, {
@@ -597,18 +602,20 @@ function createCompetencyChart1(initialScores, updatedScores) {
       datasets: [
         {
           label: 'Initial Score',
-          data: Object.values(initialScores),
-          backgroundColor: labels.map((label) =>
+          data: fullLabels.map((label) => initialScores[label] || 0),
+          backgroundColor: fullLabels.map((label) =>
             getLighterColor(colorMap[label] || '#999999')
           ),
-          borderColor: labels.map((label) => colorMap[label] || '#999999'),
+          borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
           borderWidth: 1,
         },
         {
           label: 'Updated Score',
-          data: Object.values(updatedScores),
-          backgroundColor: labels.map((label) => colorMap[label] || '#999999'),
-          borderColor: labels.map((label) => colorMap[label] || '#999999'),
+          data: fullLabels.map((label) => updatedScores[label] || 0),
+          backgroundColor: fullLabels.map(
+            (label) => colorMap[label] || '#999999'
+          ),
+          borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
           borderWidth: 1,
         },
       ],
@@ -638,13 +645,11 @@ function createCompetencyChart1(initialScores, updatedScores) {
           display: true,
           labels: {
             generateLabels: (chart) => {
-              return chart.data.datasets.map((dataset, i) => ({
+              const datasets = chart.data.datasets
+              return datasets.map((dataset, i) => ({
                 text: dataset.label,
-                fillStyle:
-                  i === 0
-                    ? getLighterColor(colorMap[labels[0]])
-                    : colorMap[labels[0]],
-                strokeStyle: colorMap[labels[0]],
+                fillStyle: datasets[i].backgroundColor[0],
+                strokeStyle: datasets[i].borderColor[0],
                 lineWidth: 1,
                 hidden: false,
                 index: i,
@@ -655,9 +660,8 @@ function createCompetencyChart1(initialScores, updatedScores) {
         tooltip: {
           callbacks: {
             title: (tooltipItems) => {
-              const fullLabel = Object.keys(labelMap).find(
-                (key) => labelMap[key] === tooltipItems[0].label
-              )
+              const index = tooltipItems[0].dataIndex
+              const fullLabel = fullLabels[index]
               return fullLabel || tooltipItems[0].label
             },
             label: (context) =>
@@ -671,9 +675,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
           if (dataIndex !== currentHoveredIndex) {
             currentHoveredIndex = dataIndex
             const competency = labels[dataIndex]
-            const fullCompetency = Object.keys(labelMap).find(
-              (key) => labelMap[key] === competency
-            )
+            const fullCompetency = fullLabels[dataIndex]
             updateDescriptionBox(
               descriptionBox,
               competency,
