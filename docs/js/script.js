@@ -1,3 +1,5 @@
+// script.js
+
 document.addEventListener('DOMContentLoaded', function () {
   setupNavigationButtons()
   setupCodeGenerationForm() // Set up the form
@@ -40,35 +42,62 @@ function setupNavigationButtons() {
 async function handleCodeGenerationFormSubmission(event) {
   event.preventDefault()
   const form = event.target
-  if (validateFormInputs(form)) {
-    const code = generateCodeFromForm(form)
-    try {
-      const response = await submitForm('/register', { code })
-      const data = response // Directly use the response object
 
-      if (response.ok) {
-        sessionStorage.setItem('userId', data.userId)
-        sessionStorage.setItem('generatedCode', code)
-        window.location.href = 'codeConfirmation.html'
+  if (!validateFormInputs(form)) {
+    return
+  }
+
+  const code = generateCodeFromForm(form)
+  const submitButton = form.querySelector('button[type="submit"]')
+
+  // Disable the button to prevent multiple submissions
+  submitButton.disabled = true
+  submitButton.textContent = 'Registrierung läuft...'
+
+  try {
+    const response = await submitForm('/register', { code })
+    const data = response // Directly use the response object
+
+    if (response.ok) {
+      sessionStorage.setItem('userId', data.userId)
+      sessionStorage.setItem('generatedCode', code)
+      await Swal.fire({
+        icon: 'success',
+        title: 'Erfolg',
+        text: 'Dein Code wurde erfolgreich registriert!',
+        timer: 2000,
+        showConfirmButton: false,
+      })
+      window.location.href = 'codeConfirmation.html'
+    } else {
+      if (data.isDuplicateCode) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Code bereits vergeben',
+          text: 'Dieser Code existiert bereits. Bitte verwenden Sie stattdessen die Initialen Ihres Vaters für den zweiten Teil des Codes.',
+        })
+        updateParentFieldForFather()
       } else {
-        if (data.isDuplicateCode) {
-          alert(
-            'Dieser Code existiert bereits. Bitte verwenden Sie stattdessen die Initialen Ihres Vaters für den zweiten Teil des Codes.'
-          )
-          updateParentFieldForFather()
-        } else {
-          alert(
-            'Fehler beim Registrieren des Codes: ' +
-              (data.message || 'Unbekannter Fehler')
-          )
-        }
+        await Swal.fire({
+          icon: 'error',
+          title: 'Registrierungsfehler',
+          text: `Fehler beim Registrieren des Codes: ${
+            data.message || 'Unbekannter Fehler'
+          }`,
+        })
       }
-    } catch (error) {
-      console.error('Error registering code:', error)
-      alert(
-        'Es gab einen Fehler bei der Registrierung. Bitte versuchen Sie es später erneut.'
-      )
     }
+  } catch (error) {
+    console.error('Error registering code:', error)
+    await Swal.fire({
+      icon: 'error',
+      title: 'Registrierungsfehler',
+      text: 'Es gab einen Fehler bei der Registrierung. Bitte versuchen Sie es später erneut.',
+    })
+  } finally {
+    // Re-enable the button
+    submitButton.disabled = false
+    submitButton.textContent = 'Code Generieren'
   }
 }
 
@@ -90,14 +119,51 @@ function updateParentFieldForFather() {
 function validateFormInputs(form) {
   const inputs = form.querySelectorAll('input[type="text"]')
   let isValid = true
+
   inputs.forEach((input) => {
-    if (input.value.trim().length !== 2) {
-      alert(
-        `Bitte geben Sie genau zwei Zeichen für ${input.previousElementSibling.textContent.trim()} ein.`
-      )
+    const value = input.value.trim()
+    const label = input.previousElementSibling.textContent.trim()
+
+    // Check for exactly two characters
+    if (value.length !== 2) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Ungültige Eingabe',
+        text: `Bitte geben Sie genau zwei Zeichen für ${label} ein.`,
+      })
       isValid = false
+      return
+    }
+
+    // Additional pattern checks based on input id or name
+    switch (input.id) {
+      case 'birthplace':
+      case 'parentName':
+      case 'school':
+        if (!/^[A-Z]{2}$/.test(value)) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Ungültige Eingabe',
+            text: `${label} muss aus zwei Großbuchstaben bestehen.`,
+          })
+          isValid = false
+        }
+        break
+      case 'birthday':
+        if (!/^\d{2}$/.test(value)) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Ungültige Eingabe',
+            text: `${label} muss aus zwei Ziffern bestehen.`,
+          })
+          isValid = false
+        }
+        break
+      default:
+        break
     }
   })
+
   return isValid
 }
 
@@ -141,16 +207,50 @@ function handleLoginFormSubmission() {
 }
 
 async function handleLogin() {
-  const courses = document.getElementById('courses').value.trim()
-  const loginCode = document.getElementById('loginCode').value.trim()
+  const surveyCompleted = document.querySelector(
+    'input[name="surveyCompleted"]:checked'
+  )?.value
+  const courses = document.getElementById('courses')?.value.trim() || ''
+  const loginCode = document.getElementById('loginCode')?.value.trim() || ''
 
   if (!loginCode) {
-    alert('Bitte geben Sie Ihren persönlichen Code ein.')
+    Swal.fire({
+      icon: 'error',
+      title: 'Fehler',
+      text: 'Bitte geben Sie Ihren persönlichen Code ein.',
+    })
     return
   }
 
+  // Additional validation based on survey completion
+  if (surveyCompleted === 'yes' && courses === '') {
+    Swal.fire({
+      icon: 'error',
+      title: 'Fehler',
+      text: 'Bitte geben Sie die absolvierten Kurse an.',
+    })
+    return
+  }
+
+  // Disable buttons to prevent multiple submissions
+  const loginButton = document.getElementById('loginButton')
+  const generateCodeButton = document.getElementById('generateCodeButton')
+  if (loginButton) {
+    loginButton.disabled = true
+    loginButton.textContent = 'Login läuft...'
+  }
+
+  if (generateCodeButton) {
+    generateCodeButton.disabled = true
+  }
+
   try {
-    const response = await submitForm('/login', { code: loginCode, courses })
+    const payload = {
+      code: loginCode,
+      courses: surveyCompleted === 'yes' ? courses : '',
+    }
+
+    const response = await submitForm('/login', payload)
     const data = response
 
     if (response.ok) {
@@ -175,13 +275,38 @@ async function handleLogin() {
       }
 
       console.log('User data stored in session storage')
+      await Swal.fire({
+        icon: 'success',
+        title: 'Erfolg',
+        text: 'Login erfolgreich!',
+        timer: 2000,
+        showConfirmButton: false,
+      })
       window.location.href = 'survey.html'
     } else {
-      alert(`Login fehlgeschlagen: ${data.message}`)
+      await Swal.fire({
+        icon: 'error',
+        title: 'Login fehlgeschlagen',
+        text: data.message,
+      })
     }
   } catch (error) {
     console.error('Login error:', error)
-    alert('Fehler beim Einloggen. Bitte versuchen Sie es später erneut.')
+    await Swal.fire({
+      icon: 'error',
+      title: 'Login Fehler',
+      text: 'Fehler beim Einloggen. Bitte versuchen Sie es später erneut.',
+    })
+  } finally {
+    // Re-enable buttons
+    if (loginButton) {
+      loginButton.disabled = false
+      loginButton.textContent = 'Login'
+    }
+
+    if (generateCodeButton) {
+      generateCodeButton.disabled = false
+    }
   }
 }
 
@@ -297,6 +422,11 @@ function saveUserData(userId, data, isComplete = false) {
     })
     .catch((error) => {
       console.error('Fehler beim Speichern der Benutzerdaten:', error)
+      Swal.fire({
+        icon: 'error',
+        title: 'Speicherfehler',
+        text: 'Es gab einen Fehler beim Speichern Ihrer Daten. Bitte versuchen Sie es später erneut.',
+      })
     })
 }
 
@@ -361,7 +491,11 @@ function setupSurveyDataPersistence() {
         console.error(
           'showResults function not found. Make sure survey.js is loaded correctly.'
         )
-        alert('Vielen Dank für das Ausfüllen der Umfrage!')
+        Swal.fire({
+          icon: 'success',
+          title: 'Vielen Dank!',
+          text: 'Vielen Dank für das Ausfüllen der Umfrage!',
+        })
       }
     })
   }
@@ -433,8 +567,8 @@ function setupLoginPageFunctionality() {
 }
 
 function checkInputsAndToggleLoginButton() {
-  const courses = document.getElementById('courses').value.trim()
-  const loginCode = document.getElementById('loginCode').value.trim()
+  const courses = document.getElementById('courses')?.value.trim() || ''
+  const loginCode = document.getElementById('loginCode')?.value.trim() || ''
   const loginButton = document.getElementById('loginButton')
 
   if (courses && loginCode) {
@@ -450,3 +584,34 @@ if (typeof surveyData === 'undefined') {
     'surveyData is not defined. Please ensure it is loaded before using this script.'
   )
 }
+
+// Copy-to-Clipboard Functionality for Code Display
+document.addEventListener('DOMContentLoaded', function () {
+  const codeDisplayElement = document.querySelector('.code-display')
+  if (codeDisplayElement) {
+    codeDisplayElement.addEventListener('click', function () {
+      const codeText = codeDisplayElement.textContent
+        .replace('Dein generierter Code ist: ', '')
+        .trim()
+      navigator.clipboard
+        .writeText(codeText)
+        .then(() => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Code kopiert!',
+            text: 'Dein Code wurde in die Zwischenablage kopiert.',
+            timer: 1500,
+            showConfirmButton: false,
+          })
+        })
+        .catch((err) => {
+          console.error('Failed to copy code: ', err)
+          Swal.fire({
+            icon: 'error',
+            title: 'Kopieren fehlgeschlagen',
+            text: 'Es gab ein Problem beim Kopieren des Codes.',
+          })
+        })
+    })
+  }
+})

@@ -1,3 +1,4 @@
+<!-- login.html -->
 <!DOCTYPE html>
 <html lang="de">
   <head>
@@ -5,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - Open Digi</title>
     <link rel="stylesheet" href="css/login.css" />
+    <!-- SweetAlert2 CSS for better alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+    <!-- Optional: Include SweetAlert2 JS for better alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
   <body>
     <div class="login-container">
@@ -12,7 +20,7 @@
       <h2>Willkommen zurück</h2>
 
       <form id="loginForm">
-        <div class="form-group">
+        <div class="input-group">
           <legend>
             Hast du den Fragebogen schon einmal ausgefüllt, also bereits
             Fortbildungen auf ILIAS absolviert?
@@ -40,24 +48,34 @@
         </div>
 
         <div id="coursesList" style="display: none">
-          <label for="courses"
-            >Welche Kurse bzw. Fortbildungen hast du absolviert?</label
-          >
-          <textarea
-            id="courses"
-            name="courses"
-            rows="4"
-            placeholder="Bitte liste hier alle Kurse mit genauem Titel auf, die du im Rahmen des Projektes auf ILIAS absolviert hast."
-            required
-          ></textarea>
+          <div class="input-group">
+            <label for="courses"
+              >Welche Kurse bzw. Fortbildungen hast du absolviert?</label
+            >
+            <textarea
+              id="courses"
+              name="courses"
+              rows="4"
+              placeholder="Bitte liste hier alle Kurse mit genauem Titel auf, die du im Rahmen des Projektes auf ILIAS absolviert hast."
+              required
+            ></textarea>
+          </div>
         </div>
 
         <div id="codeInput" style="display: none">
-          <label for="loginCode">
-            Gebe hier deinen vorher kreierten persönlichen Code an. Bitte gebe
-            den Code mit Bindestrich ein, z.B. GW-SI-06-KE
-          </label>
-          <input type="text" id="loginCode" name="loginCode" required />
+          <div class="input-group">
+            <label for="loginCode">
+              Gebe hier deinen vorher kreierten persönlichen Code an. Bitte gebe
+              den Code mit Bindestrich ein, z.B. GW-SI-06-KE
+            </label>
+            <input
+              type="text"
+              id="loginCode"
+              name="loginCode"
+              required
+              placeholder="GW-SI-06-KE"
+            />
+          </div>
         </div>
 
         <button type="submit" id="loginButton" style="display: none">
@@ -65,7 +83,12 @@
         </button>
       </form>
 
-      <button id="generateCodeButton" style="display: none">
+      <button
+        type="button"
+        id="generateCodeButton"
+        class="primary-button"
+        style="display: none"
+      >
         Klicke hier, um einen neuen Code zu generieren
       </button>
 

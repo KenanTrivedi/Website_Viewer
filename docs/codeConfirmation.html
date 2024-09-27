@@ -1,3 +1,4 @@
+<!-- codeConfirmation.html -->
 <!DOCTYPE html>
 <html lang="de">
   <head>
@@ -5,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bestätigung Persönlicher Code</title>
     <link rel="stylesheet" href="css/login.css" />
+    <!-- SweetAlert2 CSS for better alerts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+    <!-- Optional: Include SweetAlert2 JS for better alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
   <body>
     <div class="login-container">
@@ -12,8 +20,11 @@
       <div
         id="personalCodeDisplay"
         class="code-display"
+        title="Code kopieren"
         style="white-space: nowrap"
-      ></div>
+      >
+        <!-- Generated Code Will Appear Here -->
+      </div>
       <p>
         Vielen Dank, dass du deinen persönlichen Zugangscode erstellt hast. Du
         solltest dir diesen merken bzw. aufschreiben, da du ihn für eine spätere
