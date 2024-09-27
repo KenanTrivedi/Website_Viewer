@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -28,62 +28,71 @@
           <input
             type="text"
             id="birthplace"
+            name="birthplace"
             minlength="2"
             maxlength="2"
             required
           />
-          <small
-            >Bitte geben den <strong>ersten</strong> und
+          <small>
+            Bitte geben den <strong>ersten</strong> und
             <strong>letzten</strong> Buchstaben deines Geburtsortes ein. Bsp.:
-            Bremen = BN</small
-          >
+            Bremen = BN
+          </small>
         </div>
         <div class="input-group">
-          <label id="parentLabel" for="parentName"
-            >Vorname der Mutter / Ihrer Erziehungsberechtigten</label
-          >
+          <label id="parentLabel" for="parentName">
+            Vorname der Mutter / Ihrer Erziehungsberechtigten
+          </label>
           <input
             type="text"
             id="parentName"
+            name="parentName"
             minlength="2"
             maxlength="2"
             required
           />
-          <small id="parentInstructions"
-            >Bitte geben Sie den ersten und letzten Buchstaben des Vornamens
-            Ihrer Mutter ein. Bsp.: Gisela = GA</small
-          >
+          <small id="parentInstructions">
+            Bitte geben Sie den ersten und letzten Buchstaben des Vornamens
+            Ihrer Mutter ein. Bsp.: Gisela = GA
+          </small>
         </div>
         <div class="input-group">
           <label for="birthday">Geburtstag (TT)</label>
           <input
             type="text"
             id="birthday"
+            name="birthday"
             pattern="\d{2}"
             minlength="2"
             maxlength="2"
             required
           />
-          <small
-            >Bitte gib den Tag deines Geburtstages in Ziffern ein. Bsp.:
-            06.12.1991 = 06</small
-          >
+          <small>
+            Bitte gib den Tag deines Geburtstages in Ziffern ein. Bsp.:
+            06.12.1991 = 06
+          </small>
         </div>
         <div class="input-group">
           <label for="school">Ort der Grundschule</label>
-          <input type="text" id="school" minlength="2" maxlength="2" required />
-          <small
-            >Bitte gebe den <strong>ersten</strong> und
+          <input
+            type="text"
+            id="school"
+            name="school"
+            minlength="2"
+            maxlength="2"
+            required
+          />
+          <small>
+            Bitte gebe den <strong>ersten</strong> und
             <strong>dritten</strong> Buchstaben des Ortes der Grundschule ein,
-            die du als erstes besucht hast.</small
-          >
+            die du als erstes besucht hast.
+          </small>
         </div>
         <button type="submit">Code Generieren</button>
       </form>
-      <a href="login.html"
-        >Du hast schon einen persönlichen Zugangscode? Hier geht es zum
-        Login.</a
-      >
+      <a href="login.html">
+        Du hast schon einen persönlichen Zugangscode? Hier geht es zum Login.
+      </a>
     </div>
     <script src="js/survey-data.js"></script>
     <script src="js/script.js"></script>

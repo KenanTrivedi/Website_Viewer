@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   setupNavigationButtons()
-  setupCodeGenerationForm() // New function to set up the form
+  setupCodeGenerationForm() // Set up the form
   handleCodeGenerationFormSubmission()
   handleLoginFormSubmission()
   displayGeneratedCode()
@@ -77,6 +77,7 @@ function updateParentFieldForFather() {
   const parentLabel = document.getElementById('parentLabel')
   const parentInstructions = document.getElementById('parentInstructions')
   const parentNameInput = document.getElementById('parentName')
+
   if (parentLabel && parentInstructions && parentNameInput) {
     parentLabel.textContent =
       'Vorname des Vaters / Ihres Erziehungsberechtigten'
@@ -91,9 +92,9 @@ function validateFormInputs(form) {
   const inputs = form.querySelectorAll('input[type="text"]')
   let isValid = true
   inputs.forEach((input) => {
-    if (input.value.length !== 2) {
+    if (input.value.trim().length !== 2) {
       alert(
-        `Bitte geben Sie genau zwei Zeichen für ${input.previousElementSibling.textContent} ein.`
+        `Bitte geben Sie genau zwei Zeichen für ${input.previousElementSibling.textContent.trim()} ein.`
       )
       isValid = false
     }
@@ -103,7 +104,7 @@ function validateFormInputs(form) {
 
 function generateCodeFromForm(form) {
   const birthplace = document.getElementById('birthplace').value.toUpperCase()
-  const parentName = document.getElementById('parentName').value.toUpperCase() // Change 'motherName' to 'parentName'
+  const parentName = document.getElementById('parentName').value.toUpperCase() // 'motherName' to 'parentName'
   const birthday = document.getElementById('birthday').value
   const school = document.getElementById('school').value.toUpperCase()
   return `${birthplace}-${parentName}-${birthday}-${school}`
@@ -119,12 +120,11 @@ async function submitForm(url, data) {
 
     if (!response.ok) {
       const errorData = await response.json()
-      throw new Error(
-        errorData.message || `HTTP error! status: ${response.status}`
-      )
+      // Return the response even if not ok to handle it in the caller
+      return { ok: false, ...errorData }
     }
 
-    return response
+    return { ok: true, ...(await response.json()) }
   } catch (error) {
     console.error('Error submitting form:', error)
     throw error
@@ -152,7 +152,7 @@ async function handleLogin() {
 
   try {
     const response = await submitForm('/login', { code: loginCode, courses })
-    const data = await response.json()
+    const data = response
 
     if (response.ok) {
       sessionStorage.clear()
@@ -195,10 +195,12 @@ function setupLogoutFunctionality() {
     })
   }
 }
+
 // Add a function to check if the user is new or returning
 function isNewUser() {
   return sessionStorage.getItem('isNewUser') === 'true'
 }
+
 function initializeFlatpickr() {
   if (typeof flatpickr === 'function') {
     flatpickr('#birthyear', {
@@ -311,7 +313,7 @@ function calculateCategoryScores(data) {
       section.questions.forEach((question, questionIndex) => {
         const questionId = `q${sectionIndex}_${questionIndex}`
         if (data[questionId] && question.type === 'scale') {
-          totalScore += parseInt(data[questionId])
+          totalScore += parseInt(data[questionId], 10)
           questionCount++
         }
       })
@@ -377,7 +379,7 @@ function setupLoginPageFunctionality() {
 
   // Check if we're on the login page
   if (
-    !surveyCompletedRadios.length ||
+    surveyCompletedRadios.length === 0 ||
     !coursesList ||
     !codeInput ||
     !loginButton ||
@@ -385,6 +387,7 @@ function setupLoginPageFunctionality() {
   ) {
     return // Exit if we're not on the login page
   }
+
   const questionElement = document.querySelector('label[for="surveyCompleted"]')
   if (questionElement) {
     questionElement.textContent =
@@ -398,6 +401,7 @@ function setupLoginPageFunctionality() {
     coursesInput.placeholder =
       'Bitte geben Sie die Namen der Kurse oder eindeutige Stichworte zur Kursidentifizierung ein.'
   }
+
   surveyCompletedRadios.forEach((radio) => {
     radio.addEventListener('change', function () {
       if (this.value === 'yes') {
@@ -415,12 +419,13 @@ function setupLoginPageFunctionality() {
   })
 
   // Add input event listeners to check when fields are filled
-  document
-    .getElementById('courses')
-    .addEventListener('input', checkInputsAndToggleLoginButton)
-  document
-    .getElementById('loginCode')
-    .addEventListener('input', checkInputsAndToggleLoginButton)
+  const coursesField = document.getElementById('courses')
+  const loginCodeField = document.getElementById('loginCode')
+
+  if (coursesField && loginCodeField) {
+    coursesField.addEventListener('input', checkInputsAndToggleLoginButton)
+    loginCodeField.addEventListener('input', checkInputsAndToggleLoginButton)
+  }
 
   loginButton.addEventListener('click', handleLogin)
   generateCodeButton.addEventListener('click', function () {
