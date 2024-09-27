@@ -1,4 +1,7 @@
-/* General Styles */
+/* login.css */
+
+/* Existing General Styles... */
+
 body {
     display: flex;
     justify-content: center;
@@ -29,6 +32,7 @@ body {
 }
 
 /* Form Styling */
+.form-group,
 .input-group {
     display: flex;
     flex-direction: column;
@@ -36,9 +40,30 @@ body {
     margin-bottom: 20px;
 }
 
+.form-group legend,
 .input-group label {
     font-weight: bold;
     margin-bottom: 5px;
+    font-size: 16px;
+}
+
+.form-group div,
+.input-group div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.form-group input[type="radio"],
+.input-group input[type="radio"] {
+    margin-right: 10px;
+    accent-color: #004a99;
+    /* Optional: Change radio button color */
+}
+
+.form-group label,
+.input-group label {
+    cursor: pointer;
     font-size: 16px;
 }
 
@@ -164,4 +189,11 @@ a:hover {
     line-height: 1.6;
     color: #333;
     margin-bottom: 30px;
+}
+
+/* Error Message Styling */
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
 }

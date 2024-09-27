@@ -140,11 +140,12 @@ function validateFormInputs(form) {
       case 'birthplace':
       case 'parentName':
       case 'school':
-        if (!/^[A-Z]{2}$/.test(value)) {
+        if (!/^[A-Za-z]{2}$/.test(value)) {
+          // Allow both uppercase and lowercase
           Swal.fire({
             icon: 'error',
             title: 'Ungültige Eingabe',
-            text: `${label} muss aus zwei Großbuchstaben bestehen.`,
+            text: `${label} muss aus zwei Buchstaben bestehen.`,
           })
           isValid = false
         }
@@ -211,7 +212,7 @@ async function handleLogin() {
     'input[name="surveyCompleted"]:checked'
   )?.value
   const courses = document.getElementById('courses')?.value.trim() || ''
-  const loginCode = document.getElementById('loginCode')?.value.trim() || ''
+  let loginCode = document.getElementById('loginCode')?.value.trim() || ''
 
   if (!loginCode) {
     Swal.fire({
@@ -221,6 +222,9 @@ async function handleLogin() {
     })
     return
   }
+
+  // Convert loginCode to uppercase before sending
+  loginCode = loginCode.toUpperCase()
 
   // Additional validation based on survey completion
   if (surveyCompleted === 'yes' && courses === '') {
