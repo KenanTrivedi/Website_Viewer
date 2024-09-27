@@ -86,8 +86,17 @@ app.post("/register", async (req, res) => {
     return res.status(400).json({ message: "Code is required" });
   }
 
-  const newCode = new Code({ code });
   try {
+    const existingCode = await Code.findOne({ code });
+    if (existingCode) {
+      return res.status(400).json({
+        message:
+          "Dieser Code existiert bereits. Bitte verwenden Sie stattdessen die Initialen Ihres Vaters für den zweiten Teil des Codes.",
+        isDuplicateCode: true,
+      });
+    }
+
+    const newCode = new Code({ code });
     await newCode.save();
     res.status(201).json({ message: "Code saved", userId: newCode._id });
   } catch (err) {
@@ -100,54 +109,55 @@ app.post("/register", async (req, res) => {
 app.post("/login", async (req, res) => {
   const { code, courses } = req.body;
   if (!code) {
-    return res.status(400).json({ message: "Code is required" });
+    return res.status(400).json({ message: "Code ist erforderlich" });
   }
 
   try {
-    const user = await Code.findOne({ code });
-    if (!user) {
-      return res.status(400).json({ message: "Invalid code" });
+    const existingCode = await Code.findOne({ code });
+    if (!existingCode) {
+      return res.status(400).json({ message: "Ungültiger Code" });
     }
 
-    let userData = await UserData.findOne({ userId: user._id });
+    let userData = await UserData.findOne({ userId: existingCode._id });
 
     if (!userData) {
       // New user
       userData = new UserData({
-        userId: user._id,
+        userId: existingCode._id,
         data: { responses: {}, currentSection: 0 },
         courses: courses ? [courses] : [],
         firstSubmissionTime: new Date(),
         latestSubmissionTime: new Date(),
         initialScores: {},
         updatedScores: {},
-        initialResponses: {}, // Initialize empty initialResponses
-        updatedResponses: {}, // Initialize empty updatedResponses
+        initialResponses: {},
+        updatedResponses: {},
       });
+      await userData.save();
     } else {
-      // Returning user
+      // Existing user
       userData.latestSubmissionTime = new Date();
       if (courses && !userData.courses.includes(courses)) {
         userData.courses.push(courses);
       }
+      await userData.save();
     }
 
-    await userData.save();
-
     res.status(200).json({
-      message: "Login successful",
-      userId: user._id,
-      isNewUser: Object.keys(userData.initialScores).length === 0,
+      message: "Login erfolgreich",
+      userId: existingCode._id,
+      isNewUser: !userData.isComplete,
       courses: userData.courses,
       data: userData.data,
       initialScores: userData.initialScores,
       updatedScores: userData.updatedScores,
     });
   } catch (err) {
-    console.error("Error during login:", err);
-    res
-      .status(500)
-      .json({ message: "Error processing login request", error: err.message });
+    console.error("Fehler beim Login:", err);
+    res.status(500).json({
+      message: "Fehler bei der Verarbeitung der Login-Anfrage",
+      error: err.message,
+    });
   }
 });
 

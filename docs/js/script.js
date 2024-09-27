@@ -39,13 +39,19 @@ function handleCodeGenerationFormSubmission() {
         const code = generateCodeFromForm(form)
         try {
           const response = await submitForm('/register', { code })
+          const data = await response.json()
           if (response.ok) {
-            const data = await response.json()
             sessionStorage.setItem('userId', data.userId)
             sessionStorage.setItem('generatedCode', code)
             window.location.href = 'codeConfirmation.html'
           } else {
-            alert('Fehler beim Registrieren des Codes.')
+            if (data.isDuplicateCode) {
+              alert(data.message)
+              // Update the form to use father's initials
+              updateParentFieldForFather()
+            } else {
+              alert('Fehler beim Registrieren des Codes.')
+            }
           }
         } catch (error) {
           console.error('Error registering code:', error)
@@ -55,6 +61,19 @@ function handleCodeGenerationFormSubmission() {
         }
       }
     })
+  }
+}
+
+function updateParentFieldForFather() {
+  const parentLabel = document.getElementById('parentLabel')
+  const parentInstructions = document.getElementById('parentInstructions')
+  const parentNameInput = document.getElementById('parentName')
+  if (parentLabel && parentInstructions && parentNameInput) {
+    parentLabel.textContent =
+      'Vorname des Vaters / Ihres Erziehungsberechtigten'
+    parentInstructions.textContent =
+      'Bitte geben Sie den ersten und letzten Buchstaben des Vornamens Ihres Vaters ein. Bsp.: Thomas = TS'
+    parentNameInput.value = '' // Clear the input field
   }
 }
 
@@ -74,10 +93,10 @@ function validateFormInputs(form) {
 
 function generateCodeFromForm(form) {
   const birthplace = document.getElementById('birthplace').value.toUpperCase()
-  const motherName = document.getElementById('motherName').value.toUpperCase()
+  const parentName = document.getElementById('parentName').value.toUpperCase() // Change 'motherName' to 'parentName'
   const birthday = document.getElementById('birthday').value
   const school = document.getElementById('school').value.toUpperCase()
-  return `${birthplace}-${motherName}-${birthday}-${school}`
+  return `${birthplace}-${parentName}-${birthday}-${school}`
 }
 
 async function submitForm(url, data) {
@@ -118,8 +137,10 @@ async function handleLogin() {
 
   try {
     const response = await submitForm('/login', { code: loginCode, courses })
+    const data = await response.json()
+
     if (response.ok) {
-      const data = await response.json()
+      sessionStorage.clear()
       sessionStorage.setItem('userId', data.userId)
       sessionStorage.setItem('isNewUser', data.isNewUser)
       sessionStorage.setItem('courses', JSON.stringify(data.courses))
@@ -142,8 +163,7 @@ async function handleLogin() {
       console.log('User data stored in session storage')
       window.location.href = 'survey.html'
     } else {
-      const errorData = await response.json()
-      alert(`Login fehlgeschlagen: ${errorData.message}`)
+      alert(`Login fehlgeschlagen: ${data.message}`)
     }
   } catch (error) {
     console.error('Login error:', error)
@@ -350,7 +370,19 @@ function setupLoginPageFunctionality() {
   ) {
     return // Exit if we're not on the login page
   }
+  const questionElement = document.querySelector('label[for="surveyCompleted"]')
+  if (questionElement) {
+    questionElement.textContent =
+      'Haben Sie den Fragebogen schon einmal ausgefüllt, also bereits Fortbildungen auf ILIAS absolviert?'
+  }
 
+  // Update the courses input
+  const coursesInput = document.getElementById('courses')
+  if (coursesInput) {
+    coursesInput.style.height = '100px' // Make the input box bigger
+    coursesInput.placeholder =
+      'Bitte geben Sie die Namen der Kurse oder eindeutige Stichworte zur Kursidentifizierung ein.'
+  }
   surveyCompletedRadios.forEach((radio) => {
     radio.addEventListener('change', function () {
       if (this.value === 'yes') {
