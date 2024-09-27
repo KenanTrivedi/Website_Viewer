@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
   setupLogoutFunctionality()
   setupLoginPageFunctionality()
   setupStartSurveyButton()
+  initializeCopyCodeFunctionality()
 
   if (document.getElementById('birthyear')) {
     initializeFlatpickr()
@@ -345,14 +346,13 @@ function initializeFlatpickr() {
 }
 
 function displayGeneratedCode() {
-  const codeDisplayElement = document.getElementById('personalCodeDisplay')
+  const codeTextElement = document.getElementById('codeText')
   const generatedCode = sessionStorage.getItem('generatedCode')
 
-  if (codeDisplayElement && generatedCode) {
-    codeDisplayElement.textContent = `Dein generierter Code ist: ${generatedCode}`
-  } else if (codeDisplayElement) {
-    codeDisplayElement.textContent =
-      'Kein Code verfügbar oder Sitzung abgelaufen.'
+  if (codeTextElement && generatedCode) {
+    codeTextElement.textContent = generatedCode
+  } else if (codeTextElement) {
+    codeTextElement.textContent = 'Kein Code verfügbar oder Sitzung abgelaufen.'
   }
 }
 
@@ -589,7 +589,49 @@ if (typeof surveyData === 'undefined') {
   )
 }
 
-// Copy-to-Clipboard Functionality for Code Display
+/**
+ * Initialize Copy-to-Clipboard Functionality for Code Display
+ * Attaches an event listener to the copy button to copy the code text.
+ */
+function initializeCopyCodeFunctionality() {
+  const copyCodeButton = document.getElementById('copyCodeButton')
+  const codeTextElement = document.getElementById('codeText')
+
+  if (copyCodeButton && codeTextElement) {
+    copyCodeButton.addEventListener('click', function (e) {
+      e.stopPropagation() // Prevent triggering parent click events
+      const codeText = codeTextElement.textContent.trim()
+      navigator.clipboard
+        .writeText(codeText)
+        .then(() => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Code kopiert!',
+            text: 'Dein Code wurde in die Zwischenablage kopiert.',
+            timer: 1500,
+            showConfirmButton: false,
+          })
+        })
+        .catch((err) => {
+          console.error('Failed to copy code: ', err)
+          Swal.fire({
+            icon: 'error',
+            title: 'Kopieren fehlgeschlagen',
+            text: 'Es gab ein Problem beim Kopieren des Codes.',
+          })
+        })
+    })
+  }
+}
+
+/**
+ * Updated Copy-to-Clipboard Functionality
+ * Removed the previous event listener on the entire code-display div to prevent overlapping.
+ * Now, the copy functionality is exclusively handled by the copyCodeButton.
+ */
+
+/* 
+// Removed this block to prevent overlapping and multiple event triggers
 document.addEventListener('DOMContentLoaded', function () {
   const codeDisplayElement = document.querySelector('.code-display')
   if (codeDisplayElement) {
@@ -619,3 +661,4 @@ document.addEventListener('DOMContentLoaded', function () {
     })
   }
 })
+*/

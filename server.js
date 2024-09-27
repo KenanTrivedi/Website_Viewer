@@ -344,7 +344,7 @@ function calculateCategoryScores(responses, surveyData) {
       section.questions.forEach((question, questionIndex) => {
         const questionId = `q${sectionIndex}_${questionIndex}`;
         if (responses[questionId] && question.type === "scale") {
-          totalScore += parseInt(responses[questionId]);
+          totalScore += parseInt(responses[questionId], 10);
           questionCount++;
         }
       });

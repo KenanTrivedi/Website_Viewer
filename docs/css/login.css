@@ -1,7 +1,6 @@
 /* login.css */
 
-/* Existing General Styles... */
-
+/* General Styles */
 body {
     display: flex;
     justify-content: center;
@@ -129,30 +128,40 @@ a:hover {
 
 /* Code Display Styling */
 .code-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 20px;
     margin: 30px 0;
     background-color: #e8f0fe;
     border: 2px solid #004a99;
     border-radius: 8px;
-    text-align: center;
     font-size: 24px;
     font-weight: bold;
     color: #004a99;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    position: relative;
 }
 
-.code-display::after {
-    content: '📋';
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
+.code-display #codeText {
+    margin-right: 15px;
+    user-select: all;
+}
+
+.copy-button {
+    background: none;
+    border: none;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 24px;
+    color: #004a99;
+    transition: color 0.2s;
+}
+
+.copy-button:hover {
+    color: #003366;
+}
+
+.copy-button:focus {
+    outline: none;
 }
 
 /* Responsive Design */
@@ -175,11 +184,16 @@ a:hover {
     }
 
     .code-display {
-        font-size: 20px;
+        flex-direction: column;
     }
 
-    .code-display::after {
-        font-size: 18px;
+    .code-display #codeText {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    .copy-button {
+        font-size: 20px;
     }
 }
 
