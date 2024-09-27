@@ -2,10 +2,10 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
+    /* Changed from height to min-height */
     margin: 0;
     background-color: #f0f2f5;
-    /* Light grey background, similar to your homepage */
     font-family: 'Arial', sans-serif;
 }
 
@@ -30,36 +30,47 @@ body {
 
 .login-container,
 .code-generation-container {
-    max-width: 400px;
-    /* Or a width that matches the homepage style */
-    margin: auto;
+    max-width: 500px;
+    /* Increased from 400px */
+    width: 90%;
+    /* Ensures responsiveness */
+    margin: 40px auto;
+    /* Added vertical margin */
     padding: 40px;
-    /* Adjust padding as needed */
     background: #fff;
     border-radius: 8px;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+    /* Increased shadow for depth */
     text-align: center;
 }
 
 
 .login-container img {
-    width: 100px;
-    /* Adjust based on actual logo size */
+    width: 150px;
+    /* Increased logo size */
     height: auto;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+    /* Increased margin */
+}
+
+textarea {
+    resize: vertical;
+    /* Allows vertical resizing only */
+    min-height: 100px;
+    /* Set a minimum height */
 }
 
 input[type="text"],
+textarea,
 button {
-    width: calc(100% - 20px);
-    /* Account for padding */
+    width: 100%;
     padding: 12px;
     margin-bottom: 20px;
-    /* Give some space between elements */
     border: 1px solid #ccc;
     border-radius: 5px;
     box-sizing: border-box;
-    /* Include padding in width calculation */
+    font-size: 16px;
+    /* Consistent font size */
 }
 
 button {
@@ -108,6 +119,12 @@ a:hover {
     font-weight: bold;
     color: #004A99;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    /* Ensures the code stays on one line */
+    overflow: hidden;
+    /* In case the code is too long */
+    text-overflow: ellipsis;
+    /* Adds ... if the code overflows */
 }
 
 
@@ -199,6 +216,8 @@ button:hover {
     font-size: 18px;
     margin-top: 20px;
     transition: background-color 0.3s, transform 0.1s;
+    width: 100%;
+    /* Full width button */
 }
 
 .primary-button:hover {
