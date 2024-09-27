@@ -585,7 +585,7 @@ function checkInputsAndToggleLoginButton() {
 // Make sure surveyData is available
 if (typeof surveyData === 'undefined') {
   console.error(
-    'surveyData is not defined. Please ensure it is loaded before using this script.'
+    'surveyData ist nicht definiert. Bitte stellen Sie sicher, dass es geladen ist, bevor dieses Skript verwendet wird.'
   )
 }
 
@@ -623,42 +623,3 @@ function initializeCopyCodeFunctionality() {
     })
   }
 }
-
-/**
- * Updated Copy-to-Clipboard Functionality
- * Removed the previous event listener on the entire code-display div to prevent overlapping.
- * Now, the copy functionality is exclusively handled by the copyCodeButton.
- */
-
-/* 
-// Removed this block to prevent overlapping and multiple event triggers
-document.addEventListener('DOMContentLoaded', function () {
-  const codeDisplayElement = document.querySelector('.code-display')
-  if (codeDisplayElement) {
-    codeDisplayElement.addEventListener('click', function () {
-      const codeText = codeDisplayElement.textContent
-        .replace('Dein generierter Code ist: ', '')
-        .trim()
-      navigator.clipboard
-        .writeText(codeText)
-        .then(() => {
-          Swal.fire({
-            icon: 'success',
-            title: 'Code kopiert!',
-            text: 'Dein Code wurde in die Zwischenablage kopiert.',
-            timer: 1500,
-            showConfirmButton: false,
-          })
-        })
-        .catch((err) => {
-          console.error('Failed to copy code: ', err)
-          Swal.fire({
-            icon: 'error',
-            title: 'Kopieren fehlgeschlagen',
-            text: 'Es gab ein Problem beim Kopieren des Codes.',
-          })
-        })
-    })
-  }
-})
-*/

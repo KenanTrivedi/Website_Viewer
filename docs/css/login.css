@@ -129,8 +129,8 @@ a:hover {
 /* Code Display Styling */
 .code-display {
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     padding: 20px;
     margin: 30px 0;
     background-color: #e8f0fe;
@@ -142,22 +142,23 @@ a:hover {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.code-display #codeText {
-    margin-right: 15px;
-    user-select: all;
-}
-
 .copy-button {
-    background: none;
+    margin-top: 10px;
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #004a99;
+    color: white;
     border: none;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 24px;
-    color: #004a99;
-    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
 }
 
 .copy-button:hover {
-    color: #003366;
+    background-color: #003366;
 }
 
 .copy-button:focus {
@@ -188,12 +189,12 @@ a:hover {
     }
 
     .code-display #codeText {
-        margin-right: 0;
         margin-bottom: 10px;
     }
 
     .copy-button {
-        font-size: 20px;
+        width: 100%;
+        font-size: 16px;
     }
 }
 
