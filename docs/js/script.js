@@ -46,11 +46,12 @@ function handleCodeGenerationFormSubmission() {
             window.location.href = 'codeConfirmation.html'
           } else {
             if (data.isDuplicateCode) {
-              alert(data.message)
-              // Update the form to use father's initials
+              alert(
+                'Dieser Code existiert bereits. Bitte verwenden Sie stattdessen die Initialen Ihres Vaters für den zweiten Teil des Codes.'
+              )
               updateParentFieldForFather()
             } else {
-              alert('Fehler beim Registrieren des Codes.')
+              alert('Fehler beim Registrieren des Codes: ' + data.message)
             }
           }
         } catch (error) {
@@ -74,9 +75,9 @@ function updateParentFieldForFather() {
     parentInstructions.textContent =
       'Bitte geben Sie den ersten und letzten Buchstaben des Vornamens Ihres Vaters ein. Bsp.: Thomas = TS'
     parentNameInput.value = '' // Clear the input field
+    parentNameInput.focus() // Set focus to the input field
   }
 }
-
 function validateFormInputs(form) {
   const inputs = form.querySelectorAll('input[type="text"]')
   let isValid = true

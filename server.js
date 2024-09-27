@@ -101,7 +101,7 @@ app.post("/register", async (req, res) => {
     res.status(201).json({ message: "Code saved", userId: newCode._id });
   } catch (err) {
     console.error("Failed to save code:", err);
-    res.status(500).json({ message: "Error saving code" });
+    res.status(500).json({ message: "Error saving code: " + err.message });
   }
 });
 
