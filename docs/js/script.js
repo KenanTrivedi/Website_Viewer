@@ -30,38 +30,38 @@ function setupNavigationButtons() {
   })
 }
 
-function handleCodeGenerationFormSubmission() {
-  const form = document.getElementById('generateCodeForm')
-  if (form) {
-    form.addEventListener('submit', async function (event) {
-      event.preventDefault()
-      if (validateFormInputs(form)) {
-        const code = generateCodeFromForm(form)
-        try {
-          const response = await submitForm('/register', { code })
-          const data = await response.json()
-          if (response.ok) {
-            sessionStorage.setItem('userId', data.userId)
-            sessionStorage.setItem('generatedCode', code)
-            window.location.href = 'codeConfirmation.html'
-          } else {
-            if (data.isDuplicateCode) {
-              alert(
-                'Dieser Code existiert bereits. Bitte verwenden Sie stattdessen die Initialen Ihres Vaters für den zweiten Teil des Codes.'
-              )
-              updateParentFieldForFather()
-            } else {
-              alert('Fehler beim Registrieren des Codes: ' + data.message)
-            }
-          }
-        } catch (error) {
-          console.error('Error registering code:', error)
+async function handleCodeGenerationFormSubmission(event) {
+  event.preventDefault()
+  const form = event.target
+  if (validateFormInputs(form)) {
+    const code = generateCodeFromForm(form)
+    try {
+      const response = await submitForm('/register', { code })
+      const data = await response.json()
+
+      if (response.ok) {
+        sessionStorage.setItem('userId', data.userId)
+        sessionStorage.setItem('generatedCode', code)
+        window.location.href = 'codeConfirmation.html'
+      } else {
+        if (data.isDuplicateCode) {
           alert(
-            'Es gab einen Fehler bei der Registrierung. Bitte versuchen Sie es später erneut.'
+            'Dieser Code existiert bereits. Bitte verwenden Sie stattdessen die Initialen Ihres Vaters für den zweiten Teil des Codes.'
+          )
+          updateParentFieldForFather()
+        } else {
+          alert(
+            'Fehler beim Registrieren des Codes: ' +
+              (data.message || 'Unbekannter Fehler')
           )
         }
       }
-    })
+    } catch (error) {
+      console.error('Error registering code:', error)
+      alert(
+        'Es gab einen Fehler bei der Registrierung. Bitte versuchen Sie es später erneut.'
+      )
+    }
   }
 }
 
@@ -78,6 +78,7 @@ function updateParentFieldForFather() {
     parentNameInput.focus() // Set focus to the input field
   }
 }
+
 function validateFormInputs(form) {
   const inputs = form.querySelectorAll('input[type="text"]')
   let isValid = true
@@ -107,9 +108,14 @@ async function submitForm(url, data) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     })
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+      const errorData = await response.json()
+      throw new Error(
+        errorData.message || `HTTP error! status: ${response.status}`
+      )
     }
+
     return response
   } catch (error) {
     console.error('Error submitting form:', error)
