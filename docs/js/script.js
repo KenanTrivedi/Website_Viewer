@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   setupNavigationButtons()
+  setupCodeGenerationForm() // New function to set up the form
   handleCodeGenerationFormSubmission()
   handleLoginFormSubmission()
   displayGeneratedCode()
@@ -17,6 +18,13 @@ document.addEventListener('DOMContentLoaded', function () {
     setupSurveyDataPersistence()
   }
 })
+
+function setupCodeGenerationForm() {
+  const form = document.getElementById('generateCodeForm')
+  if (form) {
+    form.addEventListener('submit', handleCodeGenerationFormSubmission)
+  }
+}
 
 function setupNavigationButtons() {
   const buttons = ['letsGetStarted', 'startSurvey']
