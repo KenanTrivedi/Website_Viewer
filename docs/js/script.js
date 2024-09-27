@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   setupNavigationButtons()
   setupCodeGenerationForm() // Set up the form
-  handleCodeGenerationFormSubmission()
   handleLoginFormSubmission()
   displayGeneratedCode()
   setupLogoutFunctionality()
@@ -45,7 +44,7 @@ async function handleCodeGenerationFormSubmission(event) {
     const code = generateCodeFromForm(form)
     try {
       const response = await submitForm('/register', { code })
-      const data = await response.json()
+      const data = response // Directly use the response object
 
       if (response.ok) {
         sessionStorage.setItem('userId', data.userId)
