@@ -5,10 +5,10 @@ const surveyData = [
       {
         text: 'Welches Geschlecht haben Sie?',
         type: 'radio',
-        options: ['Weiblich', 'Männlich', 'Divers'],
+        options: ['Weiblich', 'Männlich', 'Andere Geschlechtsidentität'],
       },
       {
-        text: 'In welchem Jahr sind Sie geboren?',
+        text: 'In welchem Jahr sind Sie geboren? Füge das Jahr als Zahl ein',
         type: 'number',
         min: 1900,
         max: new Date().getFullYear(),
@@ -108,7 +108,7 @@ const surveyData = [
         type: 'scale',
       },
       {
-        text: 'Ich kann eigene digitale Produkte in verschiedenen Formaten bearbeiten, z. B. Formatierung von Textdokumenten, Video- und Audiodateien schneiden.',
+        text: 'Ich kann eigene digitale Produkte in verschiedenen Formaten bearbeiten, z. B. Texte formatieren oder Video- und Audiodateien schneiden.',
         type: 'scale',
       },
       {

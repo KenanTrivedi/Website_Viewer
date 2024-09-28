@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,35 +9,16 @@
   </head>
   <body>
     <header>
-      <div
-        style="
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 100%;
-        "
-      >
+      <div class="header-container">
         <a href="index.html">
-          <img src="images/logo.png" alt="Logo" style="height: 50px" />
+          <img src="images/logo.png" alt="Logo" class="logo" />
         </a>
-        <nav>
+        <nav class="navigation">
           <a href="project.html">Projekt</a>
           <a href="datenschutz.html">Datenschutz</a>
           <a href="team.html">Team</a>
         </nav>
-        <button
-          id="letsGetStarted"
-          style="
-            background-color: #004a99;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            cursor: pointer;
-            border-radius: 5px;
-          "
-          onmouseover="this.style.backgroundColor='#003366'"
-          onmouseout="this.style.backgroundColor='#004A99'"
-        >
+        <button id="letsGetStarted" class="get-started-button">
           Let's Get Started
         </button>
       </div>
@@ -57,13 +38,13 @@
         & Lazarides, 2023). Dieses Projekt berücksichtigt damit
         Forschungsbefunde zur Heterogenität digitaler Kompetenz bei
         Lehramtsstudierenden (Quast et al., under review; Rubach & Lazarides,
-        2021) und adressiert diese Heterogenität durch ein personalisiertes
-        Angebot von Fortbildung. Durch eine Pre-Diagnostik digitaler Kompetenzen
-        der Teilnehmenden erfolgt eine individuelle Empfehlung der zu
-        absolvierenden Mikrofortbildungen. Daher besticht Open-Digi durch
-        adaptive Mikrofortbildungen, die die individuellen Bedürfnisse der
-        Teilnehmenden adressieren und auf bereits bestehende Fähigkeiten und
-        Kenntnisse aufbauen.
+        2021) und adressiert diese durch ein personalisiertes Angebot von
+        Fortbildungen. Durch eine Pre-Diagnostik digitaler Kompetenzen der
+        Teilnehmenden erfolgt eine individuelle Empfehlung der zu absolvierenden
+        Mikrofortbildungen. Daher besticht Open-Digi durch adaptive
+        Mikrofortbildungen, die die individuellen Bedürfnisse der Teilnehmenden
+        adressieren und auf bereits bestehende Fähigkeiten und Kenntnisse
+        aufbauen.
       </p>
       <section>
         <h2>Mehrere Ziele werden im Projekt verfolgt:</h2>
@@ -89,10 +70,58 @@
         ermöglichen wir einen flexiblen und zugleich zielgerichteten
         Kompetenzaufbau, der in den Alltag der Studierenden integrierbar ist.
       </p>
+
+      <!-- References Section -->
+      <section class="references-section">
+        <h2>References</h2>
+        <ol class="references-list">
+          <li class="reference-item">
+            Quast, J., Rubach, C., & Porsch, R. (2023). Professional digital
+            competence beliefs of student teachers, pre-service teachers and
+            teachers: Validating an instrument based on the DigCompEdu
+            framework. <em>European Journal of Teacher Education</em>, 1–24.
+            <a
+              href="https://doi.org/10.1080/02619768.2023.2251663"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="reference-link"
+              >https://doi.org/10.1080/02619768.2023.2251663</a
+            >
+          </li>
+          <li class="reference-item">
+            Rubach, C., & Lazarides, R. (2021). Addressing 21st-century digital
+            skills in schools – Development and validation of an instrument to
+            measure teachers' basic ICT competence beliefs.
+            <em>Computers in Human Behavior</em>, 118, 106636.
+            <a
+              href="https://doi.org/10.1016/j.chb.2020.106636"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="reference-link"
+              >https://doi.org/10.1016/j.chb.2020.106636</a
+            >
+          </li>
+          <li class="reference-item">
+            Rubach, C., & Lazarides, R. (2023). A Systematic Review of Research
+            Examining Teachers’ Competence-Related Beliefs About ICT Use:
+            Frameworks and Related Measures. In K. Scheiter & I. Gogolin (Eds.),
+            <em>Edition ZfE: Band 15. Bildung für eine digitale Zukunft</em>
+            (Vol. 15, pp. 189–230). Springer VS, Springer Fachmedien Wiesbaden
+            GmbH.
+            <a
+              href="https://doi.org/10.1007/978-3-658-37895-0_8"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="reference-link"
+              >https://doi.org/10.1007/978-3-658-37895-0_8</a
+            >
+          </li>
+        </ol>
+      </section>
     </main>
 
     <footer>
-      <p>Copyright © 2024 Open-Digi</p>
+      <p>&copy; 2024 Open-Digi. Alle Rechte vorbehalten.</p>
     </footer>
     <script src="js/script.js"></script>
   </body>

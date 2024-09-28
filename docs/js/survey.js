@@ -62,9 +62,7 @@ function setupEventListeners() {
   document
     .getElementById('saveProgressButton')
     .addEventListener('click', saveAndResumeLater)
-  document
-    .getElementById('section-select')
-    .addEventListener('change', handleSectionChange)
+  // Removed section-select since "Springen zu Abschnitt:" was deleted
 }
 
 function checkResumeToken() {
@@ -146,6 +144,11 @@ function renderSection(index) {
   const section = surveyData[index]
   let html = `<div class="section"><h2>${section.title}</h2>`
 
+  // Add instruction before "Suchen, Verarbeiten und Aufbewahren"
+  if (section.title === 'Suchen, Verarbeiten und Aufbewahren') {
+    html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
+  }
+
   section.questions.forEach((question, qIndex) => {
     const questionId = `q${index}_${qIndex}`
     let savedValue = userData[questionId] || ''
@@ -161,7 +164,7 @@ function renderSection(index) {
     } else if (question.type === 'number') {
       html += `<div class="input-container">
                 <input type="number" id="${questionId}" name="${questionId}" value="${savedValue}" min="${question.min}" max="${question.max}" required>
-                <label for="${questionId}" class="floating-label">Enter a number</label>
+                <label for="${questionId}" class="floating-label">Füge das Jahr als Zahl ein</label>
                </div>`
     } else if (question.type === 'scale') {
       html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`
@@ -327,143 +330,6 @@ function calculateCategoryScores() {
   return categoryScores
 }
 
-function saveAndResumeLater() {
-  saveSectionData()
-  const resumeToken = btoa(
-    JSON.stringify({
-      userId: sessionStorage.getItem('userId'),
-      section: currentSection,
-    })
-  )
-  localStorage.setItem('surveyResumeToken', resumeToken)
-  alert(
-    'Ihr Fortschritt wurde gespeichert. Sie können später mit demselben Login fortfahren.'
-  )
-  window.location.href = 'index.html'
-}
-
-function previousSection() {
-  if (currentSection > 0) {
-    saveSectionData()
-    currentSection--
-    renderSection(currentSection)
-    updateProgressBar()
-  }
-}
-
-function nextSection() {
-  if (validateSection()) {
-    saveSectionData()
-    if (currentSection < surveyData.length - 1) {
-      currentSection++
-      renderSection(currentSection)
-      updateProgressBar()
-    } else {
-      finishSurvey()
-    }
-  } else {
-    alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
-  }
-}
-
-function validateSection() {
-  const inputs = document.querySelectorAll('#surveyForm input[required]')
-  let isValid = true
-  inputs.forEach((input) => {
-    if (input.type === 'radio') {
-      const name = input.getAttribute('name')
-      if (!document.querySelector(`input[name="${name}"]:checked`)) {
-        isValid = false
-        highlightQuestion(input.closest('.question'))
-      }
-    } else if (input.value.trim() === '') {
-      isValid = false
-      highlightQuestion(input.closest('.question'))
-    }
-  })
-  return isValid
-}
-
-function highlightQuestion(questionElement) {
-  questionElement.classList.add('unanswered')
-  questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-}
-
-function logout() {
-  saveSectionData()
-  sessionStorage.clear()
-  window.location.href = 'login.html'
-}
-
-function populateSectionDropdown() {
-  const select = document.getElementById('section-select')
-  surveyData.forEach((section, index) => {
-    const option = document.createElement('option')
-    option.value = index
-    option.textContent = section.title
-    select.appendChild(option)
-  })
-}
-
-function updateSectionDropdown(currentIndex) {
-  const select = document.getElementById('section-select')
-  select.value = currentIndex
-}
-
-function handleSectionChange(e) {
-  const selectedSection = parseInt(e.target.value)
-  if (selectedSection !== currentSection) {
-    if (validateSection()) {
-      saveSectionData()
-      currentSection = selectedSection
-      renderSection(currentSection)
-      updateProgressBar()
-    } else {
-      alert(
-        'Bitte beantworten Sie alle Fragen in diesem Abschnitt, bevor Sie zu einem anderen wechseln.'
-      )
-    }
-    e.target.value = currentSection
-  }
-}
-
-function updateNavigationButtons() {
-  const prevButton = document.getElementById('prevButton')
-  const nextButton = document.getElementById('nextButton')
-
-  prevButton.disabled = currentSection === 0
-  nextButton.textContent =
-    currentSection === surveyData.length - 1 ? 'Abschließen' : 'Weiter'
-  nextButton.innerHTML =
-    currentSection === surveyData.length - 1
-      ? 'Abschließen'
-      : 'Weiter <i class="fas fa-chevron-right"></i>'
-}
-
-function calculateCompetenzScore() {
-  let totalScore = 0
-  let totalQuestions = 0
-
-  surveyData.forEach((section) => {
-    if (section.title !== 'Persönliche Angaben') {
-      section.questions.forEach((question, qIndex) => {
-        const questionId = `q${surveyData.indexOf(section)}_${qIndex}`
-        if (userData[questionId] !== undefined && question.type === 'scale') {
-          totalScore += parseInt(userData[questionId])
-          totalQuestions++
-        }
-      })
-    }
-  })
-
-  if (totalQuestions === 0) return 0
-
-  const maxPossibleScore = totalQuestions * 6
-  const percentage = (totalScore / maxPossibleScore) * 100
-
-  return Math.round(percentage)
-}
-
 function getCoursesSuggestions(score) {
   if (score < 30) {
     return [
@@ -484,21 +350,151 @@ function getCoursesSuggestions(score) {
 }
 
 function showDatenschutz() {
-  const datenschutzHtml = `
-    <h1>Datenschutzerklärung</h1>
-    <h2>Projektleitung: Prof.in Dr. Charlott Rubach & Anne-Kathrin Hirsch</h2>
-    <p>Bitte lesen Sie die Datenschutzerklärung sorgfältig durch.</p>
-    <button id="acceptDatenschutz">Akzeptieren und fortfahren</button>
-  `
+  // Create the modal overlay
+  const modalOverlay = document.createElement('div')
+  modalOverlay.id = 'datenschutzModalOverlay'
+  Object.assign(modalOverlay.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: '1000',
+  })
 
-  document.getElementById('surveyForm').innerHTML = datenschutzHtml
-  document.querySelector('.navigation-buttons').style.display = 'none'
-  document.querySelector('.progress-container').style.display = 'none'
-  document.querySelector('.section-nav').style.display = 'none'
+  // Create the modal content container
+  const modalContent = document.createElement('div')
+  Object.assign(modalContent.style, {
+    backgroundColor: '#fff',
+    borderRadius: '8px',
+    width: '80%',
+    maxWidth: '800px',
+    height: '80%',
+    boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  })
 
-  document
-    .getElementById('acceptDatenschutz')
-    .addEventListener('click', showResults)
+  // Create the header of the modal
+  const modalHeader = document.createElement('div')
+  Object.assign(modalHeader.style, {
+    padding: '10px 20px',
+    backgroundColor: '#004A99',
+    color: '#fff',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  })
+
+  const modalTitle = document.createElement('h2')
+  modalTitle.textContent = 'Datenschutzerklärung'
+  Object.assign(modalTitle.style, {
+    margin: '0',
+    fontSize: '1.5em',
+  })
+
+  const closeButtonHeader = document.createElement('span')
+  closeButtonHeader.innerHTML = '&times;'
+  Object.assign(closeButtonHeader.style, {
+    cursor: 'pointer',
+    fontSize: '1.5em',
+  })
+
+  // Append title and close button to header
+  modalHeader.appendChild(modalTitle)
+  modalHeader.appendChild(closeButtonHeader)
+
+  // Create the body of the modal with an iframe
+  const modalBody = document.createElement('div')
+  Object.assign(modalBody.style, {
+    flex: '1',
+    padding: '20px',
+    overflowY: 'auto',
+  })
+
+  const iframe = document.createElement('iframe')
+  iframe.src = 'datenschutz.html' // Ensure the path is correct relative to survey.html
+  Object.assign(iframe.style, {
+    width: '100%',
+    height: '100%',
+    border: 'none',
+  })
+
+  modalBody.appendChild(iframe)
+
+  // Create the footer with action buttons
+  const modalFooter = document.createElement('div')
+  Object.assign(modalFooter.style, {
+    padding: '10px 20px',
+    backgroundColor: '#f1f1f1',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '10px',
+  })
+
+  // Create the "Schließen" (Close) button
+  const closeButton = document.createElement('button')
+  closeButton.textContent = 'Schließen'
+  Object.assign(closeButton.style, {
+    backgroundColor: '#6c757d',
+    color: '#fff',
+    border: 'none',
+    padding: '10px 20px',
+    cursor: 'pointer',
+    borderRadius: '5px',
+    fontSize: '1em',
+  })
+
+  // Create the "Akzeptieren und fortfahren" (Accept and Proceed) button
+  const acceptButton = document.createElement('button')
+  acceptButton.textContent = 'Akzeptieren und fortfahren'
+  Object.assign(acceptButton.style, {
+    backgroundColor: '#004A99',
+    color: '#fff',
+    border: 'none',
+    padding: '10px 20px',
+    cursor: 'pointer',
+    borderRadius: '5px',
+    fontSize: '1em',
+  })
+
+  // Append buttons to footer
+  modalFooter.appendChild(closeButton)
+  modalFooter.appendChild(acceptButton)
+
+  // Append header, body, and footer to modal content
+  modalContent.appendChild(modalHeader)
+  modalContent.appendChild(modalBody)
+  modalContent.appendChild(modalFooter)
+
+  // Append modal content to overlay
+  modalOverlay.appendChild(modalContent)
+
+  // Append overlay to body
+  document.body.appendChild(modalOverlay)
+
+  // Event listener to close modal when '×' in header is clicked
+  closeButtonHeader.addEventListener('click', () => {
+    modalOverlay.remove()
+    alert('Sie müssen die Datenschutzerklärung akzeptieren, um fortzufahren.')
+  })
+
+  // Event listener to close modal when 'Schließen' button is clicked
+  closeButton.addEventListener('click', () => {
+    modalOverlay.remove()
+    alert('Sie müssen die Datenschutzerklärung akzeptieren, um fortzufahren.')
+  })
+
+  // Event listener to accept and proceed when 'Akzeptieren und fortfahren' button is clicked
+  acceptButton.addEventListener('click', () => {
+    modalOverlay.remove()
+    showResults()
+  })
 }
 
 function showResults() {
@@ -510,7 +506,7 @@ function showResults() {
   updatedScores = JSON.parse(sessionStorage.getItem('updatedScores') || '{}')
 
   const resultHtml = `
-    <h2>Ihr Kompetenz-Score: ${score}%</h2>
+    <h2>Ihr Kompetenzscore beträgt ${score}%</h2>
     <p>Dieser Score repräsentiert Ihren aktuellen Stand in digitalen Kompetenzen basierend auf Ihren Antworten.</p>
     <h3>Kursempfehlungen</h3>
     <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse zur Verbesserung Ihrer digitalen Kompetenzen:</p>
@@ -518,12 +514,16 @@ function showResults() {
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
     <h3>Kompetenzdiagramm</h3>
-    <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen. Die helleren Balken repräsentieren Ihre initialen Scores, während die dunkleren Balken Ihre aktuellen Scores darstellen.</p>
+    <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen. Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der zweiten Befragung (T2) darstellen.</p>
     <div style="height: 300px; width: 100%;">
       <canvas id="competencyChart1"></canvas>
     </div>
     <div id="descriptionBox1"></div>
-    <button id="downloadChart" class="btn btn-primary">Diagramm herunterladen</button>
+    <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Diagramm herunterladen</button>
+    <hr>
+    <div style="text-align: center; margin-top: 20px;">
+      <button id="viewDatenschutzButton" class="btn btn-secondary" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Datenschutzerklärung anzeigen</button>
+    </div>
   `
 
   document.getElementById('surveyForm').innerHTML = resultHtml
@@ -537,6 +537,14 @@ function showResults() {
     downloadButton.addEventListener('click', downloadChart)
   } else {
     console.error('Download button not found')
+  }
+
+  // Add event listener to the "Datenschutzerklärung anzeigen" button
+  const viewDatenschutzButton = document.getElementById('viewDatenschutzButton')
+  if (viewDatenschutzButton) {
+    viewDatenschutzButton.addEventListener('click', () => {
+      showDatenschutz()
+    })
   }
 }
 
@@ -586,7 +594,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
   const canvas = document.getElementById('competencyChart1')
   const descriptionBox = document.getElementById('descriptionBox1')
   if (!canvas || !descriptionBox) {
-    console.error('Chart canvas or description box not found')
+    console.error('Chart canvas oder description box nicht gefunden')
     return
   }
 
@@ -601,7 +609,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
     Object.keys(initialScores).length === 0 &&
     Object.keys(updatedScores).length === 0
   ) {
-    console.error('No scores available to display')
+    console.error('Keine Scores verfügbar, um anzuzeigen')
     canvas.style.display = 'none'
     descriptionBox.innerHTML = '<p>Noch keine Kompetenzdaten verfügbar.</p>'
     return
@@ -726,7 +734,7 @@ function downloadChart(event) {
 // Make sure surveyData is available
 if (typeof surveyData === 'undefined') {
   console.error(
-    'surveyData is not defined. Please ensure it is loaded before using this script.'
+    'surveyData ist nicht definiert. Bitte stellen Sie sicher, dass es geladen ist, bevor dieses Skript verwendet wird.'
   )
 }
 
