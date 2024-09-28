@@ -13,7 +13,7 @@ body {
 
 /* Logo Styling */
 .logo {
-    height: 30px;
+    height: 50px;
     /* Reduced height for better sizing */
     width: auto;
     /* Maintain aspect ratio */
@@ -29,8 +29,6 @@ body {
     /* Adds padding for spacing */
     background-color: #f8f9fa;
     /* Light background for header */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    /* Subtle shadow */
     position: fixed;
     top: 0;
     left: 0;
