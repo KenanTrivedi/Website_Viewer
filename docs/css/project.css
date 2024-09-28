@@ -1,119 +1,49 @@
 /* project.css */
-
 body {
     font-family: Arial, sans-serif;
     line-height: 1.5;
     color: hsl(0, 0%, 20%);
 }
 
-header .header-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 10px 20px; /* Added padding for spacing */
-    background-color: #f8f9fa; /* Light background for header */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-}
-
-.logo {
-    height: 50px;
-}
-
-.navigation {
-    display: flex;
-    gap: 20px;
-}
-
-.navigation a {
-    text-decoration: none;
-    color: #004a99;
-    font-weight: bold;
-    transition: color 0.3s ease;
-}
-
-.navigation a:hover {
-    color: #003366;
-}
-
-.get-started-button {
-    background-color: #004a99;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-}
-
-.get-started-button:hover {
-    background-color: #003366;
-}
-
 main {
     width: 80%;
-    margin: 80px auto 20px auto; /* Adjusted margins */
+    margin: 10px auto;
+    margin-top: 80px;
     padding: 40px;
     background-color: #ffffff;
+    /* Light grey background */
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    /* Soft shadow for depth */
 }
 
 h1 {
     color: #004a99;
-    margin-bottom: 20px;
+    /* Theme blue for headings */
 }
 
 p {
-    margin-bottom: 20px; /* Increased spacing between paragraphs */
+    margin-bottom: 1px;
+    /* Spacing between paragraphs */
 }
 
 section {
     margin-bottom: 20px;
 }
 
-section.references-section {
-    background-color: #f9f9f9; /* Light grey background for references */
+section {
+    background-color: #ffffff;
     border-left: 4px solid #004a99;
     padding: 20px;
     margin: 20px 0;
-    border-radius: 4px; /* Rounded corners */
 }
 
-section.references-section h2 {
+section h2 {
     color: #004a99;
-    margin-bottom: 15px;
-    font-size: 1.5em;
-}
-
-.references-list {
-    padding-left: 20px;
-    list-style-type: decimal;
-}
-
-.reference-item {
-    margin-bottom: 15px;
-    line-height: 1.6;
-}
-
-.reference-item em {
-    font-style: italic;
-}
-
-.reference-link {
-    color: #004a99;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.reference-link:hover {
-    color: #003366;
-    text-decoration: underline;
 }
 
 ol {
     padding-left: 20px;
-    list-style-type: decimal;
 }
 
 ol li {
@@ -125,38 +55,4 @@ nav {
     display: flex;
     justify-content: center;
     width: 100%;
-}
-
-footer {
-    text-align: center;
-    padding: 20px 0;
-    background-color: #f8f9fa; /* Light background for footer */
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    main {
-        width: 90%;
-        padding: 20px;
-    }
-
-    header .header-container {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .navigation {
-        flex-direction: column;
-        gap: 10px;
-        width: 100%;
-    }
-
-    .get-started-button {
-        width: 100%;
-        text-align: center;
-    }
 }
