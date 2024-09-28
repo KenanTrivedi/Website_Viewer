@@ -1,14 +1,91 @@
 /* project.css */
+
 body {
     font-family: Arial, sans-serif;
     line-height: 1.5;
     color: hsl(0, 0%, 20%);
+    background-color: #f8f9fa;
+    /* Light background for the entire page */
+    margin: 0;
+    padding: 0;
+}
+
+header .header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10px 20px;
+    /* Adds padding for spacing */
+    background-color: #f8f9fa;
+    /* Light background for header */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow */
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    /* Ensures header stays on top */
+}
+
+.logo {
+    height: 40px;
+    /* Adjusted height for better sizing */
+    width: auto;
+    /* Maintain aspect ratio */
+}
+
+.navigation {
+    display: flex;
+    gap: 20px;
+    /* Space between navigation links */
+    flex-grow: 1;
+    /* Allows navigation to take up available space */
+    justify-content: center;
+    /* Centers navigation links */
+    margin: 0 20px;
+    /* Adds horizontal margin */
+}
+
+.navigation a {
+    text-decoration: none;
+    color: #004a99;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.navigation a:hover {
+    color: #003366;
+}
+
+.navigation a:focus {
+    outline: 2px dashed #004a99;
+    outline-offset: 4px;
+}
+
+.get-started-button {
+    background-color: #004a99;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.get-started-button:hover {
+    background-color: #003366;
+}
+
+.get-started-button:focus {
+    outline: 2px dashed #004a99;
+    outline-offset: 4px;
 }
 
 main {
     width: 80%;
-    margin: 10px auto;
-    margin-top: 80px;
+    margin: 100px auto 20px auto;
+    /* Adjusted top margin to account for fixed header */
     padding: 40px;
     background-color: #ffffff;
     /* Light grey background */
@@ -20,10 +97,11 @@ main {
 h1 {
     color: #004a99;
     /* Theme blue for headings */
+    margin-bottom: 20px;
 }
 
 p {
-    margin-bottom: 1px;
+    margin-bottom: 20px;
     /* Spacing between paragraphs */
 }
 
@@ -31,19 +109,61 @@ section {
     margin-bottom: 20px;
 }
 
-section {
-    background-color: #ffffff;
+.references-section {
+    background-color: #f9f9f9;
+    /* Light grey background for references */
     border-left: 4px solid #004a99;
+    /* Blue border to match theme */
     padding: 20px;
     margin: 20px 0;
+    border-radius: 4px;
+    /* Slightly rounded corners */
 }
 
-section h2 {
+.references-section h2 {
     color: #004a99;
+    /* Theme blue for heading */
+    margin-bottom: 15px;
+    font-size: 1.5em;
+}
+
+.references-list {
+    padding-left: 20px;
+    list-style-type: decimal;
+}
+
+.reference-item {
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.reference-item em {
+    font-style: italic;
+}
+
+.reference-link {
+    color: #004a99;
+    /* Theme blue for links */
+    text-decoration: none;
+    /* Removes underline */
+    transition: color 0.3s ease, text-decoration 0.3s ease;
+}
+
+.reference-link:hover {
+    color: #003366;
+    /* Darker blue on hover */
+    text-decoration: underline;
+    /* Adds underline on hover */
+}
+
+.reference-link:focus {
+    outline: 2px dashed #004a99;
+    outline-offset: 4px;
 }
 
 ol {
     padding-left: 20px;
+    list-style-type: decimal;
 }
 
 ol li {
@@ -51,8 +171,38 @@ ol li {
     line-height: 1.6;
 }
 
-nav {
-    display: flex;
-    justify-content: center;
+footer {
+    text-align: center;
+    padding: 20px 0;
+    background-color: #f8f9fa;
+    /* Light background for footer */
+    position: fixed;
+    bottom: 0;
     width: 100%;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    main {
+        width: 90%;
+        padding: 20px;
+    }
+
+    header .header-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .navigation {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .get-started-button {
+        width: 100%;
+        text-align: center;
+    }
 }
