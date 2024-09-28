@@ -48,6 +48,9 @@ async function handleCodeGenerationFormSubmission(event) {
     return
   }
 
+  // **Clear sessionStorage to remove any previous user data**
+  sessionStorage.clear()
+
   const code = generateCodeFromForm(form)
   const submitButton = form.querySelector('button[type="submit"]')
 
@@ -60,6 +63,7 @@ async function handleCodeGenerationFormSubmission(event) {
     const data = response // Directly use the response object
 
     if (response.ok) {
+      // **Set new session data after clearing**
       sessionStorage.setItem('userId', data.userId)
       sessionStorage.setItem('generatedCode', code)
       await Swal.fire({
@@ -259,7 +263,9 @@ async function handleLogin() {
     const data = response
 
     if (response.ok) {
+      // **Clear sessionStorage before setting new data**
       sessionStorage.clear()
+
       sessionStorage.setItem('userId', data.userId)
       sessionStorage.setItem('isNewUser', data.isNewUser)
       sessionStorage.setItem('courses', JSON.stringify(data.courses))
@@ -399,9 +405,7 @@ function saveUserData(userId, data, isComplete = false) {
     },
     body: JSON.stringify({
       userId: userId,
-      data: {
-        responses: data,
-      },
+      data: data,
       isComplete: isComplete,
       categoryScores: categoryScores,
     }),
