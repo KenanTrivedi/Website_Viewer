@@ -14,53 +14,30 @@ body {
 /* Logo Styling */
 .logo {
     height: 50px;
-    /* Reduced height for better sizing */
+    /* Match the Index page's logo height */
     width: auto;
     /* Maintain aspect ratio */
 }
 
-/* Header Container Styling */
-.header-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    padding: 10px 20px;
-    /* Adds padding for spacing */
-    background-color: #f8f9fa;
-    /* Light background for header */
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 1000;
-    /* Ensures header stays on top */
-}
-
 /* Navigation Styling */
-.navigation {
+nav {
     display: flex;
     gap: 20px;
     /* Space between navigation links */
-    flex-grow: 1;
-    /* Allows navigation to take up available space */
-    justify-content: center;
-    /* Centers navigation links */
-    margin: 0;
-    /* Removes horizontal margins */
 }
 
-.navigation a {
+nav a {
     text-decoration: none;
     color: #004a99;
     font-weight: bold;
     transition: color 0.3s ease;
 }
 
-.navigation a:hover {
+nav a:hover {
     color: #003366;
 }
 
-.navigation a:focus {
+nav a:focus {
     outline: 2px dashed #004a99;
     outline-offset: 4px;
 }
@@ -198,12 +175,7 @@ footer {
         padding: 20px;
     }
 
-    header .header-container {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .navigation {
+    nav {
         flex-direction: column;
         gap: 10px;
         width: 100%;
