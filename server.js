@@ -199,6 +199,7 @@ app.post("/api/save-user-data", async (req, res) => {
     const currentTime = new Date();
 
     if (!userData) {
+      // First-time user
       userData = new UserData({
         userId,
         data: data,
@@ -214,6 +215,7 @@ app.post("/api/save-user-data", async (req, res) => {
         unterschrift: unterschrift || "",
       });
     } else {
+      // Returning user
       userData.latestSubmissionTime = currentTime;
       userData.isComplete = isComplete;
       userData.updatedScores = categoryScores;

@@ -518,7 +518,9 @@ function createCompetencyChart1(initialScores, updatedScores) {
     {
       label: 'Initial Score',
       data: fullLabels.map((label) => initialScores[label] || 0),
-      backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      backgroundColor: fullLabels.map((label) =>
+        getLighterColor(colorMap[label] || '#999999')
+      ),
       borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderWidth: 1,
     },
@@ -528,13 +530,12 @@ function createCompetencyChart1(initialScores, updatedScores) {
     datasets.push({
       label: 'Updated Score',
       data: fullLabels.map((label) => updatedScores[label] || 0),
-      backgroundColor: fullLabels.map((label) =>
-        getLighterColor(colorMap[label] || '#999999')
-      ),
+      backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderWidth: 1,
     })
   }
+
   chart1Instance = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -662,7 +663,7 @@ async function showResults() {
     initialScores = data.initialScores || {}
     updatedScores = data.updatedScores || {}
 
-    // Calculate competency score using initialScores if updatedScores is empty
+    // Calculate competency score using updatedScores if available, otherwise use initialScores
     const scoreData =
       Object.keys(updatedScores).length > 0 ? updatedScores : initialScores
     const score = calculateCompetenzScore(scoreData)
@@ -680,7 +681,7 @@ async function showResults() {
       <h3>Kompetenzdiagramm</h3>
       <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
         Object.keys(updatedScores).length > 0
-          ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der zweiten Befragung (T2) darstellen.'
+          ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der aktuellen Befragung (T2) darstellen.'
           : ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung.'
       }</p>
       <div style="height: 300px; width: 100%;">
