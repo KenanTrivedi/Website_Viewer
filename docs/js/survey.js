@@ -227,6 +227,41 @@ function renderSection(index) {
     html += `</div>`
   })
 
+  // **New Section: Datenschutz and Final Inputs**
+  if (index === surveyData.length - 1) {
+    // Append Datenschutz Information
+    html += `
+      <div class="datenschutz-section">
+        <h3>Datenschutzerklärung</h3>
+        <p>
+          <!-- Existing Datenschutzerklärung content -->
+          <strong>Projektleitung:</strong><br>
+          Prof.in Dr. Charlott Rubach & Anne-Kathrin Hirsch<br>
+          <!-- ... rest of the content ... -->
+          <p>
+            Ich versichere mit meiner Zustimmung, dass mir die Datenschutzhinweise zur Befragung „Open-Digi“ zur Kenntnis gegeben worden. Ich willige in die darin näher beschriebene Verarbeitung meiner personenbezogenen Daten ein.
+          </p>
+          <p>
+            Ansprechperson für weitere Fragen ist Prof.in Dr. Charlott Rubach (charlott.rubach@uni-rostock.de).
+          </p>
+        </p>
+        <div class="final-inputs">
+          <div class="question">
+            <p>Datum</p>
+            <input type="date" id="datum" name="datum" value="${
+              new Date().toISOString().split('T')[0]
+            }" readonly required>
+          </div>
+          <div class="question">
+            <p>Unterschrift (Bitte tippen Sie Ihren Namen als Unterschrift)</p>
+            <input type="text" id="unterschrift" name="unterschrift" required>
+          </div>
+          <button id="submitFinal" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Abschließen</button>
+        </div>
+      </div>
+    `
+  }
+
   html += `</div>`
   document.getElementById('surveyForm').innerHTML = html
 
@@ -237,6 +272,13 @@ function renderSection(index) {
   updateNavigationButtons()
   // updateSectionDropdown(index); // Removed as per user request
   window.scrollTo(0, 0) // Ensure the page starts at the top
+
+  // **New Event Listener for Final Submit Button**
+  if (index === surveyData.length - 1) {
+    document
+      .getElementById('submitFinal')
+      .addEventListener('click', submitFinalData)
+  }
 }
 
 // Handle Scale Keydown Function
@@ -316,11 +358,12 @@ function saveSectionData(isComplete = false) {
   }
 }
 
-// Finish Survey Function
-async function finishSurvey() {
+// Finish Survey Function (Updated to render Datenschutz inline)
+function finishSurvey() {
   if (validateSection()) {
     saveSectionData(true)
-    showDatenschutz() // Show Datenschutz first
+    // Instead of showing a modal, do nothing here as Datenschutz is rendered inline
+    // The Datenschutz section is already part of the last survey section
   } else {
     alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
     markUnansweredQuestions()
@@ -416,186 +459,11 @@ function getCoursesSuggestions(score) {
   }
 }
 
-// Show Datenschutz Function (Updated)
-function showDatenschutz() {
-  // Create the modal overlay
-  const modalOverlay = document.createElement('div')
-  modalOverlay.id = 'datenschutzModalOverlay'
-  Object.assign(modalOverlay.style, {
-    position: 'fixed',
-    top: '0',
-    left: '0',
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: '1000',
-  })
+// Show Datenschutz Function (Removed as we are integrating it inline)
 
-  // Create the modal content container
-  const modalContent = document.createElement('div')
-  Object.assign(modalContent.style, {
-    backgroundColor: '#fff',
-    borderRadius: '8px',
-    width: '80%',
-    maxWidth: '800px',
-    height: '80%',
-    boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-  })
+// Render Final Inputs Function (Removed as it's now part of renderSection)
 
-  // Create the header of the modal
-  const modalHeader = document.createElement('div')
-  Object.assign(modalHeader.style, {
-    padding: '10px 20px',
-    backgroundColor: '#004A99',
-    color: '#fff',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  })
-
-  const modalTitle = document.createElement('h2')
-  modalTitle.textContent = 'Datenschutz'
-  Object.assign(modalTitle.style, {
-    margin: '0',
-    fontSize: '1.5em',
-  })
-
-  const closeButtonHeader = document.createElement('span')
-  closeButtonHeader.innerHTML = '&times;'
-  Object.assign(closeButtonHeader.style, {
-    cursor: 'pointer',
-    fontSize: '1.5em',
-  })
-
-  // Append title and close button to header
-  modalHeader.appendChild(modalTitle)
-  modalHeader.appendChild(closeButtonHeader)
-
-  // Create the body of the modal with the provided Datenschutzerklärung text
-  const modalBody = document.createElement('div')
-  Object.assign(modalBody.style, {
-    flex: '1',
-    padding: '20px',
-    overflowY: 'auto',
-  })
-
-  const datenschutzContent = `
-    <!-- Existing Datenschutzerklärung content -->
-    <h3>Projektleitung:</h3>
-    <p>Prof.in Dr. Charlott Rubach & Anne-Kathrin Hirsch</p>
-    <!-- ... rest of the content ... -->
-    <p>
-      Ich versichere mit meiner Zustimmung, dass mir die Datenschutzhinweise zur Befragung „Open-Digi“ zur Kenntnis gegeben worden. Ich willige in die darin näher beschriebene Verarbeitung meiner personenbezogenen Daten ein.
-    </p>
-    <p>
-      Ansprechperson für weitere Fragen ist Prof.in Dr. Charlott Rubach (charlott.rubach@uni-rostock.de).
-    </p>
-  `
-
-  modalBody.innerHTML = datenschutzContent
-
-  // Create the footer with action buttons
-  const modalFooter = document.createElement('div')
-  Object.assign(modalFooter.style, {
-    padding: '10px 20px',
-    backgroundColor: '#f1f1f1',
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: '10px',
-  })
-
-  // Create the "Schließen" (Close) button
-  const closeButton = document.createElement('button')
-  closeButton.textContent = 'Schließen'
-  Object.assign(closeButton.style, {
-    backgroundColor: '#6c757d',
-    color: '#fff',
-    border: 'none',
-    padding: '10px 20px',
-    cursor: 'pointer',
-    borderRadius: '5px',
-    fontSize: '1em',
-  })
-
-  // Create the "Akzeptieren und fortfahren" (Accept and Proceed) button
-  const acceptButton = document.createElement('button')
-  acceptButton.textContent = 'Akzeptieren und fortfahren'
-  Object.assign(acceptButton.style, {
-    backgroundColor: '#004A99',
-    color: '#fff',
-    border: 'none',
-    padding: '10px 20px',
-    cursor: 'pointer',
-    borderRadius: '5px',
-    fontSize: '1em',
-  })
-
-  // Append buttons to footer
-  modalFooter.appendChild(closeButton)
-  modalFooter.appendChild(acceptButton)
-
-  // Append header, body, and footer to modal content
-  modalContent.appendChild(modalHeader)
-  modalContent.appendChild(modalBody)
-  modalContent.appendChild(modalFooter)
-
-  // Append modal content to overlay
-  modalOverlay.appendChild(modalContent)
-
-  // Append overlay to body
-  document.body.appendChild(modalOverlay)
-
-  // Event listener to close modal when '×' in header is clicked
-  closeButtonHeader.addEventListener('click', () => {
-    modalOverlay.remove()
-    alert('Sie müssen die Datenschutzerklärung akzeptieren, um fortzufahren.')
-  })
-
-  // Event listener to close modal when 'Schließen' button is clicked
-  closeButton.addEventListener('click', () => {
-    modalOverlay.remove()
-    alert('Sie müssen die Datenschutzerklärung akzeptieren, um fortzufahren.')
-  })
-
-  // Event listener to accept and proceed when 'Akzeptieren und fortfahren' button is clicked
-  acceptButton.addEventListener('click', () => {
-    modalOverlay.remove()
-    renderFinalInputs() // Render date and signature after acceptance
-  })
-}
-
-// Render Final Inputs Function (Updated)
-function renderFinalInputs() {
-  const today = new Date().toISOString().split('T')[0]
-  const finalHtml = `
-    <div class="question">
-      <p>Datum</p>
-      <input type="date" id="datum" name="datum" value="${today}" readonly required>
-    </div>
-    <div class="question">
-      <p>Unterschrift (Bitte tippen Sie Ihren Namen als Unterschrift)</p>
-      <input type="text" id="unterschrift" name="unterschrift" required>
-    </div>
-    <button id="submitFinal" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Abschließen</button>
-  `
-  document.getElementById('surveyForm').innerHTML += finalHtml
-
-  // Hide navigation buttons
-  hideNavigationButtons()
-
-  // Add event listener to the new submit button
-  document
-    .getElementById('submitFinal')
-    .addEventListener('click', submitFinalData)
-}
-
-// Submit Final Data Function (New)
+// Submit Final Data Function (Updated to handle inline Datenschutz)
 function submitFinalData() {
   if (validateSection()) {
     saveSectionData(true) // Save with isComplete = true
@@ -825,10 +693,7 @@ function downloadChart(event) {
   }
 }
 
-// Expose Necessary Functions Globally (Corrected Order)
-window.saveSectionData = saveSectionData
-
-// Define showResults Function First Before Assigning to window
+// Show Results Function (Ensure it's defined only once)
 async function showResults() {
   const userId = sessionStorage.getItem('userId')
   if (!userId) {
@@ -1034,261 +899,7 @@ function removeUnansweredMarkers() {
   })
 }
 
-// Update Description Box Function (Already Correct)
-function updateDescriptionBox(descriptionBox, fullCompetency, description) {
-  const competency = labelMap[fullCompetency] || fullCompetency
-  const color = colorMap[fullCompetency] || '#999999'
-  const lighterColor = getLighterColor(color)
-
-  descriptionBox.innerHTML = `
-    <h3>${fullCompetency}</h3>
-    <p>${description || 'Beschreibung nicht verfügbar.'}</p>
-  `
-  descriptionBox.style.backgroundColor = lighterColor
-  descriptionBox.style.padding = '15px'
-  descriptionBox.style.borderRadius = '5px'
-  descriptionBox.style.border = `2px solid ${color}`
-  descriptionBox.style.color = getContrastColor(lighterColor)
-}
-
-// Create Competency Chart Function (Already Correct)
-function createCompetencyChart1(initialScores, updatedScores) {
-  const canvas = document.getElementById('competencyChart1')
-  const descriptionBox = document.getElementById('descriptionBox1')
-  if (!canvas || !descriptionBox) {
-    console.error('Chart canvas or description box not found')
-    return
-  }
-
-  if (chart1Instance) {
-    chart1Instance.destroy()
-  }
-
-  const ctx = canvas.getContext('2d')
-
-  // Determine all unique labels from both initial and updated scores
-  const allLabels = new Set([
-    ...Object.keys(initialScores),
-    ...Object.keys(updatedScores),
-  ])
-  const fullLabels = Array.from(allLabels)
-  const labels = fullLabels.map((key) => labelMap[key] || key)
-  let currentHoveredIndex = -1
-
-  const datasets = []
-
-  // Initial Scores Dataset
-  if (Object.keys(initialScores).length > 0) {
-    datasets.push({
-      label: 'Initial Score',
-      data: fullLabels.map((label) => initialScores[label] || 0),
-      backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-      borderWidth: 1,
-    })
-  }
-
-  // Updated Scores Dataset
-  if (Object.keys(updatedScores).length > 0) {
-    datasets.push({
-      label: 'Aktualisierter Score',
-      data: fullLabels.map((label) => updatedScores[label] || 0),
-      backgroundColor: fullLabels.map((label) =>
-        getLighterColor(colorMap[label] || '#999999')
-      ),
-      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-      borderWidth: 1,
-    })
-  }
-
-  chart1Instance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: datasets,
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
-          title: {
-            display: true,
-            text: 'Score (%)',
-          },
-        },
-        x: {
-          ticks: {
-            autoSkip: false,
-            maxRotation: 45,
-            minRotation: 45,
-          },
-        },
-      },
-      plugins: {
-        legend: {
-          display: datasets.length > 1, // Show legend only if multiple datasets
-        },
-        tooltip: {
-          callbacks: {
-            title: (tooltipItems) => {
-              const index = tooltipItems[0].dataIndex
-              const fullLabel = fullLabels[index]
-              return fullLabel || tooltipItems[0].label
-            },
-            label: (context) =>
-              `${context.dataset.label}: ${context.parsed.y}%`,
-          },
-        },
-      },
-      onHover: (event, activeElements) => {
-        if (activeElements.length > 0) {
-          const dataIndex = activeElements[0].index
-          if (dataIndex !== currentHoveredIndex) {
-            currentHoveredIndex = dataIndex
-            const fullCompetency = fullLabels[dataIndex]
-            updateDescriptionBox(
-              descriptionBox,
-              fullCompetency,
-              competencyDescriptions[fullCompetency]
-            )
-          }
-        } else {
-          currentHoveredIndex = -1
-          descriptionBox.innerHTML = ''
-          descriptionBox.style.backgroundColor = ''
-          descriptionBox.style.border = ''
-        }
-      },
-    },
-  })
-
-  chart1Instance.update()
-}
-
-// Populate Form Fields Function (Already Correct)
-function populateFormFields(form, data) {
-  surveyData.forEach((section, sectionIndex) => {
-    if (section.title === 'Persönliche Angaben') {
-      section.questions.forEach((question, questionIndex) => {
-        const questionId = `q${sectionIndex}_${questionIndex}`
-        const value = data[questionId]
-        if (value !== undefined) {
-          const field = form.querySelector(`[name="${questionId}"]`)
-          if (field) {
-            if (field.type === 'radio') {
-              const radioButton = form.querySelector(
-                `[name="${questionId}"][value="${value}"]`
-              )
-              if (radioButton) radioButton.checked = true
-            } else if (field.type === 'date') {
-              field.value = value // Already set to today's date and read-only
-            } else {
-              field.value = value
-            }
-          }
-        }
-      })
-    }
-  })
-}
-
-// Download Chart Function (Already Correct)
-function downloadChart(event) {
-  event.preventDefault()
-  const canvas1 = document.getElementById('competencyChart1')
-  if (canvas1) {
-    const link = document.createElement('a')
-    link.download = 'kompetenz-diagramm.png'
-    link.href = canvas1.toDataURL()
-    link.click()
-  }
-}
-
-// Define showResults Function First Before Assigning to window
-async function showResults() {
-  const userId = sessionStorage.getItem('userId')
-  if (!userId) {
-    console.error('No userId found in sessionStorage.')
-    return
-  }
-
-  try {
-    const response = await fetch(`/api/user-data/${userId}`)
-    if (!response.ok) {
-      throw new Error('Failed to fetch user data')
-    }
-    const data = await response.json()
-
-    // Update sessionStorage
-    sessionStorage.setItem('initialScores', JSON.stringify(data.initialScores))
-    sessionStorage.setItem('updatedScores', JSON.stringify(data.updatedScores))
-    sessionStorage.setItem(
-      'initialResponses',
-      JSON.stringify(data.initialResponses)
-    )
-    sessionStorage.setItem(
-      'updatedResponses',
-      JSON.stringify(data.updatedResponses)
-    )
-
-    // Update global variables
-    initialScores = data.initialScores || {}
-    updatedScores = data.updatedScores || {}
-
-    // Calculate competency score
-    const score = calculateCompetenzScore()
-    const courses = getCoursesSuggestions(score)
-
-    // Generate HTML for results
-    const resultHtml = `
-      <h2>Ihr Kompetenzscore beträgt ${score}%</h2>
-      <p>Dieser Score repräsentiert Ihren aktuellen Stand in digitalen Kompetenzen basierend auf Ihren Antworten.</p>
-      <h3>Kursempfehlungen</h3>
-      <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse zur Verbesserung Ihrer digitalen Kompetenzen:</p>
-      <ul>
-        ${courses.map((course) => `<li>${course}</li>`).join('')}
-      </ul>
-      <h3>Kompetenzdiagramm</h3>
-      <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
-        Object.keys(updatedScores).length > 0
-          ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der zweiten Befragung (T2) darstellen.'
-          : ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung.'
-      }</p>
-      <div style="height: 300px; width: 100%;">
-        <canvas id="competencyChart1"></canvas>
-      </div>
-      <div id="descriptionBox1"></div>
-      <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Diagramm herunterladen</button>
-      <hr>
-    `
-
-    document.getElementById('surveyForm').innerHTML = resultHtml
-
-    // Create the competency chart
-    createCompetencyChart1(initialScores, updatedScores)
-
-    // Add event listener to the download button
-    const downloadButton = document.getElementById('downloadChart')
-    if (downloadButton) {
-      downloadButton.addEventListener('click', downloadChart)
-    } else {
-      console.error('Download button not found')
-    }
-
-    // Hide navigation buttons
-    hideNavigationButtons()
-  } catch (error) {
-    console.error('Error displaying results:', error)
-    alert('Fehler beim Anzeigen der Ergebnisse. Bitte versuchen Sie es erneut.')
-  }
-}
-
-// Assign showResults to window after its definition
-window.showResults = showResults
-
-// Note: Removed the duplicate showResults function at the end of the file
+// Expose Necessary Functions Globally (Corrected Order)
+window.saveSectionData = saveSectionData
 
 // End of survey.js
