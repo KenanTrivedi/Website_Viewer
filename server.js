@@ -200,73 +200,49 @@ app.post("/api/save-user-data", async (req, res) => {
     const currentTime = new Date();
 
     if (!userData) {
-      // First-time user (This should generally not happen if login creates the user)
+      // First-time user
       userData = new UserData({
         userId,
         data: data,
-        courses: data.courses ? data.courses : [],
+        courses: data.courses ? [data.courses] : [],
         isComplete: isComplete,
         firstSubmissionTime: currentTime,
         latestSubmissionTime: currentTime,
-        initialScores: isComplete ? categoryScores : {},
-        updatedScores: isComplete ? categoryScores : {},
-        initialResponses: isComplete ? data.responses : {},
-        updatedResponses: isComplete ? {} : data.responses,
+        initialScores: categoryScores,
+        updatedScores: {},
+        initialResponses: data,
+        updatedResponses: {},
         datenschutzConsent: datenschutzConsent || false,
         unterschrift: unterschrift || "",
       });
     } else {
       // Returning user
       userData.latestSubmissionTime = currentTime;
-      userData.isComplete = isComplete || userData.isComplete;
+      userData.isComplete = isComplete;
+      userData.updatedScores = categoryScores;
+      userData.updatedResponses = data;
 
-      if (isComplete) {
-        // Check if initialResponses are already set
-        if (Object.keys(userData.initialResponses).length === 0) {
-          // First Complete Submission
-          userData.initialResponses = data.responses;
-          userData.initialScores = categoryScores;
-          console.log(`Initial scores set for userId: ${userId}`);
-        } else {
-          // Subsequent Complete Submissions
-          userData.updatedResponses = data.responses;
-          userData.updatedScores = categoryScores;
-          console.log(`Updated scores set for userId: ${userId}`);
-        }
-      }
-
-      // Update courses without duplicates
-      if (data.courses && Array.isArray(data.courses)) {
+      if (data.courses) {
         userData.courses = Array.from(
-          new Set([...userData.courses, ...data.courses])
+          new Set([...userData.courses, data.courses])
         );
       }
+
+      // Update data while preserving existing fields
+      userData.data = { ...userData.data, ...data };
+
+      userData.datenschutzConsent =
+        datenschutzConsent || userData.datenschutzConsent;
+      userData.unterschrift = unterschrift || userData.unterschrift;
 
       // Update current section
       if (typeof currentSection === "number") {
         userData.data.currentSection = currentSection;
       }
-
-      // Merge new responses
-      userData.data.responses = {
-        ...userData.data.responses,
-        ...data.responses,
-      };
-
-      // Update Datenschutz Consent and Unterschrift if Provided
-      if (typeof datenschutzConsent === "boolean") {
-        userData.datenschutzConsent = datenschutzConsent;
-      }
-
-      if (typeof unterschrift === "string" && unterschrift.trim() !== "") {
-        userData.unterschrift = unterschrift.trim();
-      }
     }
 
-    // Save to Database
     await userData.save();
 
-    // Respond with Success and Relevant Data
     res.status(200).json({
       message: "User data saved successfully.",
       initialScores: userData.initialScores,
@@ -275,15 +251,12 @@ app.post("/api/save-user-data", async (req, res) => {
     });
   } catch (err) {
     console.error("Error saving user data:", err);
-    // Handle Duplicate userId Error
-    if (err.code === 11000) {
-      return res.status(409).json({ message: "userId already exists." });
-    }
     res
       .status(500)
       .json({ message: "Error saving user data", details: err.message });
   }
 });
+
 /**
  * @route   GET /api/user-data/:userId
  * @desc    Retrieve user survey data, including consent and signature

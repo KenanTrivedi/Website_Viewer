@@ -86,10 +86,6 @@ function checkResumeToken() {
 // Load User Data Function
 function loadUserData() {
   const userId = sessionStorage.getItem('userId')
-  const storedData = sessionStorage.getItem('surveyData')
-  const storedInitialScores = sessionStorage.getItem('initialScores')
-  const storedUpdatedScores = sessionStorage.getItem('updatedScores')
-
   if (userId) {
     fetch(`/api/user-data/${userId}`)
       .then((response) => {
@@ -99,37 +95,26 @@ function loadUserData() {
         return response.json()
       })
       .then((data) => {
-        if (data.data && data.data.responses) {
-          // Merge initialResponses and updatedResponses
-          userData = { ...data.initialResponses, ...data.updatedResponses }
+        if (data.data) {
+          userData = data.data
           currentSection = data.data.currentSection || 0
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
 
-          // Store the scores in session storage
-          sessionStorage.setItem('initialScores', JSON.stringify(initialScores))
-          sessionStorage.setItem('updatedScores', JSON.stringify(updatedScores))
-        } else if (storedData) {
-          userData = JSON.parse(storedData)
-          currentSection = userData.currentSection || 0
-          initialScores = JSON.parse(storedInitialScores || '{}')
-          updatedScores = JSON.parse(storedUpdatedScores || '{}')
-        } else {
-          resetUserData()
+          // Prefill the form if we're on the first section
+          if (currentSection === 0) {
+            const form = document.getElementById('surveyForm')
+            if (form) {
+              populateFormFields(form, userData)
+            }
+          }
         }
         renderSection(currentSection)
         updateProgressBar()
       })
       .catch((error) => {
         console.error('Error loading user data:', error)
-        if (storedData) {
-          userData = JSON.parse(storedData)
-          currentSection = userData.currentSection || 0
-          initialScores = JSON.parse(storedInitialScores || '{}')
-          updatedScores = JSON.parse(storedUpdatedScores || '{}')
-        } else {
-          resetUserData()
-        }
+        resetUserData()
         renderSection(currentSection)
         updateProgressBar()
       })
@@ -341,9 +326,7 @@ function handleScaleKeydown(event) {
 
 // Update Progress Bar Function
 function updateProgressBar() {
-  // Total steps: survey sections + 1 for Datenschutz + 1 for Results
-  const totalSteps = surveyData.length + 2
-  // Current progress: currentSection + 1 (since index starts at 0)
+  const totalSteps = surveyData.length + 1 // Changed from +2 to +1
   const progress = ((currentSection + 1) / totalSteps) * 100
   const progressFill = document.getElementById('progressFill')
   const progressText = document.getElementById('progressText')
@@ -357,7 +340,7 @@ function updateProgressBar() {
 
 // Save Section Data Function (Corrected)
 function saveSectionData(isComplete = false) {
-  removeUnansweredMarkers() // Remove any previous error markings
+  removeUnansweredMarkers()
 
   const formData = new FormData(document.getElementById('surveyForm'))
   for (let [key, value] of formData.entries()) {
@@ -367,16 +350,15 @@ function saveSectionData(isComplete = false) {
 
   const userId = sessionStorage.getItem('userId')
   if (userId) {
-    const categoryScores = calculateCategoryScores(userData) // Pass userData here
+    const categoryScores = calculateCategoryScores(userData)
     const data = {
       userId: userId,
       data: userData,
       isComplete: isComplete,
       categoryScores: categoryScores,
-      currentSection: currentSection, // Save the current section
+      currentSection: currentSection,
     }
 
-    // If it's the Datenschutz step, include consent and signature
     if (currentSection === surveyData.length) {
       data.datenschutzConsent =
         document.getElementById('datenschutzConsent').checked
@@ -559,17 +541,15 @@ function createCompetencyChart1(initialScores, updatedScores) {
   const labels = fullLabels.map((key) => labelMap[key] || key)
   let currentHoveredIndex = -1
 
-  const datasets = []
-
-  if (Object.keys(initialScores).length > 0) {
-    datasets.push({
+  const datasets = [
+    {
       label: 'Initial Score',
       data: fullLabels.map((label) => initialScores[label] || 0),
       backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderWidth: 1,
-    })
-  }
+    },
+  ]
 
   if (Object.keys(updatedScores).length > 0) {
     datasets.push({
@@ -582,7 +562,6 @@ function createCompetencyChart1(initialScores, updatedScores) {
       borderWidth: 1,
     })
   }
-
   chart1Instance = new Chart(ctx, {
     type: 'bar',
     data: {
@@ -704,24 +683,16 @@ async function showResults() {
     }
     const data = await response.json()
 
-    // Update sessionStorage
+    // Update sessionStorage and global variables
     sessionStorage.setItem('initialScores', JSON.stringify(data.initialScores))
     sessionStorage.setItem('updatedScores', JSON.stringify(data.updatedScores))
-    sessionStorage.setItem(
-      'initialResponses',
-      JSON.stringify(data.initialResponses)
-    )
-    sessionStorage.setItem(
-      'updatedResponses',
-      JSON.stringify(data.updatedResponses)
-    )
-
-    // Update global variables
     initialScores = data.initialScores || {}
     updatedScores = data.updatedScores || {}
 
-    // Calculate competency score
-    const score = calculateCompetenzScore()
+    // Calculate competency score using initialScores if updatedScores is empty
+    const scoreData =
+      Object.keys(updatedScores).length > 0 ? updatedScores : initialScores
+    const score = calculateCompetenzScore(scoreData)
     const courses = getCoursesSuggestions(score)
 
     // Generate HTML for results
@@ -902,14 +873,11 @@ function removeUnansweredMarkers() {
   })
 }
 
-// Calculate Kompetenz Score Function (Already Correct)
-function calculateCompetenzScore() {
-  const scores = Object.values(updatedScores)
-  console.log('Updated Scores:', updatedScores) // Debug log
-  if (scores.length === 0) return 0
-  const total = scores.reduce((acc, val) => acc + val, 0)
-  console.log('Total Score:', total) // Debug log
-  return Math.round(total / scores.length)
+function calculateCompetenzScore(scores) {
+  const scoreValues = Object.values(scores)
+  if (scoreValues.length === 0) return 0
+  const total = scoreValues.reduce((acc, val) => acc + val, 0)
+  return Math.round(total / scoreValues.length)
 }
 
 // Utility Function to Get Lighter Color (Already Correct)
