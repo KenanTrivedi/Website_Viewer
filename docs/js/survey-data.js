@@ -62,7 +62,6 @@ const surveyData = [
       },
     ],
   },
-
   {
     title: 'Kommunikation und Kollaborieren',
     questions: [

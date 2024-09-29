@@ -1,5 +1,6 @@
 // server.js
 
+// Import Required Modules
 const express = require("express");
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const mongoose = require("mongoose");
@@ -8,15 +9,18 @@ const path = require("path");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
+// Initialize Express App
 const app = express();
 
-// Middleware
+// Middleware Configuration
 app.use(bodyParser.json());
-app.use(express.static("docs"));
+app.use(express.static("docs")); // Serve static files from 'docs' directory
 
 // MongoDB Connection
+const mongoURI =
+  process.env.MONGODB_URI || "mongodb://localhost:27017/surveyDB"; // Use environment variable or default
 mongoose
-  .connect(process.env.MONGODB_URI, {
+  .connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -24,20 +28,25 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 // Schemas and Models
+
+// Code Schema and Model
 const codeSchema = new mongoose.Schema({ code: String });
 const Code = mongoose.model("Code", codeSchema, "codes");
 
+// UserData Schema and Model
 const userDataSchema = new mongoose.Schema({
-  userId: String,
-  data: Object,
-  courses: { type: Array, default: [] },
+  userId: { type: String, required: true, unique: true },
+  data: { type: Object, default: {} },
+  courses: { type: [String], default: [] },
   isComplete: { type: Boolean, default: false },
   firstSubmissionTime: { type: Date },
   latestSubmissionTime: { type: Date },
   initialScores: { type: Object, default: {} },
-  updatedScores: { type: Object, default: {} }, // Ensure this field exists
+  updatedScores: { type: Object, default: {} },
   initialResponses: { type: Object, default: {} },
   updatedResponses: { type: Object, default: {} },
+  datenschutzConsent: { type: Boolean, default: false }, // New Field: User Consent
+  unterschrift: { type: String, default: "" }, // New Field: User Signature
 });
 
 const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
@@ -50,9 +59,10 @@ const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "password";
 // Import survey data
 const surveyData = require("./docs/js/survey-data.js");
 
-// Authentication Middleware
+// Authentication Middleware for Dashboard
 function authenticate(req, res, next) {
-  const token = req.headers.authorization?.split(" ")[1];
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.split(" ")[1];
   if (token) {
     jwt.verify(token, JWT_SECRET, (err, decoded) => {
       if (err) {
@@ -68,7 +78,11 @@ function authenticate(req, res, next) {
 
 // Routes
 
-// Register a new code for a user
+/**
+ * @route   POST /register
+ * @desc    Register a new code for a user
+ * @access  Public
+ */
 app.post("/register", async (req, res) => {
   const { code } = req.body;
   if (!code) {
@@ -94,7 +108,11 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// Login route - to handle both "Nein" and "Ja" flows
+/**
+ * @route   POST /login
+ * @desc    Handle user login
+ * @access  Public
+ */
 app.post("/login", async (req, res) => {
   const { code, courses } = req.body;
   if (!code) {
@@ -140,8 +158,10 @@ app.post("/login", async (req, res) => {
       data: userData.data,
       initialScores: userData.initialScores,
       updatedScores: userData.updatedScores,
-      initialResponses: userData.initialResponses, // Include initialResponses
-      updatedResponses: userData.updatedResponses, // Include updatedResponses
+      initialResponses: userData.initialResponses,
+      updatedResponses: userData.updatedResponses,
+      datenschutzConsent: userData.datenschutzConsent, // Include Consent
+      unterschrift: userData.unterschrift, // Include Signature
     });
   } catch (err) {
     console.error("Fehler beim Login:", err);
@@ -152,14 +172,30 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// Save user survey data
+/**
+ * @route   POST /api/save-user-data
+ * @desc    Save or update user survey data, including consent and signature
+ * @access  Public
+ */
 app.post("/api/save-user-data", async (req, res) => {
-  const { userId, data, isComplete, categoryScores } = req.body;
-  try {
-    if (!userId || !data) {
-      return res.status(400).json({ message: "Missing userId or data" });
-    }
+  const {
+    userId,
+    data,
+    isComplete,
+    categoryScores,
+    currentSection,
+    datenschutzConsent,
+    unterschrift,
+  } = req.body;
 
+  // Basic Input Validation
+  if (!userId || !data) {
+    return res
+      .status(400)
+      .json({ message: "Missing userId or data in request body." });
+  }
+
+  try {
     let userData = await UserData.findOne({ userId });
     const currentTime = new Date();
 
@@ -176,59 +212,82 @@ app.post("/api/save-user-data", async (req, res) => {
         updatedScores: isComplete ? categoryScores : {},
         initialResponses: isComplete ? data.responses : {},
         updatedResponses: isComplete ? {} : data.responses,
+        datenschutzConsent: datenschutzConsent || false,
+        unterschrift: unterschrift || "",
       });
     } else {
       // Returning user
       userData.latestSubmissionTime = currentTime;
-      userData.isComplete = isComplete;
+      userData.isComplete = isComplete || userData.isComplete;
 
       if (isComplete) {
         // Check if initialResponses are already set
         if (Object.keys(userData.initialResponses).length === 0) {
+          // First Complete Submission
           userData.initialResponses = data.responses;
           userData.initialScores = categoryScores;
         } else {
+          // Subsequent Complete Submissions
           userData.updatedResponses = data.responses;
           userData.updatedScores = categoryScores;
         }
       }
 
       // Update courses without duplicates
-      if (data.courses) {
+      if (data.courses && Array.isArray(data.courses)) {
         userData.courses = Array.from(
           new Set([...userData.courses, ...data.courses])
         );
       }
 
-      // Update the current section if needed
-      if (data.currentSection !== undefined) {
-        userData.data.currentSection = data.currentSection;
+      // Update current section
+      if (typeof currentSection === "number") {
+        userData.data.currentSection = currentSection;
       }
 
-      // Merge new responses into existing data
+      // Merge new responses
       userData.data.responses = {
         ...userData.data.responses,
         ...data.responses,
       };
+
+      // Update Datenschutz Consent and Unterschrift if Provided
+      if (typeof datenschutzConsent === "boolean") {
+        userData.datenschutzConsent = datenschutzConsent;
+      }
+
+      if (typeof unterschrift === "string" && unterschrift.trim() !== "") {
+        userData.unterschrift = unterschrift.trim();
+      }
     }
 
+    // Save to Database
     await userData.save();
 
+    // Respond with Success and Relevant Data
     res.status(200).json({
-      message: "Data saved successfully",
+      message: "User data saved successfully.",
       initialScores: userData.initialScores,
       updatedScores: userData.updatedScores,
       isComplete: userData.isComplete,
     });
   } catch (err) {
     console.error("Error saving user data:", err);
+    // Handle Duplicate userId Error
+    if (err.code === 11000) {
+      return res.status(409).json({ message: "userId already exists." });
+    }
     res
       .status(500)
       .json({ message: "Error saving user data", details: err.message });
   }
 });
 
-// Get user data by userId
+/**
+ * @route   GET /api/user-data/:userId
+ * @desc    Retrieve user survey data, including consent and signature
+ * @access  Public
+ */
 app.get("/api/user-data/:userId", async (req, res) => {
   const { userId } = req.params;
   try {
@@ -240,8 +299,10 @@ app.get("/api/user-data/:userId", async (req, res) => {
         isComplete: userData.isComplete,
         initialScores: userData.initialScores,
         updatedScores: userData.updatedScores,
-        initialResponses: userData.initialResponses, // Include initialResponses
-        updatedResponses: userData.updatedResponses, // Include updatedResponses
+        initialResponses: userData.initialResponses,
+        updatedResponses: userData.updatedResponses,
+        datenschutzConsent: userData.datenschutzConsent, // Include Consent
+        unterschrift: userData.unterschrift, // Include Signature
       });
     } else {
       res.status(404).json({ message: "User data not found" });
@@ -252,7 +313,11 @@ app.get("/api/user-data/:userId", async (req, res) => {
   }
 });
 
-// Login to dashboard
+/**
+ * @route   POST /api/dashboard-login
+ * @desc    Handle dashboard login and provide JWT token
+ * @access  Public
+ */
 app.post("/api/dashboard-login", (req, res) => {
   const { userId, password } = req.body;
   if (userId === DASHBOARD_USER_ID && password === DASHBOARD_PASSWORD) {
@@ -263,17 +328,29 @@ app.post("/api/dashboard-login", (req, res) => {
   }
 });
 
-// Serve the dashboard HTML page
+/**
+ * @route   GET /dashboard
+ * @desc    Serve the dashboard HTML page
+ * @access  Public
+ */
 app.get("/dashboard", (req, res) => {
   res.sendFile(path.resolve(__dirname, "docs", "dashboard.html"));
 });
 
-// Serve the dashboard login page
+/**
+ * @route   GET /dashboard-login
+ * @desc    Serve the dashboard login page
+ * @access  Public
+ */
 app.get("/dashboard-login", (req, res) => {
   res.sendFile(path.resolve(__dirname, "docs", "dashboard-login.html"));
 });
 
-// Get data for the dashboard
+/**
+ * @route   GET /api/dashboard-data
+ * @desc    Retrieve all user data for the dashboard (Protected)
+ * @access  Private
+ */
 app.get("/api/dashboard-data", authenticate, async (req, res) => {
   try {
     const users = await UserData.find().lean();
@@ -307,8 +384,10 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
           courses: user.courses || [],
           initialScores: user.initialScores || {},
           updatedScores: user.updatedScores || {},
-          initialResponses: user.initialResponses || {}, // Include initial responses
-          updatedResponses: user.updatedResponses || {}, // Include updated responses
+          initialResponses: user.initialResponses || {},
+          updatedResponses: user.updatedResponses || {},
+          datenschutzConsent: user.datenschutzConsent, // Include Consent
+          unterschrift: user.unterschrift, // Include Signature
         };
       })
     );
@@ -320,14 +399,24 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
   }
 });
 
-// Serve the default index page for all other routes
+/**
+ * @route   GET /*
+ * @desc    Serve the default index page for all other routes
+ * @access  Public
+ */
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "docs", "index.html"));
 });
 
 // Helper Functions
 
-// Calculate category scores based on survey responses
+/**
+ * @function calculateCategoryScores
+ * @desc    Calculate category scores based on survey responses
+ * @param   {Object} responses - User responses
+ * @param   {Array} surveyData - Survey data structure
+ * @returns {Object} - Category scores as percentages
+ */
 function calculateCategoryScores(responses, surveyData) {
   const categoryScores = {};
 
@@ -363,7 +452,10 @@ function calculateCategoryScores(responses, surveyData) {
   return categoryScores;
 }
 
-// Function to update the CSV file with user survey data
+/**
+ * @function updateCSV
+ * @desc    Update the CSV file with user survey data
+ */
 async function updateCSV() {
   const allUserData = await UserData.find().lean();
 
@@ -396,8 +488,8 @@ async function updateCSV() {
       return {
         userId: user.userId,
         userCode: codeDoc ? codeDoc.code : "Unknown",
-        gender: user.data.responses?.q0_0 || "",
-        birthYear: user.data.responses?.q0_1 || "",
+        gender: responses.q0_0 || "",
+        birthYear: responses.q0_1 || "",
         firstSubmissionTime: user.firstSubmissionTime,
         latestSubmissionTime: user.latestSubmissionTime,
         courses: user.courses ? user.courses.join(", ") : "",
@@ -432,9 +524,10 @@ async function updateCSV() {
           });
           return acc;
         }, {}),
-        datum: user.data.responses?.[`q${surveyData.length - 1}_0`] || "",
-        unterschrift:
-          user.data.responses?.[`q${surveyData.length - 1}_1`] || "",
+        datum: user.datenschutzConsent
+          ? new Date().toISOString().split("T")[0]
+          : "",
+        unterschrift: user.unterschrift || "",
       };
     })
   );

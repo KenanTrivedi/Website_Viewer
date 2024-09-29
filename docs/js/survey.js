@@ -1,6 +1,6 @@
 // survey.js
 
-// Global variables
+// Global Variables
 let currentSection = 0
 let userData = {}
 let chart1Instance = null
@@ -67,7 +67,6 @@ function setupEventListeners() {
   document
     .getElementById('saveProgressButton')
     .addEventListener('click', saveAndResumeLater)
-  // Removed section-select since "Springen zu Abschnitt:" was deleted
 }
 
 // Check Resume Token Function
@@ -151,134 +150,173 @@ function resetUserData() {
 
 // Render Section Function
 function renderSection(index) {
-  const section = surveyData[index]
-  let html = `<div class="section"><h2>${section.title}</h2>`
+  if (index < surveyData.length) {
+    // Render regular survey section
+    const section = surveyData[index]
+    let html = `<div class="section"><h2>${section.title}</h2>`
 
-  // Add instruction before "Suchen, Verarbeiten und Aufbewahren"
-  if (section.title === 'Suchen, Verarbeiten und Aufbewahren') {
-    html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
-  }
-
-  section.questions.forEach((question, qIndex) => {
-    const questionId = `q${index}_${qIndex}`
-    let savedValue = ''
-
-    if (userData[questionId] !== undefined) {
-      savedValue = userData[questionId]
+    // Add instruction before "Suchen, Verarbeiten und Aufbewahren"
+    if (section.title === 'Suchen, Verarbeiten und Aufbewahren') {
+      html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
     }
 
-    html += `<div class="question"><p>${question.text}</p>`
+    section.questions.forEach((question, qIndex) => {
+      const questionId = `q${index}_${qIndex}`
+      let savedValue = ''
 
-    if (question.type === 'radio') {
-      question.options.forEach((option) => {
-        html += `<label><input type="radio" name="${questionId}" value="${option}" ${
-          savedValue === option ? 'checked' : ''
-        } required> ${option}</label><br>`
-      })
-    } else if (question.type === 'number') {
-      html += `<div class="input-container">
-                <input type="number" id="${questionId}" name="${questionId}" value="${savedValue}" min="${question.min}" max="${question.max}" required>
-                <label for="${questionId}" class="floating-label">Füge das Jahr als Zahl ein</label>
-               </div>`
-    } else if (question.type === 'scale') {
-      html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`
-      for (let i = 0; i <= 6; i++) {
-        html += `<label class="scale-label">
-                  <input type="radio" name="${questionId}" value="${i}" ${
-          savedValue === i.toString() ? 'checked' : ''
-        } required>
-                  <span class="scale-button" role="radio" aria-checked="${
-                    savedValue === i.toString() ? 'true' : 'false'
-                  }" tabindex="0">${i}</span>
-                  <span class="sr-only">${
-                    i === 0
-                      ? 'gar nicht kompetent'
-                      : i === 6
-                      ? 'ausgesprochen kompetent'
-                      : ''
-                  }</span>
-             </label>`
+      if (userData[questionId] !== undefined) {
+        savedValue = userData[questionId]
       }
-      html += `</div>
-               <div class="scale-labels">
-                 <span>gar nicht kompetent</span>
-                 <span>ausgesprochen kompetent</span>
-               </div>`
-    } else if (question.type === 'dropdown') {
-      html += `<select id="${questionId}" name="${questionId}" required>
-                <option value="" disabled ${
-                  !savedValue ? 'selected' : ''
-                }>Bitte wählen Sie eine Option</option>
-                ${question.options
-                  .map(
-                    (option) =>
-                      `<option value="${option}" ${
-                        savedValue === option ? 'selected' : ''
-                      }>${option}</option>`
-                  )
-                  .join('')}
+
+      html += `<div class="question"><p>${question.text}</p>`
+
+      if (question.type === 'radio') {
+        question.options.forEach((option) => {
+          html += `<label><input type="radio" name="${questionId}" value="${option}" ${
+            savedValue === option ? 'checked' : ''
+          } required> ${option}</label><br>`
+        })
+      } else if (question.type === 'number') {
+        html += `<div class="input-container">
+                  <input type="number" id="${questionId}" name="${questionId}" value="${savedValue}" min="${question.min}" max="${question.max}" required>
+                  <label for="${questionId}" class="floating-label">Füge das Jahr als Zahl ein</label>
+                 </div>`
+      } else if (question.type === 'scale') {
+        html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`
+        for (let i = 0; i <= 6; i++) {
+          html += `<label class="scale-label">
+                    <input type="radio" name="${questionId}" value="${i}" ${
+            savedValue === i.toString() ? 'checked' : ''
+          } required>
+                    <span class="scale-button" role="radio" aria-checked="${
+                      savedValue === i.toString() ? 'true' : 'false'
+                    }" tabindex="0">${i}</span>
+                    <span class="sr-only">${
+                      i === 0
+                        ? 'gar nicht kompetent'
+                        : i === 6
+                        ? 'ausgesprochen kompetent'
+                        : ''
+                    }</span>
+               </label>`
+        }
+        html += `</div>
+                 <div class="scale-labels">
+                   <span>gar nicht kompetent</span>
+                   <span>ausgesprochen kompetent</span>
+                 </div>`
+      } else if (question.type === 'dropdown') {
+        html += `<select id="${questionId}" name="${questionId}" required>
+                  <option value="" disabled ${
+                    !savedValue ? 'selected' : ''
+                  }>Bitte wählen Sie eine Option</option>
+                  ${question.options
+                    .map(
+                      (option) =>
+                        `<option value="${option}" ${
+                          savedValue === option ? 'selected' : ''
+                        }>${option}</option>`
+                    )
+                    .join('')}
                </select>`
-    } else if (question.type === 'text') {
-      html += `<input type="text" id="${questionId}" name="${questionId}" value="${savedValue}" required>`
-    } else if (question.type === 'date') {
-      html += `<input type="date" id="${questionId}" name="${questionId}" value="${savedValue}" required>`
-    }
+      } else if (question.type === 'text') {
+        html += `<input type="text" id="${questionId}" name="${questionId}" value="${savedValue}" required>`
+      } else if (question.type === 'date') {
+        html += `<input type="date" id="${questionId}" name="${questionId}" value="${savedValue}" required>`
+      }
+
+      html += `</div>`
+    })
 
     html += `</div>`
-  })
+    document.getElementById('surveyForm').innerHTML = html
 
-  // **New Section: Datenschutz and Final Inputs**
-  if (index === surveyData.length - 1) {
-    // Append Datenschutz Information
-    html += `
-      <div class="datenschutz-section">
-        <h3>Datenschutzerklärung</h3>
-        <p>
-          <!-- Existing Datenschutzerklärung content -->
-          <strong>Projektleitung:</strong><br>
-          Prof.in Dr. Charlott Rubach & Anne-Kathrin Hirsch<br>
-          <!-- ... rest of the content ... -->
-          <p>
-            Ich versichere mit meiner Zustimmung, dass mir die Datenschutzhinweise zur Befragung „Open-Digi“ zur Kenntnis gegeben worden. Ich willige in die darin näher beschriebene Verarbeitung meiner personenbezogenen Daten ein.
-          </p>
-          <p>
-            Ansprechperson für weitere Fragen ist Prof.in Dr. Charlott Rubach (charlott.rubach@uni-rostock.de).
-          </p>
-        </p>
-        <div class="final-inputs">
-          <div class="question">
-            <p>Datum</p>
-            <input type="date" id="datum" name="datum" value="${
-              new Date().toISOString().split('T')[0]
-            }" readonly required>
-          </div>
-          <div class="question">
-            <p>Unterschrift (Bitte tippen Sie Ihren Namen als Unterschrift)</p>
-            <input type="text" id="unterschrift" name="unterschrift" required>
-          </div>
-          <button id="submitFinal" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Abschließen</button>
-        </div>
-      </div>
-    `
+    document.querySelectorAll('.scale-button').forEach((button) => {
+      button.addEventListener('keydown', handleScaleKeydown)
+    })
+
+    updateNavigationButtons()
+    window.scrollTo(0, 0) // Ensure the page starts at the top
+  } else if (index === surveyData.length) {
+    // Render Datenschutz section
+    renderDatenschutzSection()
   }
+}
 
-  html += `</div>`
-  document.getElementById('surveyForm').innerHTML = html
+// Function to render the Datenschutz section
+function renderDatenschutzSection() {
+  const datenschutzHtml = `
+    <div class="datenschutz-section">
+      <h2>Datenschutzerklärung</h2>
+      <div class="datenschutz-content">
+        <h3>Projektleitung:</h3>
+        <p>Prof.in Dr. Charlott Rubach & Anne-Kathrin Hirsch</p>
+        <p>Sehr geehrte Lehramtsstudierende,</p>
+        <p>
+          die Digitalisierung und Digitalität im Bildungsbereich erhielten in den letzten Jahren große Aufmerksamkeit. Der kompetente Umgang mit digitalen Medien gehört zum Aufgabenbereich von Lehrkräften. Daher ist es bedeutsam, dass Lehramtsstudierende während ihrer Ausbildung auf diesen Umgang vorbereitet werden. Wir interessieren uns im Rahmen dieser Studie „Open-Digi“ dafür, inwieweit die von uns erstellten Lernerfahrung zur Förderung digitaler Kompetenzen beitragen.
+        </p>
+        <h3>Wer sind wir?</h3>
+        <p>
+          Wir sind Prof. Dr. Charlott Rubach und Anne-Kathrin Hirsch, Bildungsforscherinnen an der Universität Rostock. Unsere Forschungsschwerpunkte sind Digitalisierung, Förderung digitaler Kompetenzen und Gestaltungsmöglichkeiten einer bedarfsorientierten Lehrkräftebildung.
+        </p>
+        <h3>Worum geht es in diesem Projekt?</h3>
+        <p>
+          Ziel des Projektes ist die Untersuchung von effektiven Lernerfahrungen für die Entwicklung digitaler Kompetenzen. Das Projekt besteht aus mehreren Schritten:
+        </p>
+        <ul>
+          <li>Sie füllen die Befragung zum Open-Digi Projekt aus, welcher der Pre-Diagnostik gilt und zirka X Minuten dauert. Alle Befragungen thematisieren ausschließlich Aspekte von digitaler Kompetenz.</li>
+          <li>Ihnen werden auf Grundlage der Diagnostik 2-3 Kurse vorgeschlagen, die Sie bearbeiten sollen.</li>
+          <li>Sie bearbeiten die Kurse in einer Dauer von zirka einer Stunde.</li>
+          <li>Sie durchlaufen die Post-Diagnostik direkt nach Bearbeitung der Kurse.</li>
+          <li>Sie machen eine dritte Befragung, 1 Monat nach Bearbeitung der Kurse.</li>
+        </ul>
+        <h3>Was bedeutet die Teilnahme für mich und meine Daten?</h3>
+        <p>
+          Ihre Teilnahme an unserer Studie ist freiwillig. Wenn Sie an der Studie teilnehmen, können Sie einzelne Fragen überspringen oder die gesamte Befragung jederzeit ganz abbrechen. In letzterem Falle, vernichten wir die Daten.
+        </p>
+        <p>
+          Die Befragung ist anonym. Das heißt, es werden auch ausschließlich anonymisierte Informationen analysiert und im Rahmen wissenschaftlicher Arbeiten veröffentlicht. Es werden keine Informationen gespeichert, die es uns möglich machen, Sie als Person zu identifizieren. Eine Rücknahme Ihres Einverständnisses und damit Löschung Ihrer Daten, nachdem Sie den Fragebogen ausgefüllt und abgegeben haben, ist demnach nicht möglich. Anonymisierung ist das Verändern personenbezogener Daten in der Weise, dass Informationen nicht mehr oder nur mit einem unverhältnismäßig großen Aufwand an Zeit, Kosten und Arbeitskraft einer bestimmten Person zugeordnet werden können. Anonymisiert sind auch Daten, die keine persönliche Information mehr enthalten, bspw. Alter, Geschlecht, Lehramtstyp, Fächer und Hochschulsemester.
+        </p>
+        <p>
+          Wir speichern Ihre Antworten und Ihre Angaben (z. B. Alter und Geschlecht). Diese werden bis zum Abschluss der Untersuchung und maximal 10 Jahre auf den Dienstrechnern der Wissenschaftlerinnen aus dem Projekt gespeichert und danach gelöscht.
+        </p>
+        <p>
+          Es erfolgt keine Weitergabe Ihrer Daten an Dritte außerhalb des Forschungsprojektes.
+        </p>
+        <p>
+          Unter folgendem Link finden Sie ausführliche Hinweise zum Schutz Ihrer Daten.
+        </p>
+      </div>
+      <div class="final-inputs">
+        <div class="question">
+          <p>Datum</p>
+          <input type="date" id="datum" name="datum" value="${
+            new Date().toISOString().split('T')[0]
+          }" readonly required>
+        </div>
+        <div class="question">
+          <p>Unterschrift (Bitte tippen Sie Ihren Namen als Unterschrift)</p>
+          <input type="text" id="unterschrift" name="unterschrift" required>
+        </div>
+        <div class="agreement">
+          <label>
+            <input type="checkbox" id="datenschutzConsent" required>
+            <span>Ich stimme der Datenschutzerklärung zu.</span>
+          </label>
+        </div>
+        <button id="submitFinal" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Abschließen</button>
+      </div>
+    </div>
+  `
 
-  document.querySelectorAll('.scale-button').forEach((button) => {
-    button.addEventListener('keydown', handleScaleKeydown)
-  })
+  document.getElementById('surveyForm').innerHTML = datenschutzHtml
+
+  // Add event listener to the final submit button
+  document
+    .getElementById('submitFinal')
+    .addEventListener('click', submitFinalData)
 
   updateNavigationButtons()
-  // updateSectionDropdown(index); // Removed as per user request
-  window.scrollTo(0, 0) // Ensure the page starts at the top
-
-  // **New Event Listener for Final Submit Button**
-  if (index === surveyData.length - 1) {
-    document
-      .getElementById('submitFinal')
-      .addEventListener('click', submitFinalData)
-  }
 }
 
 // Handle Scale Keydown Function
@@ -292,17 +330,18 @@ function handleScaleKeydown(event) {
 
 // Update Progress Bar Function
 function updateProgressBar() {
-  const progress = ((currentSection + 1) / surveyData.length) * 100
+  // Total steps: survey sections + 1 for Datenschutz + 1 for Results
+  const totalSteps = surveyData.length + 2
+  // Current progress: currentSection + 1 (since index starts at 0)
+  const progress = ((currentSection + 1) / totalSteps) * 100
   const progressFill = document.getElementById('progressFill')
   const progressText = document.getElementById('progressText')
 
   progressFill.style.width = `${progress}%`
-  progressText.textContent = `Abschnitt ${currentSection + 1} von ${
-    surveyData.length
-  }`
+  progressText.textContent = `Schritt ${currentSection + 1} von ${totalSteps}`
 
   progressFill.setAttribute('aria-valuenow', currentSection + 1)
-  progressFill.setAttribute('aria-valuemax', surveyData.length)
+  progressFill.setAttribute('aria-valuemax', totalSteps)
 }
 
 // Save Section Data Function (Corrected)
@@ -323,8 +362,14 @@ function saveSectionData(isComplete = false) {
       data: userData,
       isComplete: isComplete,
       categoryScores: categoryScores,
-      // Removed 'courses' as it's handled in showResults
       currentSection: currentSection, // Save the current section
+    }
+
+    // If it's the Datenschutz step, include consent and signature
+    if (currentSection === surveyData.length) {
+      data.datenschutzConsent =
+        document.getElementById('datenschutzConsent').checked
+      data.unterschrift = document.getElementById('unterschrift').value.trim()
     }
 
     fetch('/api/save-user-data', {
@@ -361,9 +406,10 @@ function saveSectionData(isComplete = false) {
 // Finish Survey Function (Updated to render Datenschutz inline)
 function finishSurvey() {
   if (validateSection()) {
-    saveSectionData(true)
-    // Instead of showing a modal, do nothing here as Datenschutz is rendered inline
-    // The Datenschutz section is already part of the last survey section
+    saveSectionData(false)
+    currentSection++
+    renderSection(currentSection)
+    updateProgressBar()
   } else {
     alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
     markUnansweredQuestions()
@@ -459,27 +505,392 @@ function getCoursesSuggestions(score) {
   }
 }
 
-// Show Datenschutz Function (Removed as we are integrating it inline)
+// Create Competency Chart Function
+function createCompetencyChart1(initialScores, updatedScores) {
+  const canvas = document.getElementById('competencyChart1')
+  const descriptionBox = document.getElementById('descriptionBox1')
+  if (!canvas || !descriptionBox) {
+    console.error('Chart canvas or description box not found')
+    return
+  }
 
-// Render Final Inputs Function (Removed as it's now part of renderSection)
+  if (chart1Instance) {
+    chart1Instance.destroy()
+  }
 
-// Submit Final Data Function (Updated to handle inline Datenschutz)
-function submitFinalData() {
-  if (validateSection()) {
-    saveSectionData(true) // Save with isComplete = true
-    showResults() // Display the results
-  } else {
-    alert('Bitte beantworten Sie alle Fragen, bevor Sie abschließen.')
-    markUnansweredQuestions()
+  const ctx = canvas.getContext('2d')
+
+  // Determine all unique labels from both initial and updated scores
+  const allLabels = new Set([
+    ...Object.keys(initialScores),
+    ...Object.keys(updatedScores),
+  ])
+  const fullLabels = Array.from(allLabels)
+  const labels = fullLabels.map((key) => labelMap[key] || key)
+  let currentHoveredIndex = -1
+
+  const datasets = []
+
+  // Initial Scores Dataset
+  if (Object.keys(initialScores).length > 0) {
+    datasets.push({
+      label: 'Initial Score',
+      data: fullLabels.map((label) => initialScores[label] || 0),
+      backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      borderWidth: 1,
+    })
+  }
+
+  // Updated Scores Dataset
+  if (Object.keys(updatedScores).length > 0) {
+    datasets.push({
+      label: 'Aktualisierter Score',
+      data: fullLabels.map((label) => updatedScores[label] || 0),
+      backgroundColor: fullLabels.map((label) =>
+        getLighterColor(colorMap[label] || '#999999')
+      ),
+      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      borderWidth: 1,
+    })
+  }
+
+  chart1Instance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: datasets,
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          title: {
+            display: true,
+            text: 'Score (%)',
+          },
+        },
+        x: {
+          ticks: {
+            autoSkip: false,
+            maxRotation: 45,
+            minRotation: 45,
+          },
+        },
+      },
+      plugins: {
+        legend: {
+          display: datasets.length > 1, // Show legend only if multiple datasets
+        },
+        tooltip: {
+          callbacks: {
+            title: (tooltipItems) => {
+              const index = tooltipItems[0].dataIndex
+              const fullLabel = fullLabels[index]
+              return fullLabel || tooltipItems[0].label
+            },
+            label: (context) =>
+              `${context.dataset.label}: ${context.parsed.y}%`,
+          },
+        },
+      },
+      onHover: (event, activeElements) => {
+        if (activeElements.length > 0) {
+          const dataIndex = activeElements[0].index
+          if (dataIndex !== currentHoveredIndex) {
+            currentHoveredIndex = dataIndex
+            const fullCompetency = fullLabels[dataIndex]
+            updateDescriptionBox(
+              descriptionBox,
+              fullCompetency,
+              competencyDescriptions[fullCompetency]
+            )
+          }
+        } else {
+          currentHoveredIndex = -1
+          descriptionBox.innerHTML = ''
+          descriptionBox.style.backgroundColor = ''
+          descriptionBox.style.border = ''
+        }
+      },
+    },
+  })
+
+  chart1Instance.update()
+}
+
+// Populate Form Fields Function
+function populateFormFields(form, data) {
+  surveyData.forEach((section, sectionIndex) => {
+    if (section.title === 'Persönliche Angaben') {
+      section.questions.forEach((question, questionIndex) => {
+        const questionId = `q${sectionIndex}_${questionIndex}`
+        const value = data[questionId]
+        if (value !== undefined) {
+          const field = form.querySelector(`[name="${questionId}"]`)
+          if (field) {
+            if (field.type === 'radio') {
+              const radioButton = form.querySelector(
+                `[name="${questionId}"][value="${value}"]`
+              )
+              if (radioButton) radioButton.checked = true
+            } else if (field.type === 'date') {
+              field.value = value // Already set to today's date and read-only
+            } else {
+              field.value = value
+            }
+          }
+        }
+      })
+    }
+  })
+}
+
+// Download Chart Function
+function downloadChart(event) {
+  event.preventDefault()
+  const canvas1 = document.getElementById('competencyChart1')
+  if (canvas1) {
+    const link = document.createElement('a')
+    link.download = 'kompetenz-diagramm.png'
+    link.href = canvas1.toDataURL()
+    link.click()
   }
 }
 
-// Hide Navigation Buttons Function (Already Correct)
-function hideNavigationButtons() {
-  const navButtons = document.querySelector('.navigation-buttons')
-  if (navButtons) {
-    navButtons.style.display = 'none'
+// Show Results Function
+async function showResults() {
+  const userId = sessionStorage.getItem('userId')
+  if (!userId) {
+    console.error('No userId found in sessionStorage.')
+    return
   }
+
+  try {
+    const response = await fetch(`/api/user-data/${userId}`)
+    if (!response.ok) {
+      throw new Error('Failed to fetch user data')
+    }
+    const data = await response.json()
+
+    // Update sessionStorage
+    sessionStorage.setItem('initialScores', JSON.stringify(data.initialScores))
+    sessionStorage.setItem('updatedScores', JSON.stringify(data.updatedScores))
+    sessionStorage.setItem(
+      'initialResponses',
+      JSON.stringify(data.initialResponses)
+    )
+    sessionStorage.setItem(
+      'updatedResponses',
+      JSON.stringify(data.updatedResponses)
+    )
+
+    // Update global variables
+    initialScores = data.initialScores || {}
+    updatedScores = data.updatedScores || {}
+
+    // Calculate competency score
+    const score = calculateCompetenzScore()
+    const courses = getCoursesSuggestions(score)
+
+    // Generate HTML for results
+    const resultHtml = `
+      <h2>Ihr Kompetenzscore beträgt ${score}%</h2>
+      <p>Dieser Score repräsentiert Ihren aktuellen Stand in digitalen Kompetenzen basierend auf Ihren Antworten.</p>
+      <h3>Kursempfehlungen</h3>
+      <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse zur Verbesserung Ihrer digitalen Kompetenzen:</p>
+      <ul>
+        ${courses.map((course) => `<li>${course}</li>`).join('')}
+      </ul>
+      <h3>Kompetenzdiagramm</h3>
+      <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
+        Object.keys(updatedScores).length > 0
+          ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der zweiten Befragung (T2) darstellen.'
+          : ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung.'
+      }</p>
+      <div style="height: 300px; width: 100%;">
+        <canvas id="competencyChart1"></canvas>
+      </div>
+      <div id="descriptionBox1"></div>
+      <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Diagramm herunterladen</button>
+      <hr>
+    `
+
+    document.getElementById('surveyForm').innerHTML = resultHtml
+
+    // Create the competency chart
+    createCompetencyChart1(initialScores, updatedScores)
+
+    // Add event listener to the download button
+    const downloadButton = document.getElementById('downloadChart')
+    if (downloadButton) {
+      downloadButton.addEventListener('click', downloadChart)
+    } else {
+      console.error('Download button not found')
+    }
+
+    // Hide navigation buttons
+    hideNavigationButtons()
+  } catch (error) {
+    console.error('Error displaying results:', error)
+    alert('Fehler beim Anzeigen der Ergebnisse. Bitte versuchen Sie es erneut.')
+  }
+}
+
+// Assign showResults to window after its definition
+window.showResults = showResults
+
+// Update Navigation Buttons Function (Corrected)
+function updateNavigationButtons() {
+  const prevButton = document.getElementById('prevButton')
+  const nextButton = document.getElementById('nextButton')
+
+  // Disable the Previous button on the first section
+  if (currentSection === 0) {
+    prevButton.disabled = true
+  } else {
+    prevButton.disabled = false
+  }
+
+  if (currentSection === surveyData.length) {
+    // Hide the Next button and show only the Final button if needed
+    nextButton.style.display = 'none'
+  } else {
+    nextButton.style.display = 'inline-block'
+    if (currentSection === surveyData.length - 1) {
+      // Change the Next button to 'Finish' on the last survey section
+      nextButton.textContent = 'Finish'
+      // Remove existing event listeners to prevent multiple triggers
+      nextButton.removeEventListener('click', nextSection)
+      nextButton.removeEventListener('click', finishSurvey)
+      // Add Finish event listener
+      nextButton.addEventListener('click', finishSurvey)
+    } else {
+      nextButton.textContent = 'Weiter'
+      // Remove existing event listeners to prevent multiple triggers
+      nextButton.removeEventListener('click', finishSurvey)
+      // Add Next event listener
+      nextButton.addEventListener('click', nextSection)
+    }
+  }
+}
+
+// Next Section Function (Already Correct)
+function nextSection() {
+  if (currentSection < surveyData.length) {
+    if (validateSection()) {
+      saveSectionData(false)
+      currentSection++
+      renderSection(currentSection)
+      updateProgressBar()
+      updateNavigationButtons()
+      window.scrollTo(0, 0)
+    } else {
+      alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
+      markUnansweredQuestions()
+    }
+  }
+}
+
+// Previous Section Function (Already Correct)
+function previousSection() {
+  if (currentSection > 0) {
+    currentSection--
+    renderSection(currentSection)
+    updateProgressBar()
+    updateNavigationButtons()
+    window.scrollTo(0, 0)
+  }
+}
+
+// Logout Function (Already Correct)
+function logout() {
+  sessionStorage.clear()
+  window.location.href = 'login.html'
+}
+
+// Save and Resume Later Function (Already Correct)
+function saveAndResumeLater() {
+  const resumeToken = btoa(
+    JSON.stringify({
+      userId: sessionStorage.getItem('userId'),
+      section: currentSection,
+    })
+  )
+  localStorage.setItem('surveyResumeToken', resumeToken)
+  alert('Ihr Fortschritt wurde gespeichert. Sie können später fortfahren.')
+}
+
+// Validate Section Function (Already Correct)
+function validateSection() {
+  const form = document.getElementById('surveyForm')
+  if (!form) return false
+
+  const requiredFields = form.querySelectorAll('[required]')
+  let isValid = true
+
+  requiredFields.forEach((field) => {
+    if (
+      (!field.value ||
+        (field.type === 'radio' &&
+          !form.querySelector(`input[name="${field.name}"]:checked`))) &&
+      !field.closest('.question').classList.contains('unanswered')
+    ) {
+      field.closest('.question').classList.add('unanswered')
+      isValid = false
+    }
+
+    // Additional validation for date fields
+    if (field.type === 'date') {
+      if (!field.value) {
+        field.closest('.question').classList.add('unanswered')
+        isValid = false
+      }
+    }
+
+    // Additional validation for number fields
+    if (field.type === 'number' && field.id.startsWith('q0_')) {
+      const year = parseInt(field.value, 10)
+      if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+        field.closest('.question').classList.add('unanswered')
+        isValid = false
+      }
+    }
+  })
+
+  return isValid
+}
+
+// Validate Datenschutz Section Function
+function validateDatenschutz() {
+  const datenschutzConsent =
+    document.getElementById('datenschutzConsent').checked
+  const unterschrift = document.getElementById('unterschrift').value.trim()
+
+  let isValid = true
+
+  if (!datenschutzConsent) {
+    isValid = false
+    alert('Bitte stimmen Sie der Datenschutzerklärung zu.')
+  }
+
+  if (unterschrift === '') {
+    isValid = false
+    alert('Bitte geben Sie Ihre Unterschrift ein.')
+  }
+
+  return isValid
+}
+
+// Remove Unanswered Markers Function (Already Correct)
+function removeUnansweredMarkers() {
+  const unansweredQuestions = document.querySelectorAll('.question.unanswered')
+  unansweredQuestions.forEach((question) => {
+    question.classList.remove('unanswered')
+  })
 }
 
 // Calculate Kompetenz Score Function (Already Correct)
@@ -654,33 +1065,6 @@ function createCompetencyChart1(initialScores, updatedScores) {
   chart1Instance.update()
 }
 
-// Populate Form Fields Function (Already Correct)
-function populateFormFields(form, data) {
-  surveyData.forEach((section, sectionIndex) => {
-    if (section.title === 'Persönliche Angaben') {
-      section.questions.forEach((question, questionIndex) => {
-        const questionId = `q${sectionIndex}_${questionIndex}`
-        const value = data[questionId]
-        if (value !== undefined) {
-          const field = form.querySelector(`[name="${questionId}"]`)
-          if (field) {
-            if (field.type === 'radio') {
-              const radioButton = form.querySelector(
-                `[name="${questionId}"][value="${value}"]`
-              )
-              if (radioButton) radioButton.checked = true
-            } else if (field.type === 'date') {
-              field.value = value // Already set to today's date and read-only
-            } else {
-              field.value = value
-            }
-          }
-        }
-      })
-    }
-  })
-}
-
 // Download Chart Function (Already Correct)
 function downloadChart(event) {
   event.preventDefault()
@@ -772,134 +1156,13 @@ async function showResults() {
   }
 }
 
-// Assign showResults to window after its definition
-window.showResults = showResults
-
-// Update Navigation Buttons Function (Corrected)
-function updateNavigationButtons() {
-  const prevButton = document.getElementById('prevButton')
-  const nextButton = document.getElementById('nextButton')
-
-  // Disable the Previous button on the first section
-  if (currentSection === 0) {
-    prevButton.disabled = true
-  } else {
-    prevButton.disabled = false
+// Hide Navigation Buttons Function (Already Correct)
+function hideNavigationButtons() {
+  const navButtons = document.querySelector('.navigation-buttons')
+  if (navButtons) {
+    navButtons.style.display = 'none'
   }
-
-  // Change the Next button to 'Finish' on the last section
-  if (currentSection === surveyData.length - 1) {
-    nextButton.textContent = 'Finish'
-    // Remove existing event listeners to prevent multiple triggers
-    nextButton.removeEventListener('click', nextSection)
-    nextButton.removeEventListener('click', finishSurvey)
-    // Add Finish event listener
-    nextButton.addEventListener('click', finishSurvey)
-  } else {
-    nextButton.textContent = 'Weiter'
-    // Remove existing event listeners to prevent multiple triggers
-    nextButton.removeEventListener('click', finishSurvey)
-    nextButton.removeEventListener('click', nextSection)
-    // Add Next event listener
-    nextButton.addEventListener('click', nextSection)
-  }
-}
-
-// Next Section Function (Already Correct)
-function nextSection() {
-  if (currentSection < surveyData.length - 1) {
-    if (validateSection()) {
-      saveSectionData(false)
-      currentSection++
-      renderSection(currentSection)
-      updateProgressBar()
-      // Scroll to top to avoid automatic scrolling to the last question
-      window.scrollTo(0, 0)
-    } else {
-      alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
-      markUnansweredQuestions()
-    }
-  }
-}
-
-// Previous Section Function (Already Correct)
-function previousSection() {
-  if (currentSection > 0) {
-    currentSection--
-    renderSection(currentSection)
-    updateProgressBar()
-    // Scroll to top when navigating back
-    window.scrollTo(0, 0)
-  }
-}
-
-// Logout Function (Already Correct)
-function logout() {
-  sessionStorage.clear()
-  window.location.href = 'login.html'
-}
-
-// Save and Resume Later Function (Already Correct)
-function saveAndResumeLater() {
-  const resumeToken = btoa(
-    JSON.stringify({
-      userId: sessionStorage.getItem('userId'),
-      section: currentSection,
-    })
-  )
-  localStorage.setItem('surveyResumeToken', resumeToken)
-  alert('Ihr Fortschritt wurde gespeichert. Sie können später fortfahren.')
-}
-
-// Validate Section Function (Already Correct)
-function validateSection() {
-  const form = document.getElementById('surveyForm')
-  if (!form) return false
-
-  const requiredFields = form.querySelectorAll('[required]')
-  let isValid = true
-
-  requiredFields.forEach((field) => {
-    if (
-      (!field.value ||
-        (field.type === 'radio' &&
-          !form.querySelector(`input[name="${field.name}"]:checked`))) &&
-      !field.closest('.question').classList.contains('unanswered')
-    ) {
-      field.closest('.question').classList.add('unanswered')
-      isValid = false
-    }
-
-    // Additional validation for date fields
-    if (field.type === 'date') {
-      if (!field.value) {
-        field.closest('.question').classList.add('unanswered')
-        isValid = false
-      }
-    }
-
-    // Additional validation for number fields
-    if (field.type === 'number' && field.id.startsWith('q0_')) {
-      const year = parseInt(field.value, 10)
-      if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
-        field.closest('.question').classList.add('unanswered')
-        isValid = false
-      }
-    }
-  })
-
-  return isValid
-}
-
-// Remove Unanswered Markers Function (Already Correct)
-function removeUnansweredMarkers() {
-  const unansweredQuestions = document.querySelectorAll('.question.unanswered')
-  unansweredQuestions.forEach((question) => {
-    question.classList.remove('unanswered')
-  })
 }
 
 // Expose Necessary Functions Globally (Corrected Order)
 window.saveSectionData = saveSectionData
-
-// End of survey.js
