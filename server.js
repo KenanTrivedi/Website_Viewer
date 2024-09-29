@@ -113,6 +113,7 @@ app.post("/register", async (req, res) => {
  * @desc    Handle user login
  * @access  Public
  */
+// Remove the block that creates UserData during login
 app.post("/login", async (req, res) => {
   const { code, courses } = req.body;
   if (!code) {
@@ -127,22 +128,10 @@ app.post("/login", async (req, res) => {
 
     let userData = await UserData.findOne({ userId: existingCode._id });
 
-    if (!userData) {
-      // New user
-      userData = new UserData({
-        userId: existingCode._id,
-        data: { responses: {}, currentSection: 0 },
-        courses: courses ? [courses] : [],
-        firstSubmissionTime: new Date(),
-        latestSubmissionTime: new Date(),
-        initialScores: {},
-        updatedScores: {},
-        initialResponses: {},
-        updatedResponses: {},
-      });
-      await userData.save();
-    } else {
-      // Existing user
+    // Do not create UserData here. It will be created when the user submits the survey.
+
+    if (userData) {
+      // Update latestSubmissionTime and courses if needed
       userData.latestSubmissionTime = new Date();
       if (courses && !userData.courses.includes(courses)) {
         userData.courses.push(courses);
@@ -153,15 +142,15 @@ app.post("/login", async (req, res) => {
     res.status(200).json({
       message: "Login erfolgreich",
       userId: existingCode._id,
-      isNewUser: !userData.isComplete,
-      courses: userData.courses,
-      data: userData.data,
-      initialScores: userData.initialScores,
-      updatedScores: userData.updatedScores,
-      initialResponses: userData.initialResponses,
-      updatedResponses: userData.updatedResponses,
-      datenschutzConsent: userData.datenschutzConsent, // Include Consent
-      unterschrift: userData.unterschrift, // Include Signature
+      isNewUser: !userData || !userData.isComplete,
+      courses: userData ? userData.courses : [],
+      data: userData ? userData.data : {},
+      initialScores: userData ? userData.initialScores : {},
+      updatedScores: userData ? userData.updatedScores : {},
+      initialResponses: userData ? userData.initialResponses : {},
+      updatedResponses: userData ? userData.updatedResponses : {},
+      datenschutzConsent: userData ? userData.datenschutzConsent : false, // Include Consent
+      unterschrift: userData ? userData.unterschrift : "", // Include Signature
     });
   } catch (err) {
     console.error("Fehler beim Login:", err);
@@ -188,6 +177,8 @@ app.post("/api/save-user-data", async (req, res) => {
     unterschrift,
   } = req.body;
 
+  console.log("Received Data:", req.body); // Debugging
+
   if (!userId || !data) {
     return res
       .status(400)
@@ -199,27 +190,62 @@ app.post("/api/save-user-data", async (req, res) => {
     const currentTime = new Date();
 
     if (!userData) {
-      // First-time user
-      userData = new UserData({
-        userId,
-        data: data,
-        courses: data.courses ? [data.courses] : [],
-        isComplete: isComplete,
-        firstSubmissionTime: currentTime,
-        latestSubmissionTime: currentTime,
-        initialScores: categoryScores,
-        updatedScores: {},
-        initialResponses: data,
-        updatedResponses: {},
-        datenschutzConsent: datenschutzConsent || false,
-        unterschrift: unterschrift || "",
-      });
+      if (isComplete) {
+        // First survey submission
+        userData = new UserData({
+          userId,
+          data: data,
+          courses: data.courses ? [data.courses] : [],
+          isComplete: isComplete,
+          firstSubmissionTime: currentTime,
+          latestSubmissionTime: currentTime,
+          initialScores: categoryScores,
+          updatedScores: {},
+          initialResponses: data,
+          updatedResponses: {},
+          datenschutzConsent: datenschutzConsent || false,
+          unterschrift: unterschrift || "",
+        });
+        console.log("Created new UserData with initialScores:", categoryScores); // Debugging
+      } else {
+        // Initial data submission, without survey data
+        userData = new UserData({
+          userId,
+          data: data,
+          courses: data.courses ? [data.courses] : [],
+          isComplete: isComplete,
+          firstSubmissionTime: currentTime,
+          latestSubmissionTime: currentTime,
+          initialScores: {},
+          updatedScores: {},
+          initialResponses: data,
+          updatedResponses: {},
+          datenschutzConsent: datenschutzConsent || false,
+          unterschrift: unterschrift || "",
+        });
+        console.log("Created new UserData without initialScores"); // Debugging
+      }
     } else {
-      // Returning user
+      // Update existing user data
       userData.latestSubmissionTime = currentTime;
       userData.isComplete = isComplete;
-      userData.updatedScores = categoryScores;
-      userData.updatedResponses = data;
+
+      if (isComplete) {
+        if (
+          !userData.initialScores ||
+          Object.keys(userData.initialScores).length === 0
+        ) {
+          // First survey submission
+          userData.initialScores = categoryScores;
+          userData.initialResponses = data;
+          console.log("Set initialScores:", categoryScores); // Debugging
+        } else {
+          // Subsequent survey submissions
+          userData.updatedScores = categoryScores;
+          userData.updatedResponses = data;
+          console.log("Set updatedScores:", categoryScores); // Debugging
+        }
+      }
 
       if (data.courses) {
         userData.courses = Array.from(
@@ -230,6 +256,8 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.datenschutzConsent =
         datenschutzConsent || userData.datenschutzConsent;
       userData.unterschrift = unterschrift || userData.unterschrift;
+
+      console.log("Updated UserData:", userData); // Debugging
     }
 
     await userData.save();

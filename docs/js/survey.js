@@ -88,11 +88,17 @@ function loadUserData() {
   const userId = sessionStorage.getItem('userId')
   if (userId) {
     fetch(`/api/user-data/${userId}`)
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('User data not found')
+        }
+        return response.json()
+      })
       .then((data) => {
         if (data.data) {
-          userData = data.initialResponses || {}
-          currentSection = 0
+          // Merge initialResponses and updatedResponses
+          userData = { ...data.initialResponses, ...data.updatedResponses }
+          currentSection = data.isComplete ? surveyData.length + 1 : 0
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
 
@@ -343,6 +349,8 @@ function saveSectionData(isComplete = false) {
   const userId = sessionStorage.getItem('userId')
   if (userId) {
     const categoryScores = calculateCategoryScores(userData)
+    console.log('Calculated Category Scores:', categoryScores) // Debugging
+
     const data = {
       userId: userId,
       data: userData,
@@ -391,7 +399,7 @@ function saveSectionData(isComplete = false) {
 // Finish Survey Function (Updated to render Datenschutz inline)
 function finishSurvey() {
   if (validateSection()) {
-    saveSectionData(false)
+    saveSectionData(true)
     currentSection++
     renderSection(currentSection)
     updateProgressBar()
@@ -662,6 +670,8 @@ async function showResults() {
     sessionStorage.setItem('updatedScores', JSON.stringify(data.updatedScores))
     initialScores = data.initialScores || {}
     updatedScores = data.updatedScores || {}
+
+    console.log('Fetched User Data:', data) // Debugging
 
     // Calculate competency score using updatedScores if available, otherwise use initialScores
     const scoreData =
