@@ -517,7 +517,7 @@ function showDatenschutz() {
     </p>
     <p>
       Datum, Ort					Unterschrift                               
-                      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾ ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+                      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾ ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     </p>
     <p>
       Ansprechperson für weitere Fragen ist Prof.in Dr. Charlott Rubach (charlott.rubach@uni-rostock.de).
@@ -618,8 +618,7 @@ function showResults() {
     <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
       hasUpdatedScores
         ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der zweiten Befragung (T2) darstellen.'
-        ? ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (Initialer Score).'
-        : ''
+        : ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (Initialer Score).'
     }</p>
     <div style="height: 300px; width: 100%;">
       <canvas id="competencyChart1"></canvas>
@@ -959,6 +958,14 @@ function validateSection() {
     }
 
     // Additional validation for date fields
+    if (field.type === 'date') {
+      if (!field.value) {
+        field.closest('.question').classList.add('unanswered')
+        isValid = false
+      }
+    }
+
+    // Additional validation for number fields
     if (field.type === 'number' && field.id.startsWith('q0_')) {
       const year = parseInt(field.value, 10)
       if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
@@ -969,30 +976,6 @@ function validateSection() {
   })
 
   return isValid
-}
-
-function markUnansweredQuestions() {
-  const form = document.getElementById('surveyForm')
-  const requiredFields = form.querySelectorAll('[required]')
-
-  requiredFields.forEach((field) => {
-    if (
-      (!field.value ||
-        (field.type === 'radio' &&
-          !form.querySelector(`input[name="${field.name}"]:checked`))) &&
-      !field.closest('.question').classList.contains('unanswered')
-    ) {
-      field.closest('.question').classList.add('unanswered')
-    }
-
-    // Additional validation for date fields
-    if (field.type === 'number' && field.id.startsWith('q0_')) {
-      const year = parseInt(field.value, 10)
-      if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
-        field.closest('.question').classList.add('unanswered')
-      }
-    }
-  })
 }
 
 function removeUnansweredMarkers() {
