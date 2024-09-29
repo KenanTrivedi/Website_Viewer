@@ -188,7 +188,6 @@ app.post("/api/save-user-data", async (req, res) => {
     unterschrift,
   } = req.body;
 
-  // Basic Input Validation
   if (!userId || !data) {
     return res
       .status(400)
@@ -200,7 +199,6 @@ app.post("/api/save-user-data", async (req, res) => {
     const currentTime = new Date();
 
     if (!userData) {
-      // First-time user
       userData = new UserData({
         userId,
         data: data,
@@ -216,7 +214,6 @@ app.post("/api/save-user-data", async (req, res) => {
         unterschrift: unterschrift || "",
       });
     } else {
-      // Returning user
       userData.latestSubmissionTime = currentTime;
       userData.isComplete = isComplete;
       userData.updatedScores = categoryScores;
@@ -228,17 +225,9 @@ app.post("/api/save-user-data", async (req, res) => {
         );
       }
 
-      // Update data while preserving existing fields
-      userData.data = { ...userData.data, ...data };
-
       userData.datenschutzConsent =
         datenschutzConsent || userData.datenschutzConsent;
       userData.unterschrift = unterschrift || userData.unterschrift;
-
-      // Update current section
-      if (typeof currentSection === "number") {
-        userData.data.currentSection = currentSection;
-      }
     }
 
     await userData.save();

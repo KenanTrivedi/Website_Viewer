@@ -88,25 +88,17 @@ function loadUserData() {
   const userId = sessionStorage.getItem('userId')
   if (userId) {
     fetch(`/api/user-data/${userId}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch user data')
-        }
-        return response.json()
-      })
+      .then((response) => response.json())
       .then((data) => {
         if (data.data) {
-          userData = data.data
-          currentSection = data.data.currentSection || 0
+          userData = data.initialResponses || {}
+          currentSection = 0
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
 
-          // Prefill the form if we're on the first section
-          if (currentSection === 0) {
-            const form = document.getElementById('surveyForm')
-            if (form) {
-              populateFormFields(form, userData)
-            }
+          const form = document.getElementById('surveyForm')
+          if (form && currentSection === 0) {
+            populateFormFields(form, userData)
           }
         }
         renderSection(currentSection)
@@ -418,39 +410,20 @@ function markUnansweredQuestions() {
   requiredFields.forEach((field) => {
     const questionDiv = field.closest('.question')
     const isUnanswered =
-      (!field.value ||
-        (field.type === 'radio' &&
-          !form.querySelector(`input[name="${field.name}"]:checked`))) &&
-      !field.closest('.question').classList.contains('unanswered')
+      (field.type === 'radio' &&
+        !form.querySelector(`input[name="${field.name}"]:checked`)) ||
+      (field.type !== 'radio' && !field.value.trim())
 
     if (isUnanswered) {
       questionDiv.classList.add('unanswered')
+      questionDiv.style.animation =
+        'shake 0.82s cubic-bezier(.36,.07,.19,.97) both'
       if (!firstUnanswered) {
         firstUnanswered = questionDiv
       }
     } else {
       questionDiv.classList.remove('unanswered')
-    }
-
-    // Additional validation for date fields
-    if (field.type === 'date') {
-      if (!field.value) {
-        questionDiv.classList.add('unanswered')
-        if (!firstUnanswered) {
-          firstUnanswered = questionDiv
-        }
-      }
-    }
-
-    // Additional validation for number fields
-    if (field.type === 'number' && field.id.startsWith('q0_')) {
-      const year = parseInt(field.value, 10)
-      if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
-        questionDiv.classList.add('unanswered')
-        if (!firstUnanswered) {
-          firstUnanswered = questionDiv
-        }
-      }
+      questionDiv.style.animation = ''
     }
   })
 
