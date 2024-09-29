@@ -44,6 +44,8 @@ const competencyDescriptions = {
 // Load the survey data (ensure that surveyData is available globally)
 // If surveyData is in a separate file, make sure to include it before this script.
 
+// Removed the populateSectionDropdown function and its invocation as per user request.
+
 document.addEventListener('DOMContentLoaded', function () {
   loadUserData()
   // populateSectionDropdown(); // Removed as per user request
@@ -94,8 +96,9 @@ function loadUserData() {
       })
       .then((data) => {
         if (data.data && data.data.responses) {
-          userData = data.data.responses
-          currentSection = parseInt(data.data.currentSection) || 0
+          // Merge initialResponses and updatedResponses
+          userData = { ...data.initialResponses, ...data.updatedResponses }
+          currentSection = 0 // Start from the first section when retaking the survey
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
 
@@ -188,7 +191,7 @@ function renderSection(index) {
                       ? 'ausgesprochen kompetent'
                       : ''
                   }</span>
-                 </label>`
+             </label>`
       }
       html += `</div>
                <div class="scale-labels">
@@ -225,7 +228,7 @@ function renderSection(index) {
 
   updateNavigationButtons()
   // updateSectionDropdown(index); // Removed as per user request
-  window.scrollTo(0, 0)
+  window.scrollTo(0, 0) // Ensure the page starts at the top
 }
 
 function handleScaleKeydown(event) {
@@ -265,6 +268,9 @@ function saveSectionData(isComplete = false) {
       data: userData,
       isComplete: isComplete,
       categoryScores: categoryScores,
+      courses: sessionStorage.getItem('courses') // Ensure courses are included if needed
+        ? [sessionStorage.getItem('courses')]
+        : [],
     }
 
     fetch('/api/save-user-data', {
@@ -411,7 +417,7 @@ function showDatenschutz() {
   })
 
   const modalTitle = document.createElement('h2')
-  modalTitle.textContent = 'Datenschutzerklärung'
+  modalTitle.textContent = 'Datenschutz'
   Object.assign(modalTitle.style, {
     margin: '0',
     fontSize: '1.5em',
@@ -428,7 +434,7 @@ function showDatenschutz() {
   modalHeader.appendChild(modalTitle)
   modalHeader.appendChild(closeButtonHeader)
 
-  // Create the body of the modal with an iframe
+  // Create the body of the modal with the provided Datenschutzerklärung text
   const modalBody = document.createElement('div')
   Object.assign(modalBody.style, {
     flex: '1',
@@ -436,15 +442,64 @@ function showDatenschutz() {
     overflowY: 'auto',
   })
 
-  const iframe = document.createElement('iframe')
-  iframe.src = 'datenschutz.html' // Ensure the path is correct relative to survey.html
-  Object.assign(iframe.style, {
-    width: '100%',
-    height: '100%',
-    border: 'none',
-  })
+  const datenschutzContent = `
+    <h3>Projektleitung:</h3>
+    <p>Prof.in Dr. Charlott Rubach & Anne-Kathrin Hirsch</p>
+    
+    <h3>Sehr geehrte Lehramtsstudierende,</h3>
+    <p>
+      die Digitalisierung und Digitalität im Bildungsbereich erhielten in den letzten Jahren große Aufmerksamkeit. Der kompetente Umgang mit digitalen Medien gehört zum Aufgabenbereich von Lehrkräften. Daher ist es bedeutsam, dass Lehramtsstudierende während ihrer Ausbildung auf diesen Umgang vorbereitet werden. Wir interessieren uns im Rahmen dieser Studie „Open-Digi“ dafür, inwieweit die von uns erstellten Lernerfahrung zur Förderung digitaler Kompetenzen beitragen.
+    </p>
+    
+    <h3>Wer sind wir?</h3>
+    <p>
+      Wir sind Prof. Dr. Charlott Rubach und Anne-Kathrin Hirsch, Bildungsforscherinnen an der Universität Rostock. Unsere Forschungsschwerpunkte sind Digitalisierung, Förderung digitaler Kompetenzen und Gestaltungsmöglichkeiten einer bedarfsorientierten Lehrkräftebildung.
+    </p>
+    
+    <h3>Worum geht es in diesem Projekt?</h3>
+    <p>
+      Ziel des Projektes ist die Untersuchung von effektiven Lernerfahrungen für die Entwicklung digitaler Kompetenzen. Das Projekt besteht aus mehreren Schritten:
+    </p>
+    <ol>
+      <li>Sie füllen die Befragung zum Open-Digi Projekt aus, welcher der Pre-Diagnostik gilt und zirka X Minuten dauert. Alle Befragungen thematisieren ausschließlich Aspekte von digitaler Kompetenz.</li>
+      <li>Ihnen werden auf Grundlage der Diagnostik 2-3 Kurse vorgeschlagen, die Sie bearbeiten sollen.</li>
+      <li>Sie bearbeiten die Kurse in einer Dauer von zirka einer Stunde.</li>
+      <li>Sie durchlaufen die Post-Diagnostik direkt nach Bearbeitung der Kurse.</li>
+      <li>Sie machen eine dritte Befragung, 1 Monat nach Bearbeitung der Kurse.</li>
+    </ol>
+    
+    <h3>Was bedeutet die Teilnahme für mich und meinen Daten?</h3>
+    <p>
+      Ihre Teilnahme an unserer Studie ist freiwillig. Wenn Sie an der Studie teilnehmen, können Sie einzelne Fragen überspringen oder die gesamte Befragung jederzeit ganz abbrechen. In letzterem Falle, vernichten wir die Daten.
+    </p>
+    <p>
+      Die Befragung ist anonym. Das heißt, es werden auch ausschließlich anonymisierte Informationen analysiert und im Rahmen wissenschaftlicher Arbeiten veröffentlicht. Es werden keine Informationen gespeichert, die es uns möglich machen, Sie als Person zu identifizieren. Eine Rücknahme Ihres Einverständnisses und damit Löschung Ihrer Daten, nachdem Sie den Fragebogen ausgefüllt und abgegeben haben, ist demnach nicht möglich. Anonymisierung ist das Verändern personenbezogener Daten in der Weise, dass Informationen nicht mehr oder nur mit einem unverhältnismäßig großen Aufwand an Zeit, Kosten und Arbeitskraft einer bestimmten Person zugeordnet werden können. Anonymisiert sind auch Daten, die keine persönliche Information mehr enthalten, bspw. Alter, Geschlecht, Lehramtstyp, Fächer und Hochschulsemester.
+    </p>
+    <p>
+      Wir speichern Ihre Antworten und Ihre Angaben (z. B. Alter und Geschlecht). Diese werden bis zum Abschluss der Untersuchung und maximal 10 Jahre auf den Dienstrechnern der Wissenschaftlerinnen aus dem Projekt gespeichert und danach gelöscht.
+    </p>
+    <p>
+      Es erfolgt keine Weitergabe Ihrer Daten an Dritte außerhalb des Forschungsprojektes.
+    </p>
+    <p>
+      Unter folgendem Link finden Sie ausführliche Hinweise zum Schutz Ihrer Daten.
+    </p>
+    <p>
+      Zur Erhebung und Verarbeitung der Daten benötigen wir Ihr Einverständnis:
+    </p>
+    <p>
+      Ich versichere mit meiner Zustimmung, dass mir die Datenschutzhinweise zur Befragung „Open-Digi“ zur Kenntnis gegeben worden. Ich willige in die darin näher beschriebene Verarbeitung meiner personenbezogenen Daten ein.
+    </p>
+    <p>
+      Datum, Ort					Unterschrift                               
+                      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾                              ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾                                  
+    </p>
+    <p>
+      Ansprechperson für weitere Fragen ist Prof.in Dr. Charlott Rubach (charlott.rubach@uni-rostock.de).
+    </p>
+  `
 
-  modalBody.appendChild(iframe)
+  modalBody.innerHTML = datenschutzContent
 
   // Create the footer with action buttons
   const modalFooter = document.createElement('div')
@@ -546,9 +601,7 @@ function showResults() {
     <div id="descriptionBox1"></div>
     <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Diagramm herunterladen</button>
     <hr>
-    <div style="text-align: center; margin-top: 20px;">
-      <button id="viewDatenschutzButton" class="btn btn-secondary" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Datenschutzerklärung anzeigen</button>
-    </div>
+    <!-- Removed "Zurück", "Weiter", and "Fortschritt" buttons -->
   `
 
   document.getElementById('surveyForm').innerHTML = resultHtml
@@ -563,18 +616,10 @@ function showResults() {
   } else {
     console.error('Download button not found')
   }
-
-  // Add event listener to the "Datenschutzerklärung anzeigen" button
-  const viewDatenschutzButton = document.getElementById('viewDatenschutzButton')
-  if (viewDatenschutzButton) {
-    viewDatenschutzButton.addEventListener('click', () => {
-      showDatenschutz()
-    })
-  }
 }
 
 function calculateCompetenzScore() {
-  // Assuming overall score is the average of all category scores
+  // Calculate overall score as the average of all category scores
   const scores = Object.values(updatedScores)
   if (scores.length === 0) return 0
   const total = scores.reduce((acc, val) => acc + val, 0)
@@ -637,42 +682,35 @@ function createCompetencyChart1(initialScores, updatedScores) {
 
   const ctx = canvas.getContext('2d')
 
-  // Determine if it's initial or updated survey
-  const isInitialSurvey =
-    Object.keys(initialScores).length > 0 &&
-    Object.keys(updatedScores).length === 0
-  const isUpdatedSurvey = Object.keys(updatedScores).length > 0
-
   // Use full competency titles as labels
-  const fullLabels =
-    Object.keys(updatedScores).length > 0
-      ? Object.keys(updatedScores)
-      : Object.keys(initialScores)
+  const fullLabels = Object.keys(initialScores)
   const labels = fullLabels.map((key) => labelMap[key] || key)
   let currentHoveredIndex = -1
 
   const datasets = []
 
+  // Initial Survey: Only Initial Scores
   if (
-    isInitialSurvey ||
-    (isUpdatedSurvey && Object.keys(initialScores).length > 0)
+    Object.keys(initialScores).length > 0 &&
+    Object.keys(updatedScores).length === 0
   ) {
     datasets.push({
       label: 'Initial Score',
       data: fullLabels.map((label) => initialScores[label] || 0),
-      backgroundColor: fullLabels.map((label) =>
-        getLighterColor(colorMap[label] || '#999999')
-      ),
+      backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderWidth: 1,
     })
   }
 
-  if (isUpdatedSurvey) {
+  // Updated Survey: Both Initial and Updated Scores
+  if (Object.keys(updatedScores).length > 0) {
     datasets.push({
       label: 'Aktualisierter Score',
       data: fullLabels.map((label) => updatedScores[label] || 0),
-      backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      backgroundColor: fullLabels.map((label) =>
+        getLighterColor(colorMap[label] || '#999999')
+      ),
       borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderWidth: 1,
     })
@@ -813,6 +851,8 @@ function nextSection() {
       currentSection++
       renderSection(currentSection)
       updateProgressBar()
+      // Scroll to top to avoid automatic scrolling to the last question
+      window.scrollTo(0, 0)
     } else {
       alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
       markUnansweredQuestions()
@@ -825,6 +865,8 @@ function previousSection() {
     currentSection--
     renderSection(currentSection)
     updateProgressBar()
+    // Scroll to top when navigating back
+    window.scrollTo(0, 0)
   }
 }
 
@@ -844,6 +886,7 @@ function saveAndResumeLater() {
   alert('Ihr Fortschritt wurde gespeichert. Sie können später fortfahren.')
 }
 
+// Function to validate if all required fields in the current section are filled
 function validateSection() {
   const form = document.getElementById('surveyForm')
   if (!form) return false
@@ -860,6 +903,15 @@ function validateSection() {
     ) {
       field.closest('.question').classList.add('unanswered')
       isValid = false
+    }
+
+    // Additional validation for date fields
+    if (field.type === 'number' && field.id.startsWith('q0_')) {
+      const year = parseInt(field.value, 10)
+      if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+        field.closest('.question').classList.add('unanswered')
+        isValid = false
+      }
     }
   })
 
@@ -879,6 +931,14 @@ function markUnansweredQuestions() {
     ) {
       field.closest('.question').classList.add('unanswered')
     }
+
+    // Additional validation for date fields
+    if (field.type === 'number' && field.id.startsWith('q0_')) {
+      const year = parseInt(field.value, 10)
+      if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+        field.closest('.question').classList.add('unanswered')
+      }
+    }
   })
 }
 
@@ -889,10 +949,5 @@ function removeUnansweredMarkers() {
   })
 }
 
-function calculateCompetenzScore() {
-  // Assuming overall score is the average of all category scores
-  const scores = Object.values(updatedScores)
-  if (scores.length === 0) return 0
-  const total = scores.reduce((acc, val) => acc + val, 0)
-  return Math.round(total / scores.length)
-}
+// Function to handle form submission and display results
+// Already handled in finishSurvey and showResults functions

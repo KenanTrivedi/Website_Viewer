@@ -49,18 +49,6 @@ const DASHBOARD_PASSWORD = process.env.DASHBOARD_PASSWORD || "password";
 // Import survey data
 const surveyData = require("./docs/js/survey-data.js");
 
-// Calculate expected counts
-const expectedQuestionCount = surveyData.reduce((count, section) => {
-  if (section.title !== "Persönliche Angaben") {
-    return count + section.questions.length;
-  }
-  return count;
-}, 0);
-
-const expectedCategoryCount = surveyData.filter(
-  (section) => section.title !== "Persönliche Angaben"
-).length;
-
 // Authentication Middleware
 function authenticate(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
@@ -151,6 +139,8 @@ app.post("/login", async (req, res) => {
       data: userData.data,
       initialScores: userData.initialScores,
       updatedScores: userData.updatedScores,
+      initialResponses: userData.initialResponses, // Include initialResponses
+      updatedResponses: userData.updatedResponses, // Include updatedResponses
     });
   } catch (err) {
     console.error("Fehler beim Login:", err);
@@ -237,6 +227,8 @@ app.get("/api/user-data/:userId", async (req, res) => {
         isComplete: userData.isComplete,
         initialScores: userData.initialScores,
         updatedScores: userData.updatedScores,
+        initialResponses: userData.initialResponses, // Include initialResponses
+        updatedResponses: userData.updatedResponses, // Include updatedResponses
       });
     } else {
       res.status(404).json({ message: "User data not found" });
