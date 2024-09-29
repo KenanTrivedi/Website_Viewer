@@ -242,6 +242,17 @@ function renderSection(index) {
     renderDatenschutzSection()
   }
 }
+function submitFinalData(event) {
+  event.preventDefault()
+  if (validateDatenschutz()) {
+    saveSectionData(true)
+    showResults()
+  } else {
+    alert('Bitte beantworten Sie alle Pflichtfelder.')
+  }
+}
+
+window.submitFinalData = submitFinalData
 
 // Function to render the Datenschutz section
 function renderDatenschutzSection() {
@@ -1074,85 +1085,6 @@ function downloadChart(event) {
     link.download = 'kompetenz-diagramm.png'
     link.href = canvas1.toDataURL()
     link.click()
-  }
-}
-
-// Show Results Function (Ensure it's defined only once)
-async function showResults() {
-  const userId = sessionStorage.getItem('userId')
-  if (!userId) {
-    console.error('No userId found in sessionStorage.')
-    return
-  }
-
-  try {
-    const response = await fetch(`/api/user-data/${userId}`)
-    if (!response.ok) {
-      throw new Error('Failed to fetch user data')
-    }
-    const data = await response.json()
-
-    // Update sessionStorage
-    sessionStorage.setItem('initialScores', JSON.stringify(data.initialScores))
-    sessionStorage.setItem('updatedScores', JSON.stringify(data.updatedScores))
-    sessionStorage.setItem(
-      'initialResponses',
-      JSON.stringify(data.initialResponses)
-    )
-    sessionStorage.setItem(
-      'updatedResponses',
-      JSON.stringify(data.updatedResponses)
-    )
-
-    // Update global variables
-    initialScores = data.initialScores || {}
-    updatedScores = data.updatedScores || {}
-
-    // Calculate competency score
-    const score = calculateCompetenzScore()
-    const courses = getCoursesSuggestions(score)
-
-    // Generate HTML for results
-    const resultHtml = `
-      <h2>Ihr Kompetenzscore beträgt ${score}%</h2>
-      <p>Dieser Score repräsentiert Ihren aktuellen Stand in digitalen Kompetenzen basierend auf Ihren Antworten.</p>
-      <h3>Kursempfehlungen</h3>
-      <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse zur Verbesserung Ihrer digitalen Kompetenzen:</p>
-      <ul>
-        ${courses.map((course) => `<li>${course}</li>`).join('')}
-      </ul>
-      <h3>Kompetenzdiagramm</h3>
-      <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
-        Object.keys(updatedScores).length > 0
-          ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der zweiten Befragung (T2) darstellen.'
-          : ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung.'
-      }</p>
-      <div style="height: 300px; width: 100%;">
-        <canvas id="competencyChart1"></canvas>
-      </div>
-      <div id="descriptionBox1"></div>
-      <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Diagramm herunterladen</button>
-      <hr>
-    `
-
-    document.getElementById('surveyForm').innerHTML = resultHtml
-
-    // Create the competency chart
-    createCompetencyChart1(initialScores, updatedScores)
-
-    // Add event listener to the download button
-    const downloadButton = document.getElementById('downloadChart')
-    if (downloadButton) {
-      downloadButton.addEventListener('click', downloadChart)
-    } else {
-      console.error('Download button not found')
-    }
-
-    // Hide navigation buttons
-    hideNavigationButtons()
-  } catch (error) {
-    console.error('Error displaying results:', error)
-    alert('Fehler beim Anzeigen der Ergebnisse. Bitte versuchen Sie es erneut.')
   }
 }
 
