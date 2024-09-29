@@ -730,7 +730,7 @@ function populateFormFields(form, data) {
   })
 }
 
-// Function to show results and generate the chart
+// Function to display results and generate the chart
 async function showResults() {
   const userId = sessionStorage.getItem('userId')
   if (!userId) {
@@ -769,7 +769,7 @@ async function showResults() {
         ${courses.map((course) => `<li>${course}</li>`).join('')}
       </ul>
       <h3>Kompetenzdiagramm</h3>
-      <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
+      <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen. <strong>Bewegen Sie den Mauszeiger über die Balken, um detaillierte Informationen zu den einzelnen Scores zu erhalten.</strong>${
         Object.keys(updatedScores).length > 0
           ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der aktuellen Befragung (T2) darstellen.'
           : ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung.'
