@@ -98,7 +98,7 @@ function loadUserData() {
         if (data.data && data.data.responses) {
           // Merge initialResponses and updatedResponses
           userData = { ...data.initialResponses, ...data.updatedResponses }
-          currentSection = 0 // Start from the first section when retaking the survey
+          currentSection = data.data.currentSection || 0
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
 
@@ -156,8 +156,7 @@ function renderSection(index) {
     const questionId = `q${index}_${qIndex}`
     let savedValue = ''
 
-    // If it's the personal information section, pre-fill if data exists
-    if (index === 0 && userData[questionId]) {
+    if (userData[questionId] !== undefined) {
       savedValue = userData[questionId]
     }
 
@@ -214,6 +213,8 @@ function renderSection(index) {
                </select>`
     } else if (question.type === 'text') {
       html += `<input type="text" id="${questionId}" name="${questionId}" value="${savedValue}" required>`
+    } else if (question.type === 'date') {
+      html += `<input type="date" id="${questionId}" name="${questionId}" value="${savedValue}" required>`
     }
 
     html += `</div>`
@@ -254,6 +255,8 @@ function updateProgressBar() {
 }
 
 function saveSectionData(isComplete = false) {
+  removeUnansweredMarkers() // Remove any previous error markings
+
   const formData = new FormData(document.getElementById('surveyForm'))
   for (let [key, value] of formData.entries()) {
     userData[key] = value
@@ -271,6 +274,7 @@ function saveSectionData(isComplete = false) {
       courses: sessionStorage.getItem('courses') // Ensure courses are included if needed
         ? [sessionStorage.getItem('courses')]
         : [],
+      currentSection: currentSection, // Save the current section
     }
 
     fetch('/api/save-user-data', {
@@ -327,20 +331,41 @@ function markUnansweredQuestions() {
     ) {
       field.closest('.question').classList.add('unanswered')
     }
+
+    // Additional validation for date fields
+    if (field.type === 'date') {
+      if (!field.value) {
+        field.closest('.question').classList.add('unanswered')
+      }
+    }
+
+    // Additional validation for number fields
+    if (field.type === 'number' && field.id.startsWith('q0_')) {
+      const year = parseInt(field.value, 10)
+      if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+        field.closest('.question').classList.add('unanswered')
+      }
+    }
   })
 }
 
 function calculateCategoryScores() {
   let categoryScores = {}
   surveyData.forEach((section, sectionIndex) => {
-    if (section.title !== 'Persönliche Angaben') {
+    if (
+      section.title !== 'Persönliche Angaben' &&
+      section.title !== 'Abschluss'
+    ) {
       let totalScore = 0
       let questionCount = 0
       section.questions.forEach((question, questionIndex) => {
         const questionId = `q${sectionIndex}_${questionIndex}`
         if (userData[questionId] && question.type === 'scale') {
-          totalScore += parseInt(userData[questionId])
-          questionCount++
+          const parsedScore = parseInt(userData[questionId], 10)
+          if (!isNaN(parsedScore)) {
+            totalScore += parsedScore
+            questionCount++
+          }
         }
       })
       if (questionCount > 0) {
@@ -492,7 +517,7 @@ function showDatenschutz() {
     </p>
     <p>
       Datum, Ort					Unterschrift                               
-                      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾                              ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾                                  
+                      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾ ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     </p>
     <p>
       Ansprechperson für weitere Fragen ist Prof.in Dr. Charlott Rubach (charlott.rubach@uni-rostock.de).
@@ -593,6 +618,7 @@ function showResults() {
     <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
       hasUpdatedScores
         ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der zweiten Befragung (T2) darstellen.'
+        ? ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (Initialer Score).'
         : ''
     }</p>
     <div style="height: 300px; width: 100%;">
@@ -683,7 +709,10 @@ function createCompetencyChart1(initialScores, updatedScores) {
   const ctx = canvas.getContext('2d')
 
   // Use full competency titles as labels
-  const fullLabels = Object.keys(initialScores)
+  const fullLabels =
+    Object.keys(initialScores).length > 0
+      ? Object.keys(initialScores)
+      : Object.keys(updatedScores)
   const labels = fullLabels.map((key) => labelMap[key] || key)
   let currentHoveredIndex = -1
 
@@ -703,8 +732,32 @@ function createCompetencyChart1(initialScores, updatedScores) {
     })
   }
 
-  // Updated Survey: Both Initial and Updated Scores
-  if (Object.keys(updatedScores).length > 0) {
+  // Updated Survey: Only Updated Scores
+  if (
+    Object.keys(updatedScores).length > 0 &&
+    Object.keys(initialScores).length === 0
+  ) {
+    datasets.push({
+      label: 'Aktualisierter Score',
+      data: fullLabels.map((label) => updatedScores[label] || 0),
+      backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      borderWidth: 1,
+    })
+  }
+
+  // Both Initial and Updated Scores
+  if (
+    Object.keys(initialScores).length > 0 &&
+    Object.keys(updatedScores).length > 0
+  ) {
+    datasets.push({
+      label: 'Initial Score',
+      data: fullLabels.map((label) => initialScores[label] || 0),
+      backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      borderWidth: 1,
+    })
     datasets.push({
       label: 'Aktualisierter Score',
       data: fullLabels.map((label) => updatedScores[label] || 0),
@@ -744,7 +797,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
       },
       plugins: {
         legend: {
-          display: true,
+          display: datasets.length > 1, // Show legend only if there are multiple datasets
           labels: {
             generateLabels: (chart) => {
               const datasets = chart.data.datasets

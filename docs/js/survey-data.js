@@ -220,7 +220,23 @@ const surveyData = [
       },
     ],
   },
+  {
+    title: 'Abschluss',
+    questions: [
+      {
+        text: 'Datum',
+        type: 'date',
+        required: true,
+      },
+      {
+        text: 'Unterschrift (Bitte tippen Sie Ihren Namen als Unterschrift)',
+        type: 'text',
+        required: true,
+      },
+    ],
+  },
 ]
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = surveyData
 } else if (typeof window !== 'undefined') {

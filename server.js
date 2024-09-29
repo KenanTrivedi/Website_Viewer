@@ -171,9 +171,9 @@ app.post("/api/save-user-data", async (req, res) => {
         firstSubmissionTime: currentTime,
         latestSubmissionTime: currentTime,
         initialScores: isComplete ? categoryScores : {},
-        updatedScores: categoryScores,
-        initialResponses: isComplete ? data.responses : {}, // Only store initial responses if complete
-        updatedResponses: data.responses,
+        updatedScores: isComplete ? categoryScores : {},
+        initialResponses: isComplete ? data.responses : {},
+        updatedResponses: isComplete ? {} : data.responses,
       });
     } else {
       // Returning user
@@ -197,6 +197,17 @@ app.post("/api/save-user-data", async (req, res) => {
           new Set([...userData.courses, ...data.courses])
         );
       }
+
+      // Update the current section if needed
+      if (data.currentSection !== undefined) {
+        userData.data.currentSection = data.currentSection;
+      }
+
+      // Merge new responses into existing data
+      userData.data.responses = {
+        ...userData.data.responses,
+        ...data.responses,
+      };
     }
 
     await userData.save();
@@ -267,7 +278,9 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
 
     const sections = surveyData
       .map((section) => section.title)
-      .filter((title) => title !== "Persönliche Angaben");
+      .filter(
+        (title) => title !== "Persönliche Angaben" && title !== "Abschluss"
+      );
 
     const formattedUsers = await Promise.all(
       users.map(async (user) => {
@@ -317,15 +330,21 @@ function calculateCategoryScores(responses, surveyData) {
   const categoryScores = {};
 
   surveyData.forEach((section, sectionIndex) => {
-    if (section.title !== "Persönliche Angaben") {
+    if (
+      section.title !== "Persönliche Angaben" &&
+      section.title !== "Abschluss"
+    ) {
       let totalScore = 0;
       let questionCount = 0;
 
       section.questions.forEach((question, questionIndex) => {
         const questionId = `q${sectionIndex}_${questionIndex}`;
         if (responses[questionId] && question.type === "scale") {
-          totalScore += parseInt(responses[questionId], 10);
-          questionCount++;
+          const parsedScore = parseInt(responses[questionId], 10);
+          if (!isNaN(parsedScore)) {
+            totalScore += parsedScore;
+            questionCount++;
+          }
         }
       });
 
@@ -362,6 +381,8 @@ async function updateCSV() {
           title: q.text,
         }))
       ),
+      { id: "datum", title: "Datum" },
+      { id: "unterschrift", title: "Unterschrift" },
     ],
   });
 
@@ -379,38 +400,39 @@ async function updateCSV() {
         latestSubmissionTime: user.latestSubmissionTime,
         courses: user.courses ? user.courses.join(", ") : "",
         ...surveyData.reduce((acc, section, sectionIndex) => {
-          if (section.title !== "Persönliche Angaben") {
-            section.questions.forEach((question, questionIndex) => {
-              const questionId = `q${sectionIndex}_${questionIndex}`;
-              let cellContent = "";
+          section.questions.forEach((question, questionIndex) => {
+            const questionId = `q${sectionIndex}_${questionIndex}`;
+            let cellContent = "";
 
-              if (
-                user.initialResponses &&
-                user.initialResponses[questionId] !== undefined
-              ) {
-                const initialResponse = user.initialResponses[questionId];
-                const updatedResponse = user.updatedResponses
-                  ? user.updatedResponses[questionId]
-                  : undefined;
+            if (
+              user.initialResponses &&
+              user.initialResponses[questionId] !== undefined
+            ) {
+              const initialResponse = user.initialResponses[questionId];
+              const updatedResponse = user.updatedResponses
+                ? user.updatedResponses[questionId]
+                : undefined;
 
-                if (updatedResponse !== undefined) {
-                  if (initialResponse === updatedResponse) {
-                    cellContent = initialResponse;
-                  } else {
-                    cellContent = `${initialResponse} → ${updatedResponse}`;
-                  }
-                } else {
+              if (updatedResponse !== undefined) {
+                if (initialResponse === updatedResponse) {
                   cellContent = initialResponse;
+                } else {
+                  cellContent = `${initialResponse} → ${updatedResponse}`;
                 }
-              } else if (user.updatedResponses) {
-                cellContent = user.updatedResponses[questionId] || "";
+              } else {
+                cellContent = initialResponse;
               }
+            } else if (user.updatedResponses) {
+              cellContent = user.updatedResponses[questionId] || "";
+            }
 
-              acc[questionId] = cellContent;
-            });
-          }
+            acc[questionId] = cellContent;
+          });
           return acc;
         }, {}),
+        datum: user.data.responses?.[`q${surveyData.length - 1}_0`] || "",
+        unterschrift:
+          user.data.responses?.[`q${surveyData.length - 1}_1`] || "",
       };
     })
   );
