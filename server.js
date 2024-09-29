@@ -35,10 +35,11 @@ const userDataSchema = new mongoose.Schema({
   firstSubmissionTime: { type: Date },
   latestSubmissionTime: { type: Date },
   initialScores: { type: Object, default: {} },
-  updatedScores: { type: Object, default: {} },
-  initialResponses: { type: Object, default: {} }, // New field
-  updatedResponses: { type: Object, default: {} }, // New field
+  updatedScores: { type: Object, default: {} }, // Ensure this field exists
+  initialResponses: { type: Object, default: {} },
+  updatedResponses: { type: Object, default: {} },
 });
+
 const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
 
 // Constants
@@ -167,6 +168,7 @@ app.post("/api/save-user-data", async (req, res) => {
       userData = new UserData({
         userId,
         data: data,
+        courses: data.courses ? data.courses : [],
         isComplete: isComplete,
         firstSubmissionTime: currentTime,
         latestSubmissionTime: currentTime,

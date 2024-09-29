@@ -348,3 +348,8 @@ select:focus {
     border-color: #004a99;
     box-shadow: 0 0 5px rgba(0, 74, 153, 0.5);
 }
+
+input[type="date"][readonly] {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}
