@@ -98,7 +98,8 @@ function loadUserData() {
         if (data.data) {
           // Merge initialResponses and updatedResponses
           userData = { ...data.initialResponses, ...data.updatedResponses }
-          currentSection = data.isComplete ? surveyData.length + 1 : 0
+          // Correct currentSection assignment
+          currentSection = data.isComplete ? surveyData.length : 0
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
 
@@ -324,15 +325,16 @@ function handleScaleKeydown(event) {
 
 // Update Progress Bar Function
 function updateProgressBar() {
-  const totalSteps = surveyData.length + 1 // Changed from +2 to +1
-  const progress = ((currentSection + 1) / totalSteps) * 100
+  const totalSteps = surveyData.length + 1 // Includes Datenschutz section
+  const currentStep = Math.min(currentSection + 1, totalSteps) // Prevent overflow
+  const progress = (currentStep / totalSteps) * 100
   const progressFill = document.getElementById('progressFill')
   const progressText = document.getElementById('progressText')
 
   progressFill.style.width = `${progress}%`
-  progressText.textContent = `Schritt ${currentSection + 1} von ${totalSteps}`
+  progressText.textContent = `Schritt ${currentStep} von ${totalSteps}`
 
-  progressFill.setAttribute('aria-valuenow', currentSection + 1)
+  progressFill.setAttribute('aria-valuenow', currentStep)
   progressFill.setAttribute('aria-valuemax', totalSteps)
 }
 
@@ -396,13 +398,18 @@ function saveSectionData(isComplete = false) {
   }
 }
 
-// Finish Survey Function (Updated to render Datenschutz inline)
+// Finish Survey Function (Updated to prevent over-incrementing)
 function finishSurvey() {
   if (validateSection()) {
     saveSectionData(true)
-    currentSection++
-    renderSection(currentSection)
-    updateProgressBar()
+    if (currentSection < surveyData.length) {
+      currentSection++
+      renderSection(currentSection)
+      updateProgressBar()
+    } else {
+      // Proceed to show results
+      showResults()
+    }
   } else {
     alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
     markUnansweredQuestions()
@@ -612,6 +619,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
 }
 
 // Populate Form Fields Function
+// Populate Form Fields Function (Prefills only 'Persönliche Angaben')
 function populateFormFields(form, data) {
   surveyData.forEach((section, sectionIndex) => {
     if (section.title === 'Persönliche Angaben') {
@@ -636,18 +644,6 @@ function populateFormFields(form, data) {
       })
     }
   })
-}
-
-// Download Chart Function
-function downloadChart(event) {
-  event.preventDefault()
-  const canvas1 = document.getElementById('competencyChart1')
-  if (canvas1) {
-    const link = document.createElement('a')
-    link.download = 'kompetenz-diagramm.png'
-    link.href = canvas1.toDataURL()
-    link.click()
-  }
 }
 
 // Function to show results and generate the chart

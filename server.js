@@ -186,6 +186,18 @@ app.post("/api/save-user-data", async (req, res) => {
   }
 
   try {
+    // Extract only survey responses
+    const surveyResponses = {};
+
+    surveyData.forEach((section, sectionIndex) => {
+      section.questions.forEach((question, questionIndex) => {
+        const questionId = `q${sectionIndex}_${questionIndex}`;
+        if (data[questionId] !== undefined) {
+          surveyResponses[questionId] = data[questionId];
+        }
+      });
+    });
+
     let userData = await UserData.findOne({ userId });
     const currentTime = new Date();
 
@@ -201,7 +213,7 @@ app.post("/api/save-user-data", async (req, res) => {
           latestSubmissionTime: currentTime,
           initialScores: categoryScores,
           updatedScores: {},
-          initialResponses: data,
+          initialResponses: surveyResponses,
           updatedResponses: {},
           datenschutzConsent: datenschutzConsent || false,
           unterschrift: unterschrift || "",
@@ -218,7 +230,7 @@ app.post("/api/save-user-data", async (req, res) => {
           latestSubmissionTime: currentTime,
           initialScores: {},
           updatedScores: {},
-          initialResponses: data,
+          initialResponses: surveyResponses,
           updatedResponses: {},
           datenschutzConsent: datenschutzConsent || false,
           unterschrift: unterschrift || "",
@@ -237,12 +249,12 @@ app.post("/api/save-user-data", async (req, res) => {
         ) {
           // First survey submission
           userData.initialScores = categoryScores;
-          userData.initialResponses = data;
+          userData.initialResponses = surveyResponses;
           console.log("Set initialScores:", categoryScores); // Debugging
         } else {
           // Subsequent survey submissions
           userData.updatedScores = categoryScores;
-          userData.updatedResponses = data;
+          userData.updatedResponses = surveyResponses;
           console.log("Set updatedScores:", categoryScores); // Debugging
         }
       }
