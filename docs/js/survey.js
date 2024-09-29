@@ -472,8 +472,13 @@ function markUnansweredQuestions() {
     }
   })
 
+  if (firstUnanswered) {
+    firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+
   return firstUnanswered
 }
+
 // Calculate Category Scores Function
 function calculateCategoryScores(data) {
   const categoryScores = {}
@@ -556,7 +561,6 @@ function createCompetencyChart1(initialScores, updatedScores) {
 
   const datasets = []
 
-  // Initial Scores Dataset
   if (Object.keys(initialScores).length > 0) {
     datasets.push({
       label: 'Initial Score',
@@ -567,10 +571,9 @@ function createCompetencyChart1(initialScores, updatedScores) {
     })
   }
 
-  // Updated Scores Dataset
   if (Object.keys(updatedScores).length > 0) {
     datasets.push({
-      label: 'Aktualisierter Score',
+      label: 'Updated Score',
       data: fullLabels.map((label) => updatedScores[label] || 0),
       backgroundColor: fullLabels.map((label) =>
         getLighterColor(colorMap[label] || '#999999')
@@ -747,8 +750,10 @@ async function showResults() {
     document.getElementById('surveyForm').innerHTML = resultHtml
 
     // Hide the progress bar
-    document.getElementById('progressBar').style.display = 'none'
-    document.getElementById('progressText').style.display = 'none'
+    const progressBar = document.getElementById('progressBar')
+    const progressText = document.getElementById('progressText')
+    if (progressBar) progressBar.style.display = 'none'
+    if (progressText) progressText.style.display = 'none'
 
     // Create the competency chart
     createCompetencyChart1(initialScores, updatedScores)

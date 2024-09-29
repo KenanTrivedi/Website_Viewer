@@ -146,7 +146,6 @@ function validateFormInputs(form) {
       case 'parentName':
       case 'school':
         if (!/^[A-Za-z]{2}$/.test(value)) {
-          // Allow both uppercase and lowercase
           Swal.fire({
             icon: 'error',
             title: 'Ungültige Eingabe',
@@ -156,11 +155,12 @@ function validateFormInputs(form) {
         }
         break
       case 'birthday':
-        if (!/^\d{2}$/.test(value)) {
+        const birthdayValue = parseInt(value, 10)
+        if (!/^\d{2}$/.test(value) || birthdayValue < 1 || birthdayValue > 31) {
           Swal.fire({
             icon: 'error',
             title: 'Ungültige Eingabe',
-            text: `${label} muss aus zwei Ziffern bestehen.`,
+            text: `${label} muss eine gültige Zahl zwischen 01 und 31 sein.`,
           })
           isValid = false
         }
@@ -265,9 +265,8 @@ async function handleLogin() {
     if (response.ok) {
       // **Clear sessionStorage before setting new data**
       sessionStorage.clear()
-
       sessionStorage.setItem('userId', data.userId)
-      sessionStorage.setItem('isNewUser', data.isNewUser)
+      sessionStorage.setItem('isNewUser', data.isNewUser.toString())
       sessionStorage.setItem('courses', JSON.stringify(data.courses))
 
       if (data.data && data.data.responses) {
