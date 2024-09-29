@@ -315,7 +315,7 @@ function renderDatenschutzSection() {
             <span>Ich stimme der Datenschutzerklärung zu.</span>
           </label>
         </div>
-        <button id="submitFinal" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Abschließen</button>
+        <button id="submitFinal" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Weiter</button>
       </div>
     </div>
   `
@@ -431,21 +431,32 @@ function finishSurvey() {
 function markUnansweredQuestions() {
   const form = document.getElementById('surveyForm')
   const requiredFields = form.querySelectorAll('[required]')
+  let firstUnanswered = null
 
   requiredFields.forEach((field) => {
-    if (
+    const questionDiv = field.closest('.question')
+    const isUnanswered =
       (!field.value ||
         (field.type === 'radio' &&
           !form.querySelector(`input[name="${field.name}"]:checked`))) &&
       !field.closest('.question').classList.contains('unanswered')
-    ) {
-      field.closest('.question').classList.add('unanswered')
+
+    if (isUnanswered) {
+      questionDiv.classList.add('unanswered')
+      if (!firstUnanswered) {
+        firstUnanswered = questionDiv
+      }
+    } else {
+      questionDiv.classList.remove('unanswered')
     }
 
     // Additional validation for date fields
     if (field.type === 'date') {
       if (!field.value) {
-        field.closest('.question').classList.add('unanswered')
+        questionDiv.classList.add('unanswered')
+        if (!firstUnanswered) {
+          firstUnanswered = questionDiv
+        }
       }
     }
 
@@ -453,12 +464,16 @@ function markUnansweredQuestions() {
     if (field.type === 'number' && field.id.startsWith('q0_')) {
       const year = parseInt(field.value, 10)
       if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
-        field.closest('.question').classList.add('unanswered')
+        questionDiv.classList.add('unanswered')
+        if (!firstUnanswered) {
+          firstUnanswered = questionDiv
+        }
       }
     }
   })
-}
 
+  return firstUnanswered
+}
 // Calculate Category Scores Function
 function calculateCategoryScores(data) {
   const categoryScores = {}
@@ -516,7 +531,6 @@ function getCoursesSuggestions(score) {
   }
 }
 
-// Create Competency Chart Function
 function createCompetencyChart1(initialScores, updatedScores) {
   const canvas = document.getElementById('competencyChart1')
   const descriptionBox = document.getElementById('descriptionBox1')
@@ -672,7 +686,7 @@ function downloadChart(event) {
   }
 }
 
-// Show Results Function
+// Function to show results and generate the chart
 async function showResults() {
   const userId = sessionStorage.getItem('userId')
   if (!userId) {
@@ -731,6 +745,10 @@ async function showResults() {
     `
 
     document.getElementById('surveyForm').innerHTML = resultHtml
+
+    // Hide the progress bar
+    document.getElementById('progressBar').style.display = 'none'
+    document.getElementById('progressText').style.display = 'none'
 
     // Create the competency chart
     createCompetencyChart1(initialScores, updatedScores)
@@ -840,39 +858,14 @@ function validateSection() {
   const form = document.getElementById('surveyForm')
   if (!form) return false
 
-  const requiredFields = form.querySelectorAll('[required]')
-  let isValid = true
+  const firstUnanswered = markUnansweredQuestions()
+  if (firstUnanswered) {
+    // Scroll to the first unanswered question smoothly
+    firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    return false
+  }
 
-  requiredFields.forEach((field) => {
-    if (
-      (!field.value ||
-        (field.type === 'radio' &&
-          !form.querySelector(`input[name="${field.name}"]:checked`))) &&
-      !field.closest('.question').classList.contains('unanswered')
-    ) {
-      field.closest('.question').classList.add('unanswered')
-      isValid = false
-    }
-
-    // Additional validation for date fields
-    if (field.type === 'date') {
-      if (!field.value) {
-        field.closest('.question').classList.add('unanswered')
-        isValid = false
-      }
-    }
-
-    // Additional validation for number fields
-    if (field.type === 'number' && field.id.startsWith('q0_')) {
-      const year = parseInt(field.value, 10)
-      if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
-        field.closest('.question').classList.add('unanswered')
-        isValid = false
-      }
-    }
-  })
-
-  return isValid
+  return true
 }
 
 // Validate Datenschutz Section Function
@@ -957,123 +950,6 @@ function updateDescriptionBox(descriptionBox, fullCompetency, description) {
   descriptionBox.style.borderRadius = '5px'
   descriptionBox.style.border = `2px solid ${color}`
   descriptionBox.style.color = getContrastColor(lighterColor)
-}
-
-// Create Competency Chart Function (Already Correct)
-function createCompetencyChart1(initialScores, updatedScores) {
-  const canvas = document.getElementById('competencyChart1')
-  const descriptionBox = document.getElementById('descriptionBox1')
-  if (!canvas || !descriptionBox) {
-    console.error('Chart canvas or description box not found')
-    return
-  }
-
-  if (chart1Instance) {
-    chart1Instance.destroy()
-  }
-
-  const ctx = canvas.getContext('2d')
-
-  // Determine all unique labels from both initial and updated scores
-  const allLabels = new Set([
-    ...Object.keys(initialScores),
-    ...Object.keys(updatedScores),
-  ])
-  const fullLabels = Array.from(allLabels)
-  const labels = fullLabels.map((key) => labelMap[key] || key)
-  let currentHoveredIndex = -1
-
-  const datasets = []
-
-  // Initial Scores Dataset
-  if (Object.keys(initialScores).length > 0) {
-    datasets.push({
-      label: 'Initial Score',
-      data: fullLabels.map((label) => initialScores[label] || 0),
-      backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-      borderWidth: 1,
-    })
-  }
-
-  // Updated Scores Dataset
-  if (Object.keys(updatedScores).length > 0) {
-    datasets.push({
-      label: 'Aktualisierter Score',
-      data: fullLabels.map((label) => updatedScores[label] || 0),
-      backgroundColor: fullLabels.map((label) =>
-        getLighterColor(colorMap[label] || '#999999')
-      ),
-      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-      borderWidth: 1,
-    })
-  }
-
-  chart1Instance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: datasets,
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
-          title: {
-            display: true,
-            text: 'Score (%)',
-          },
-        },
-        x: {
-          ticks: {
-            autoSkip: false,
-            maxRotation: 45,
-            minRotation: 45,
-          },
-        },
-      },
-      plugins: {
-        legend: {
-          display: datasets.length > 1, // Show legend only if multiple datasets
-        },
-        tooltip: {
-          callbacks: {
-            title: (tooltipItems) => {
-              const index = tooltipItems[0].dataIndex
-              const fullLabel = fullLabels[index]
-              return fullLabel || tooltipItems[0].label
-            },
-            label: (context) =>
-              `${context.dataset.label}: ${context.parsed.y}%`,
-          },
-        },
-      },
-      onHover: (event, activeElements) => {
-        if (activeElements.length > 0) {
-          const dataIndex = activeElements[0].index
-          if (dataIndex !== currentHoveredIndex) {
-            currentHoveredIndex = dataIndex
-            const fullCompetency = fullLabels[dataIndex]
-            updateDescriptionBox(
-              descriptionBox,
-              fullCompetency,
-              competencyDescriptions[fullCompetency]
-            )
-          }
-        } else {
-          currentHoveredIndex = -1
-          descriptionBox.innerHTML = ''
-          descriptionBox.style.backgroundColor = ''
-          descriptionBox.style.border = ''
-        }
-      },
-    },
-  })
-
-  chart1Instance.update()
 }
 
 // Download Chart Function (Already Correct)

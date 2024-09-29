@@ -226,10 +226,12 @@ app.post("/api/save-user-data", async (req, res) => {
           // First Complete Submission
           userData.initialResponses = data.responses;
           userData.initialScores = categoryScores;
+          console.log(`Initial scores set for userId: ${userId}`);
         } else {
           // Subsequent Complete Submissions
           userData.updatedResponses = data.responses;
           userData.updatedScores = categoryScores;
+          console.log(`Updated scores set for userId: ${userId}`);
         }
       }
 
@@ -282,7 +284,6 @@ app.post("/api/save-user-data", async (req, res) => {
       .json({ message: "Error saving user data", details: err.message });
   }
 });
-
 /**
  * @route   GET /api/user-data/:userId
  * @desc    Retrieve user survey data, including consent and signature
