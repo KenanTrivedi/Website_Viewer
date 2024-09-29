@@ -6,6 +6,8 @@ let userData = {}
 let chart1Instance = null
 let initialScores = {}
 let updatedScores = {}
+let userDataInitial = {}
+let userDataUpdated = {}
 
 // Constants
 const labelMap = {
@@ -59,28 +61,78 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Setup Event Listeners Function
 function setupEventListeners() {
-  document
-    .getElementById('prevButton')
-    .addEventListener('click', previousSection)
-  document.getElementById('nextButton').addEventListener('click', nextSection)
-  document.getElementById('logoutButton').addEventListener('click', logout)
-  document
-    .getElementById('saveProgressButton')
-    .addEventListener('click', saveAndResumeLater)
+  const prevButton = document.getElementById('prevButton')
+  const nextButton = document.getElementById('nextButton')
+  const logoutButton = document.getElementById('logoutButton')
+  const saveProgressButton = document.getElementById('saveProgressButton')
+
+  if (prevButton) {
+    prevButton.addEventListener('click', previousSection)
+  }
+
+  if (nextButton) {
+    nextButton.addEventListener('click', nextSection)
+  }
+
+  if (logoutButton) {
+    logoutButton.addEventListener('click', logout)
+  }
+
+  if (saveProgressButton) {
+    saveProgressButton.addEventListener('click', saveAndResumeLater)
+  }
 }
 
 // Check Resume Token Function
 function checkResumeToken() {
   const resumeToken = localStorage.getItem('surveyResumeToken')
   if (resumeToken) {
-    const { userId, section } = JSON.parse(atob(resumeToken))
-    if (userId === sessionStorage.getItem('userId')) {
-      currentSection = parseInt(section)
-      renderSection(currentSection)
-      updateProgressBar()
+    try {
+      const decoded = JSON.parse(atob(resumeToken))
+      const { userId, section } = decoded
+      if (userId === sessionStorage.getItem('userId')) {
+        currentSection = parseInt(section, 10)
+        renderSection(currentSection)
+        updateProgressBar()
+        localStorage.removeItem('surveyResumeToken')
+      }
+    } catch (error) {
+      console.error('Fehler beim Dekodieren des Resume-Tokens:', error)
+      // Invalid token, remove it
       localStorage.removeItem('surveyResumeToken')
     }
   }
+}
+
+/**
+ * Prefills only the "Persönliche Angaben" section
+ * @param {HTMLElement} form
+ * @param {Object} data
+ */
+function populatePersonalInfo(form, data) {
+  surveyData.forEach((section, sectionIndex) => {
+    if (section.title === 'Persönliche Angaben') {
+      section.questions.forEach((question, questionIndex) => {
+        const questionId = `q${sectionIndex}_${questionIndex}`
+        const value = data[questionId]
+        if (value !== undefined) {
+          const field = form.querySelector(`[name="${questionId}"]`)
+          if (field) {
+            if (field.type === 'radio') {
+              const radioButton = form.querySelector(
+                `[name="${questionId}"][value="${value}"]`
+              )
+              if (radioButton) radioButton.checked = true
+            } else if (field.type === 'date') {
+              field.value = value // Already set to today's date and read-only
+            } else {
+              field.value = value
+            }
+          }
+        }
+      })
+    }
+  })
 }
 
 // Load User Data Function
@@ -96,16 +148,31 @@ function loadUserData() {
       })
       .then((data) => {
         if (data.data) {
-          // Merge initialResponses and updatedResponses
-          userData = { ...data.initialResponses, ...data.updatedResponses }
-          // Correct currentSection assignment
-          currentSection = data.isComplete ? surveyData.length : 0
+          userDataInitial = data.initialResponses || {}
+          userDataUpdated = data.updatedResponses || {}
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
 
           const form = document.getElementById('surveyForm')
-          if (form && currentSection === 0) {
-            populateFormFields(form, userData)
+
+          if (data.isComplete) {
+            if (Object.keys(userDataUpdated).length > 0) {
+              // User has already taken the survey and can re-take
+              currentSection = 0 // Start the survey again
+              userData = { ...userDataInitial } // Prefill only personal info
+              if (form) {
+                populatePersonalInfo(form, userDataInitial)
+              }
+            } else {
+              // User has taken the survey for the first time
+              currentSection = surveyData.length // Show 'Datenschutz'
+            }
+          } else {
+            currentSection = data.currentSection || 0
+            userData = { ...userDataInitial, ...userDataUpdated }
+            if (form) {
+              populateFormFields(form, userData)
+            }
           }
         }
         renderSection(currentSection)
@@ -148,12 +215,17 @@ function renderSection(index) {
       const questionId = `q${index}_${qIndex}`
       let savedValue = ''
 
-      if (userData[questionId] !== undefined) {
+      // Prefill only if it's not a re-take or if the section is "Persönliche Angaben"
+      if (
+        section.title === 'Persönliche Angaben' &&
+        userData[questionId] !== undefined
+      ) {
         savedValue = userData[questionId]
       }
 
       html += `<div class="question"><p>${question.text}</p>`
 
+      // Render inputs based on question type
       if (question.type === 'radio') {
         question.options.forEach((option) => {
           html += `<label><input type="radio" name="${questionId}" value="${option}" ${
@@ -215,6 +287,7 @@ function renderSection(index) {
     html += `</div>`
     document.getElementById('surveyForm').innerHTML = html
 
+    // Add event listeners to scale buttons for accessibility
     document.querySelectorAll('.scale-button').forEach((button) => {
       button.addEventListener('keydown', handleScaleKeydown)
     })
@@ -226,6 +299,8 @@ function renderSection(index) {
     renderDatenschutzSection()
   }
 }
+
+// Submit Final Data Function
 function submitFinalData(event) {
   event.preventDefault()
   if (validateDatenschutz()) {
@@ -318,7 +393,11 @@ function renderDatenschutzSection() {
 function handleScaleKeydown(event) {
   if (event.key === ' ' || event.key === 'Enter') {
     event.preventDefault()
-    event.target.previousElementSibling.checked = true
+    const radio = event.target.previousElementSibling
+    if (radio) {
+      radio.checked = true
+      radio.dispatchEvent(new Event('change'))
+    }
     event.target.setAttribute('aria-checked', 'true')
   }
 }
@@ -331,14 +410,18 @@ function updateProgressBar() {
   const progressFill = document.getElementById('progressFill')
   const progressText = document.getElementById('progressText')
 
-  progressFill.style.width = `${progress}%`
-  progressText.textContent = `Schritt ${currentStep} von ${totalSteps}`
+  if (progressFill) {
+    progressFill.style.width = `${progress}%`
+    progressFill.setAttribute('aria-valuenow', currentStep)
+    progressFill.setAttribute('aria-valuemax', totalSteps)
+  }
 
-  progressFill.setAttribute('aria-valuenow', currentStep)
-  progressFill.setAttribute('aria-valuemax', totalSteps)
+  if (progressText) {
+    progressText.textContent = `Schritt ${currentStep} von ${totalSteps}`
+  }
 }
 
-// Save Section Data Function (Corrected)
+// Save Section Data Function
 function saveSectionData(isComplete = false) {
   removeUnansweredMarkers()
 
@@ -362,6 +445,7 @@ function saveSectionData(isComplete = false) {
     }
 
     if (currentSection === surveyData.length) {
+      // Include consent and signature on final submission
       data.datenschutzConsent =
         document.getElementById('datenschutzConsent').checked
       data.unterschrift = document.getElementById('unterschrift').value.trim()
@@ -398,7 +482,7 @@ function saveSectionData(isComplete = false) {
   }
 }
 
-// Finish Survey Function (Updated to prevent over-incrementing)
+// Finish Survey Function
 function finishSurvey() {
   if (validateSection()) {
     saveSectionData(true)
@@ -506,6 +590,7 @@ function getCoursesSuggestions(score) {
   }
 }
 
+// Create Competency Chart Function
 function createCompetencyChart1(initialScores, updatedScores) {
   const canvas = document.getElementById('competencyChart1')
   const descriptionBox = document.getElementById('descriptionBox1')
@@ -520,7 +605,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
 
   const ctx = canvas.getContext('2d')
 
-  // Determine all unique labels from both initial and updated scores
+  // Determine all unique labels from initial and updated scores
   const allLabels = new Set([
     ...Object.keys(initialScores),
     ...Object.keys(updatedScores),
@@ -618,7 +703,6 @@ function createCompetencyChart1(initialScores, updatedScores) {
   chart1Instance.update()
 }
 
-// Populate Form Fields Function
 // Populate Form Fields Function (Prefills only 'Persönliche Angaben')
 function populateFormFields(form, data) {
   surveyData.forEach((section, sectionIndex) => {
@@ -707,7 +791,13 @@ async function showResults() {
     if (progressText) progressText.style.display = 'none'
 
     // Create the competency chart
-    createCompetencyChart1(initialScores, updatedScores)
+    if (Object.keys(updatedScores).length > 0) {
+      // Show both initial and updated scores
+      createCompetencyChart1(initialScores, updatedScores)
+    } else {
+      // Show only initial scores
+      createCompetencyChart1(initialScores, {})
+    }
 
     // Add event listener to the download button
     const downloadButton = document.getElementById('downloadChart')
@@ -728,42 +818,44 @@ async function showResults() {
 // Assign showResults to window after its definition
 window.showResults = showResults
 
-// Update Navigation Buttons Function (Corrected)
+// Update Navigation Buttons Function (Single Definition)
 function updateNavigationButtons() {
   const prevButton = document.getElementById('prevButton')
   const nextButton = document.getElementById('nextButton')
 
   // Disable the Previous button on the first section
   if (currentSection === 0) {
-    prevButton.disabled = true
+    if (prevButton) prevButton.disabled = true
   } else {
-    prevButton.disabled = false
+    if (prevButton) prevButton.disabled = false
   }
 
   if (currentSection === surveyData.length) {
     // Hide the Next button and show only the Final button if needed
-    nextButton.style.display = 'none'
+    if (nextButton) nextButton.style.display = 'none'
   } else {
-    nextButton.style.display = 'inline-block'
-    if (currentSection === surveyData.length - 1) {
-      // Change the Next button to 'Finish' on the last survey section
-      nextButton.textContent = 'Finish'
-      // Remove existing event listeners to prevent multiple triggers
-      nextButton.removeEventListener('click', nextSection)
-      nextButton.removeEventListener('click', finishSurvey)
-      // Add Finish event listener
-      nextButton.addEventListener('click', finishSurvey)
-    } else {
-      nextButton.textContent = 'Weiter'
-      // Remove existing event listeners to prevent multiple triggers
-      nextButton.removeEventListener('click', finishSurvey)
-      // Add Next event listener
-      nextButton.addEventListener('click', nextSection)
+    if (nextButton) {
+      nextButton.style.display = 'inline-block'
+      if (currentSection === surveyData.length - 1) {
+        // Change the Next button to 'Finish' on the last survey section
+        nextButton.textContent = 'Finish'
+        // Remove existing event listeners to prevent multiple triggers
+        nextButton.removeEventListener('click', nextSection)
+        nextButton.removeEventListener('click', finishSurvey)
+        // Add Finish event listener
+        nextButton.addEventListener('click', finishSurvey)
+      } else {
+        nextButton.textContent = 'Weiter'
+        // Remove existing event listeners to prevent multiple triggers
+        nextButton.removeEventListener('click', finishSurvey)
+        // Add Next event listener
+        nextButton.addEventListener('click', nextSection)
+      }
     }
   }
 }
 
-// Next Section Function (Already Correct)
+// Next Section Function
 function nextSection() {
   if (currentSection < surveyData.length) {
     if (validateSection()) {
@@ -780,7 +872,7 @@ function nextSection() {
   }
 }
 
-// Previous Section Function (Already Correct)
+// Previous Section Function
 function previousSection() {
   if (currentSection > 0) {
     currentSection--
@@ -791,13 +883,13 @@ function previousSection() {
   }
 }
 
-// Logout Function (Already Correct)
+// Logout Function
 function logout() {
   sessionStorage.clear()
   window.location.href = 'login.html'
 }
 
-// Save and Resume Later Function (Already Correct)
+// Save and Resume Later Function
 function saveAndResumeLater() {
   const resumeToken = btoa(
     JSON.stringify({
@@ -809,7 +901,7 @@ function saveAndResumeLater() {
   alert('Ihr Fortschritt wurde gespeichert. Sie können später fortfahren.')
 }
 
-// Validate Section Function (Already Correct)
+// Validate Section Function
 function validateSection() {
   const form = document.getElementById('surveyForm')
   if (!form) return false
@@ -845,7 +937,7 @@ function validateDatenschutz() {
   return isValid
 }
 
-// Remove Unanswered Markers Function (Already Correct)
+// Remove Unanswered Markers Function
 function removeUnansweredMarkers() {
   const unansweredQuestions = document.querySelectorAll('.question.unanswered')
   unansweredQuestions.forEach((question) => {
@@ -853,6 +945,7 @@ function removeUnansweredMarkers() {
   })
 }
 
+// Calculate Kompetenz Score Function
 function calculateCompetenzScore(scores) {
   const scoreValues = Object.values(scores)
   if (scoreValues.length === 0) return 0
@@ -860,7 +953,7 @@ function calculateCompetenzScore(scores) {
   return Math.round(total / scoreValues.length)
 }
 
-// Utility Function to Get Lighter Color (Already Correct)
+// Utility Function to Get Lighter Color
 function getLighterColor(hexColor) {
   if (!hexColor || hexColor.length !== 7 || hexColor[0] !== '#') {
     return '#cccccc' // Return a default color if invalid
@@ -879,7 +972,7 @@ function getLighterColor(hexColor) {
     .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 
-// Utility Function to Get Contrast Color (Already Correct)
+// Utility Function to Get Contrast Color
 function getContrastColor(hexColor) {
   const r = parseInt(hexColor.slice(1, 3), 16)
   const g = parseInt(hexColor.slice(3, 5), 16)
@@ -888,7 +981,7 @@ function getContrastColor(hexColor) {
   return yiq >= 128 ? 'black' : 'white'
 }
 
-// Update Description Box Function (Already Correct)
+// Update Description Box Function
 function updateDescriptionBox(descriptionBox, fullCompetency, description) {
   const competency = labelMap[fullCompetency] || fullCompetency
   const color = colorMap[fullCompetency] || '#999999'
@@ -905,7 +998,7 @@ function updateDescriptionBox(descriptionBox, fullCompetency, description) {
   descriptionBox.style.color = getContrastColor(lighterColor)
 }
 
-// Download Chart Function (Already Correct)
+// Download Chart Function
 function downloadChart(event) {
   event.preventDefault()
   const canvas1 = document.getElementById('competencyChart1')
@@ -917,7 +1010,7 @@ function downloadChart(event) {
   }
 }
 
-// Hide Navigation Buttons Function (Already Correct)
+// Hide Navigation Buttons Function
 function hideNavigationButtons() {
   const navButtons = document.querySelector('.navigation-buttons')
   if (navButtons) {
@@ -925,5 +1018,93 @@ function hideNavigationButtons() {
   }
 }
 
-// Expose Necessary Functions Globally (Corrected Order)
+// Show Results Function (Already Correct)
+async function showResults() {
+  const userId = sessionStorage.getItem('userId')
+  if (!userId) {
+    console.error('No userId found in sessionStorage.')
+    return
+  }
+
+  try {
+    const response = await fetch(`/api/user-data/${userId}`)
+    if (!response.ok) {
+      throw new Error('Failed to fetch user data')
+    }
+    const data = await response.json()
+
+    // Update sessionStorage and global variables
+    sessionStorage.setItem('initialScores', JSON.stringify(data.initialScores))
+    sessionStorage.setItem('updatedScores', JSON.stringify(data.updatedScores))
+    initialScores = data.initialScores || {}
+    updatedScores = data.updatedScores || {}
+
+    console.log('Fetched User Data:', data) // Debugging
+
+    // Calculate competency score using updatedScores if available, otherwise use initialScores
+    const scoreData =
+      Object.keys(updatedScores).length > 0 ? updatedScores : initialScores
+    const score = calculateCompetenzScore(scoreData)
+    const courses = getCoursesSuggestions(score)
+
+    // Generate HTML for results
+    const resultHtml = `
+      <h2>Ihr Kompetenzscore beträgt ${score}%</h2>
+      <p>Dieser Score repräsentiert Ihren aktuellen Stand in digitalen Kompetenzen basierend auf Ihren Antworten.</p>
+      <h3>Kursempfehlungen</h3>
+      <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse zur Verbesserung Ihrer digitalen Kompetenzen:</p>
+      <ul>
+        ${courses.map((course) => `<li>${course}</li>`).join('')}
+      </ul>
+      <h3>Kompetenzdiagramm</h3>
+      <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
+        Object.keys(updatedScores).length > 0
+          ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der aktuellen Befragung (T2) darstellen.'
+          : ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung.'
+      }</p>
+      <div style="height: 300px; width: 100%;">
+        <canvas id="competencyChart1"></canvas>
+      </div>
+      <div id="descriptionBox1"></div>
+      <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Diagramm herunterladen</button>
+      <hr>
+    `
+
+    document.getElementById('surveyForm').innerHTML = resultHtml
+
+    // Hide the progress bar
+    const progressBar = document.getElementById('progressBar')
+    const progressText = document.getElementById('progressText')
+    if (progressBar) progressBar.style.display = 'none'
+    if (progressText) progressText.style.display = 'none'
+
+    // Create the competency chart
+    if (Object.keys(updatedScores).length > 0) {
+      // Show both initial and updated scores
+      createCompetencyChart1(initialScores, updatedScores)
+    } else {
+      // Show only initial scores
+      createCompetencyChart1(initialScores, {})
+    }
+
+    // Add event listener to the download button
+    const downloadButton = document.getElementById('downloadChart')
+    if (downloadButton) {
+      downloadButton.addEventListener('click', downloadChart)
+    } else {
+      console.error('Download button not found')
+    }
+
+    // Hide navigation buttons
+    hideNavigationButtons()
+  } catch (error) {
+    console.error('Error displaying results:', error)
+    alert('Fehler beim Anzeigen der Ergebnisse. Bitte versuchen Sie es erneut.')
+  }
+}
+
+// Assign showResults to window after its definition
+window.showResults = showResults
+
+// Expose Necessary Functions Globally
 window.saveSectionData = saveSectionData

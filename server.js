@@ -113,7 +113,6 @@ app.post("/register", async (req, res) => {
  * @desc    Handle user login
  * @access  Public
  */
-// Remove the block that creates UserData during login
 app.post("/login", async (req, res) => {
   const { code, courses } = req.body;
   if (!code) {
@@ -212,9 +211,9 @@ app.post("/api/save-user-data", async (req, res) => {
           firstSubmissionTime: currentTime,
           latestSubmissionTime: currentTime,
           initialScores: categoryScores,
-          updatedScores: {},
+          updatedScores: {}, // Do not set updatedScores on first submission
           initialResponses: surveyResponses,
-          updatedResponses: {},
+          // Do NOT set updatedResponses on first submission
           datenschutzConsent: datenschutzConsent || false,
           unterschrift: unterschrift || "",
         });
@@ -231,7 +230,7 @@ app.post("/api/save-user-data", async (req, res) => {
           initialScores: {},
           updatedScores: {},
           initialResponses: surveyResponses,
-          updatedResponses: {},
+          // Do NOT set updatedResponses here
           datenschutzConsent: datenschutzConsent || false,
           unterschrift: unterschrift || "",
         });
@@ -247,7 +246,7 @@ app.post("/api/save-user-data", async (req, res) => {
           !userData.initialScores ||
           Object.keys(userData.initialScores).length === 0
         ) {
-          // First survey submission
+          // First survey submission (if somehow userData exists but initialScores are empty)
           userData.initialScores = categoryScores;
           userData.initialResponses = surveyResponses;
           console.log("Set initialScores:", categoryScores); // Debugging
