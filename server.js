@@ -173,7 +173,7 @@ app.post("/api/save-user-data", async (req, res) => {
     const currentTime = new Date();
 
     if (!userData) {
-      // First-time user
+      // First-time user (This should generally not happen if login creates the user)
       userData = new UserData({
         userId,
         data: data,
@@ -187,31 +187,19 @@ app.post("/api/save-user-data", async (req, res) => {
       });
     } else {
       // Returning user
-      userData.data = data;
       userData.latestSubmissionTime = currentTime;
       userData.isComplete = isComplete;
 
-      // If survey is complete and initialResponses are incomplete or missing, set them
       if (isComplete) {
-        const initialResponsesCount = Object.keys(
-          userData.initialResponses || {}
-        ).length;
-        const initialScoresCount = Object.keys(
-          userData.initialScores || {}
-        ).length;
-
-        if (initialResponsesCount < expectedQuestionCount) {
+        // Check if initialResponses are already set
+        if (Object.keys(userData.initialResponses).length === 0) {
           userData.initialResponses = data.responses;
-        }
-
-        if (initialScoresCount < expectedCategoryCount) {
           userData.initialScores = categoryScores;
+        } else {
+          userData.updatedResponses = data.responses;
+          userData.updatedScores = categoryScores;
         }
       }
-
-      // Always update updatedResponses and updatedScores
-      userData.updatedResponses = data.responses;
-      userData.updatedScores = categoryScores;
 
       // Update courses without duplicates
       if (data.courses) {
@@ -388,7 +376,9 @@ async function updateCSV() {
   const records = await Promise.all(
     allUserData.map(async (user) => {
       const codeDoc = await Code.findOne({ _id: user.userId });
-      const record = {
+      const responses = user.data.responses || {};
+
+      return {
         userId: user.userId,
         userCode: codeDoc ? codeDoc.code : "Unknown",
         gender: user.data.responses?.q0_0 || "",
@@ -396,42 +386,40 @@ async function updateCSV() {
         firstSubmissionTime: user.firstSubmissionTime,
         latestSubmissionTime: user.latestSubmissionTime,
         courses: user.courses ? user.courses.join(", ") : "",
-      };
+        ...surveyData.reduce((acc, section, sectionIndex) => {
+          if (section.title !== "Persönliche Angaben") {
+            section.questions.forEach((question, questionIndex) => {
+              const questionId = `q${sectionIndex}_${questionIndex}`;
+              let cellContent = "";
 
-      surveyData.forEach((section, sectionIndex) => {
-        section.questions.forEach((question, questionIndex) => {
-          const questionId = `q${sectionIndex}_${questionIndex}`;
-          if (
-            questionId !== "q0_0" &&
-            questionId !== "q0_1" &&
-            questionId !== "q0_2" &&
-            questionId !== "q0_3"
-          ) {
-            const initialResponse = user.initialResponses?.[questionId];
-            const updatedResponse = user.updatedResponses?.[questionId];
-            let cellContent = "";
+              if (
+                user.initialResponses &&
+                user.initialResponses[questionId] !== undefined
+              ) {
+                const initialResponse = user.initialResponses[questionId];
+                const updatedResponse = user.updatedResponses
+                  ? user.updatedResponses[questionId]
+                  : undefined;
 
-            if (
-              initialResponse !== undefined &&
-              updatedResponse !== undefined
-            ) {
-              if (initialResponse === updatedResponse) {
-                cellContent = initialResponse;
-              } else {
-                cellContent = `${initialResponse} → ${updatedResponse}`;
+                if (updatedResponse !== undefined) {
+                  if (initialResponse === updatedResponse) {
+                    cellContent = initialResponse;
+                  } else {
+                    cellContent = `${initialResponse} → ${updatedResponse}`;
+                  }
+                } else {
+                  cellContent = initialResponse;
+                }
+              } else if (user.updatedResponses) {
+                cellContent = user.updatedResponses[questionId] || "";
               }
-            } else if (updatedResponse !== undefined) {
-              cellContent = updatedResponse;
-            } else {
-              cellContent = "";
-            }
 
-            record[questionId] = cellContent;
+              acc[questionId] = cellContent;
+            });
           }
-        });
-      });
-
-      return record;
+          return acc;
+        }, {}),
+      };
     })
   );
 

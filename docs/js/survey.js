@@ -46,7 +46,7 @@ const competencyDescriptions = {
 
 document.addEventListener('DOMContentLoaded', function () {
   loadUserData()
-  populateSectionDropdown()
+  // populateSectionDropdown(); // Removed as per user request
   renderSection(currentSection)
   updateProgressBar()
   setupEventListeners()
@@ -151,7 +151,12 @@ function renderSection(index) {
 
   section.questions.forEach((question, qIndex) => {
     const questionId = `q${index}_${qIndex}`
-    let savedValue = userData[questionId] || ''
+    let savedValue = ''
+
+    // If it's the personal information section, pre-fill if data exists
+    if (index === 0 && userData[questionId]) {
+      savedValue = userData[questionId]
+    }
 
     html += `<div class="question"><p>${question.text}</p>`
 
@@ -219,7 +224,7 @@ function renderSection(index) {
   })
 
   updateNavigationButtons()
-  updateSectionDropdown(index)
+  // updateSectionDropdown(index); // Removed as per user request
   window.scrollTo(0, 0)
 }
 
@@ -257,10 +262,7 @@ function saveSectionData(isComplete = false) {
     const categoryScores = calculateCategoryScores()
     const data = {
       userId: userId,
-      data: {
-        responses: userData,
-        currentSection: currentSection,
-      },
+      data: userData,
       isComplete: isComplete,
       categoryScores: categoryScores,
     }
@@ -302,7 +304,24 @@ function finishSurvey() {
     showDatenschutz()
   } else {
     alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
+    markUnansweredQuestions()
   }
+}
+
+function markUnansweredQuestions() {
+  const form = document.getElementById('surveyForm')
+  const requiredFields = form.querySelectorAll('[required]')
+
+  requiredFields.forEach((field) => {
+    if (
+      (!field.value ||
+        (field.type === 'radio' &&
+          !form.querySelector(`input[name="${field.name}"]:checked`))) &&
+      !field.closest('.question').classList.contains('unanswered')
+    ) {
+      field.closest('.question').classList.add('unanswered')
+    }
+  })
 }
 
 function calculateCategoryScores() {
@@ -505,6 +524,8 @@ function showResults() {
   initialScores = JSON.parse(sessionStorage.getItem('initialScores') || '{}')
   updatedScores = JSON.parse(sessionStorage.getItem('updatedScores') || '{}')
 
+  const hasUpdatedScores = Object.keys(updatedScores).length > 0
+
   const resultHtml = `
     <h2>Ihr Kompetenzscore beträgt ${score}%</h2>
     <p>Dieser Score repräsentiert Ihren aktuellen Stand in digitalen Kompetenzen basierend auf Ihren Antworten.</p>
@@ -514,7 +535,11 @@ function showResults() {
       ${courses.map((course) => `<li>${course}</li>`).join('')}
     </ul>
     <h3>Kompetenzdiagramm</h3>
-    <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen. Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der zweiten Befragung (T2) darstellen.</p>
+    <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
+      hasUpdatedScores
+        ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der zweiten Befragung (T2) darstellen.'
+        : ''
+    }</p>
     <div style="height: 300px; width: 100%;">
       <canvas id="competencyChart1"></canvas>
     </div>
@@ -546,6 +571,14 @@ function showResults() {
       showDatenschutz()
     })
   }
+}
+
+function calculateCompetenzScore() {
+  // Assuming overall score is the average of all category scores
+  const scores = Object.values(updatedScores)
+  if (scores.length === 0) return 0
+  const total = scores.reduce((acc, val) => acc + val, 0)
+  return Math.round(total / scores.length)
 }
 
 function getLighterColor(hexColor) {
@@ -604,46 +637,52 @@ function createCompetencyChart1(initialScores, updatedScores) {
 
   const ctx = canvas.getContext('2d')
 
-  // Ensure we have data to display
-  if (
-    Object.keys(initialScores).length === 0 &&
+  // Determine if it's initial or updated survey
+  const isInitialSurvey =
+    Object.keys(initialScores).length > 0 &&
     Object.keys(updatedScores).length === 0
-  ) {
-    console.error('Keine Scores verfügbar, um anzuzeigen')
-    canvas.style.display = 'none'
-    descriptionBox.innerHTML = '<p>Noch keine Kompetenzdaten verfügbar.</p>'
-    return
-  }
+  const isUpdatedSurvey = Object.keys(updatedScores).length > 0
 
   // Use full competency titles as labels
-  const fullLabels = Object.keys(updatedScores)
+  const fullLabels =
+    Object.keys(updatedScores).length > 0
+      ? Object.keys(updatedScores)
+      : Object.keys(initialScores)
   const labels = fullLabels.map((key) => labelMap[key] || key)
   let currentHoveredIndex = -1
+
+  const datasets = []
+
+  if (
+    isInitialSurvey ||
+    (isUpdatedSurvey && Object.keys(initialScores).length > 0)
+  ) {
+    datasets.push({
+      label: 'Initial Score',
+      data: fullLabels.map((label) => initialScores[label] || 0),
+      backgroundColor: fullLabels.map((label) =>
+        getLighterColor(colorMap[label] || '#999999')
+      ),
+      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      borderWidth: 1,
+    })
+  }
+
+  if (isUpdatedSurvey) {
+    datasets.push({
+      label: 'Aktualisierter Score',
+      data: fullLabels.map((label) => updatedScores[label] || 0),
+      backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      borderWidth: 1,
+    })
+  }
 
   chart1Instance = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: labels,
-      datasets: [
-        {
-          label: 'Initial Score',
-          data: fullLabels.map((label) => initialScores[label] || 0),
-          backgroundColor: fullLabels.map((label) =>
-            getLighterColor(colorMap[label] || '#999999')
-          ),
-          borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-          borderWidth: 1,
-        },
-        {
-          label: 'Updated Score',
-          data: fullLabels.map((label) => updatedScores[label] || 0),
-          backgroundColor: fullLabels.map(
-            (label) => colorMap[label] || '#999999'
-          ),
-          borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-          borderWidth: 1,
-        },
-      ],
+      datasets: datasets,
     },
     options: {
       responsive: true,
@@ -741,3 +780,119 @@ if (typeof surveyData === 'undefined') {
 // Expose necessary functions globally
 window.showResults = showResults
 window.saveSectionData = saveSectionData
+
+// Define missing functions
+
+function updateNavigationButtons() {
+  const prevButton = document.getElementById('prevButton')
+  const nextButton = document.getElementById('nextButton')
+
+  // Disable the Previous button on the first section
+  if (currentSection === 0) {
+    prevButton.disabled = true
+  } else {
+    prevButton.disabled = false
+  }
+
+  // Change the Next button to 'Finish' on the last section
+  if (currentSection === surveyData.length - 1) {
+    nextButton.textContent = 'Finish'
+    nextButton.removeEventListener('click', nextSection)
+    nextButton.addEventListener('click', finishSurvey)
+  } else {
+    nextButton.textContent = 'Weiter'
+    nextButton.removeEventListener('click', finishSurvey)
+    nextButton.addEventListener('click', nextSection)
+  }
+}
+
+function nextSection() {
+  if (currentSection < surveyData.length - 1) {
+    if (validateSection()) {
+      saveSectionData(false)
+      currentSection++
+      renderSection(currentSection)
+      updateProgressBar()
+    } else {
+      alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
+      markUnansweredQuestions()
+    }
+  }
+}
+
+function previousSection() {
+  if (currentSection > 0) {
+    currentSection--
+    renderSection(currentSection)
+    updateProgressBar()
+  }
+}
+
+function logout() {
+  sessionStorage.clear()
+  window.location.href = 'login.html'
+}
+
+function saveAndResumeLater() {
+  const resumeToken = btoa(
+    JSON.stringify({
+      userId: sessionStorage.getItem('userId'),
+      section: currentSection,
+    })
+  )
+  localStorage.setItem('surveyResumeToken', resumeToken)
+  alert('Ihr Fortschritt wurde gespeichert. Sie können später fortfahren.')
+}
+
+function validateSection() {
+  const form = document.getElementById('surveyForm')
+  if (!form) return false
+
+  const requiredFields = form.querySelectorAll('[required]')
+  let isValid = true
+
+  requiredFields.forEach((field) => {
+    if (
+      (!field.value ||
+        (field.type === 'radio' &&
+          !form.querySelector(`input[name="${field.name}"]:checked`))) &&
+      !field.closest('.question').classList.contains('unanswered')
+    ) {
+      field.closest('.question').classList.add('unanswered')
+      isValid = false
+    }
+  })
+
+  return isValid
+}
+
+function markUnansweredQuestions() {
+  const form = document.getElementById('surveyForm')
+  const requiredFields = form.querySelectorAll('[required]')
+
+  requiredFields.forEach((field) => {
+    if (
+      (!field.value ||
+        (field.type === 'radio' &&
+          !form.querySelector(`input[name="${field.name}"]:checked`))) &&
+      !field.closest('.question').classList.contains('unanswered')
+    ) {
+      field.closest('.question').classList.add('unanswered')
+    }
+  })
+}
+
+function removeUnansweredMarkers() {
+  const unansweredQuestions = document.querySelectorAll('.question.unanswered')
+  unansweredQuestions.forEach((question) => {
+    question.classList.remove('unanswered')
+  })
+}
+
+function calculateCompetenzScore() {
+  // Assuming overall score is the average of all category scores
+  const scores = Object.values(updatedScores)
+  if (scores.length === 0) return 0
+  const total = scores.reduce((acc, val) => acc + val, 0)
+  return Math.round(total / scores.length)
+}
