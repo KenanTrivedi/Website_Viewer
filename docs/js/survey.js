@@ -83,7 +83,6 @@ function setupEventListeners() {
   }
 }
 
-// Check Resume Token Function
 function checkResumeToken() {
   const resumeToken = localStorage.getItem('surveyResumeToken')
   if (resumeToken) {
@@ -103,6 +102,8 @@ function checkResumeToken() {
     }
   }
 }
+
+// Ensure populatePersonalInfo only targets the "Persönliche Angaben" section
 
 /**
  * Prefills only the "Persönliche Angaben" section
@@ -135,8 +136,7 @@ function populatePersonalInfo(form, data) {
   })
 }
 
-// Load User Data Function
-function loadUserData() {
+function loadUserData(isNewAttempt = false) {
   const userId = sessionStorage.getItem('userId')
   if (userId) {
     fetch(`/api/user-data/${userId}`)
@@ -149,7 +149,11 @@ function loadUserData() {
       .then((data) => {
         if (data.data) {
           userDataInitial = data.initialResponses || {}
-          userDataUpdated = data.updatedResponses || {}
+          if (!isNewAttempt) {
+            userDataUpdated = data.updatedResponses || {}
+          } else {
+            userDataUpdated = {} // Clear updated responses for new attempt
+          }
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
 
@@ -183,7 +187,6 @@ function resetUserData() {
 // Render Section Function
 function renderSection(index) {
   if (index < surveyData.length) {
-    // Render regular survey section
     const section = surveyData[index]
     let html = `<div class="section"><h2>${section.title}</h2>`
 
@@ -196,7 +199,6 @@ function renderSection(index) {
       const questionId = `q${index}_${qIndex}`
       let savedValue = ''
 
-      // **Remove the restrictive condition**
       // Prefill if data exists
       if (userData[questionId] !== undefined) {
         savedValue = userData[questionId]
@@ -269,7 +271,11 @@ function renderSection(index) {
     // Prefill form fields with existing data
     const form = document.getElementById('surveyForm')
     if (form) {
-      populateFormFields(form, userData, index)
+      if (section.title === 'Persönliche Angaben') {
+        populatePersonalInfo(form, userData)
+      } else {
+        populateFormFields(form, userData, index)
+      }
     }
 
     // Add event listeners to scale buttons for accessibility
@@ -280,7 +286,7 @@ function renderSection(index) {
     updateNavigationButtons()
     window.scrollTo(0, 0) // Ensure the page starts at the top
   } else if (index === surveyData.length) {
-    // Render Datenschutz section
+    // Render Datenschutz section (unchanged)
     renderDatenschutzSection()
   }
 }
@@ -719,7 +725,8 @@ function populateFormFields(form, data, sectionIndex) {
   })
 }
 
-// Function to display results and generate the chart
+// Modify the showResults function in survey.js
+
 async function showResults() {
   const userId = sessionStorage.getItem('userId')
   if (!userId) {
@@ -788,12 +795,19 @@ async function showResults() {
       createCompetencyChart1(initialScores, {})
     }
 
-    // Add event listener to the download button
+    // Add event listeners to the buttons
     const downloadButton = document.getElementById('downloadChart')
     if (downloadButton) {
       downloadButton.addEventListener('click', downloadChart)
     } else {
       console.error('Download button not found')
+    }
+
+    const startNewSurveyButton = document.getElementById('startNewSurvey')
+    if (startNewSurveyButton) {
+      startNewSurveyButton.addEventListener('click', resetSurveyData)
+    } else {
+      console.error('Start New Survey button not found')
     }
 
     // Hide navigation buttons
@@ -838,9 +852,45 @@ function updateNavigationButtons() {
         // Remove existing event listeners to prevent multiple triggers
         nextButton.removeEventListener('click', finishSurvey)
         // Add Next event listener
+        nextButton.removeEventListener('click', nextSection) // Ensure it's removed first
         nextButton.addEventListener('click', nextSection)
       }
     }
+  }
+}
+// Modify the startNewSurvey function in survey.js
+
+async function startNewSurvey() {
+  const userId = sessionStorage.getItem('userId')
+  if (!userId) {
+    alert('Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.')
+    return
+  }
+
+  try {
+    const response = await fetch('/api/reset-user-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Fehler beim Zurücksetzen der Umfrage.')
+    }
+
+    alert(
+      'Ihre Umfrage wurde erfolgreich zurückgesetzt. Sie können jetzt eine neue Umfrage starten.'
+    )
+
+    // Load user data as a new attempt
+    loadUserData(true)
+  } catch (error) {
+    console.error('Fehler beim Zurücksetzen der Umfrage:', error)
+    alert(
+      'Fehler beim Zurücksetzen der Umfrage. Bitte versuchen Sie es erneut.'
+    )
   }
 }
 
@@ -996,6 +1046,44 @@ function downloadChart(event) {
     link.download = 'kompetenz-diagramm.png'
     link.href = canvas1.toDataURL()
     link.click()
+  }
+}
+
+async function resetSurveyData() {
+  const userId = sessionStorage.getItem('userId')
+  if (!userId) {
+    alert('Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.')
+    return
+  }
+
+  try {
+    const response = await fetch('/api/reset-user-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Fehler beim Zurücksetzen der Umfrage.')
+    }
+
+    alert(
+      'Ihre Umfrage wurde erfolgreich zurückgesetzt. Sie können jetzt eine neue Umfrage starten.'
+    )
+
+    // Reload the survey to reflect the reset
+    resetUserData()
+    currentSection = 0
+    renderSection(currentSection)
+    updateProgressBar()
+    updateNavigationButtons()
+  } catch (error) {
+    console.error('Fehler beim Zurücksetzen der Umfrage:', error)
+    alert(
+      'Fehler beim Zurücksetzen der Umfrage. Bitte versuchen Sie es erneut.'
+    )
   }
 }
 

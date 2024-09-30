@@ -79,6 +79,32 @@ function authenticate(req, res, next) {
 // Routes
 
 /**
+ * @route   POST /api/reset-user-data
+ * @desc    Reset survey responses for a user (excluding personal details)
+ * @access  Public
+ */
+app.post("/api/reset-user-data", async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) {
+    return res.status(400).json({ message: "userId is required." });
+  }
+  try {
+    const userData = await UserData.findOne({ userId });
+    if (!userData) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    userData.updatedResponses = {};
+    userData.updatedScores = {};
+    userData.isComplete = false;
+    await userData.save();
+    res.status(200).json({ message: "Survey data reset successfully." });
+  } catch (error) {
+    console.error("Error resetting user data:", error);
+    res.status(500).json({ message: "Error resetting user data." });
+  }
+});
+
+/**
  * @route   POST /register
  * @desc    Register a new code for a user
  * @access  Public
@@ -185,14 +211,22 @@ app.post("/api/save-user-data", async (req, res) => {
   }
 
   try {
-    // Extract only survey responses
+    // Extract only survey responses excluding personal details
     const surveyResponses = {};
+    const personalDetails = {};
 
     surveyData.forEach((section, sectionIndex) => {
       section.questions.forEach((question, questionIndex) => {
         const questionId = `q${sectionIndex}_${questionIndex}`;
-        if (data[questionId] !== undefined) {
-          surveyResponses[questionId] = data[questionId];
+        if (section.title === "Persönliche Angaben") {
+          // Store personal details separately
+          if (data[questionId] !== undefined) {
+            personalDetails[questionId] = data[questionId];
+          }
+        } else {
+          if (data[questionId] !== undefined) {
+            surveyResponses[questionId] = data[questionId];
+          }
         }
       });
     });
@@ -205,15 +239,15 @@ app.post("/api/save-user-data", async (req, res) => {
         // First survey submission
         userData = new UserData({
           userId,
-          data: data,
+          data: personalDetails, // Only personal details
           courses: data.courses ? [data.courses] : [],
           isComplete: isComplete,
           firstSubmissionTime: currentTime,
           latestSubmissionTime: currentTime,
           initialScores: categoryScores,
           updatedScores: {}, // Do not set updatedScores on first submission
-          initialResponses: surveyResponses,
-          // Do NOT set updatedResponses on first submission
+          initialResponses: personalDetails,
+          updatedResponses: surveyResponses,
           datenschutzConsent: datenschutzConsent || false,
           unterschrift: unterschrift || "",
         });
@@ -222,15 +256,15 @@ app.post("/api/save-user-data", async (req, res) => {
         // Initial data submission, without survey data
         userData = new UserData({
           userId,
-          data: data,
+          data: personalDetails, // Only personal details
           courses: data.courses ? [data.courses] : [],
           isComplete: isComplete,
           firstSubmissionTime: currentTime,
           latestSubmissionTime: currentTime,
           initialScores: {},
           updatedScores: {},
-          initialResponses: surveyResponses,
-          // Do NOT set updatedResponses here
+          initialResponses: personalDetails,
+          updatedResponses: surveyResponses,
           datenschutzConsent: datenschutzConsent || false,
           unterschrift: unterschrift || "",
         });
@@ -241,6 +275,15 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.latestSubmissionTime = currentTime;
       userData.isComplete = isComplete;
 
+      // Update personal details if provided
+      if (Object.keys(personalDetails).length > 0) {
+        userData.data = { ...userData.data, ...personalDetails };
+        userData.initialResponses = {
+          ...userData.initialResponses,
+          ...personalDetails,
+        };
+      }
+
       if (isComplete) {
         if (
           !userData.initialScores ||
@@ -248,7 +291,11 @@ app.post("/api/save-user-data", async (req, res) => {
         ) {
           // First survey submission (if somehow userData exists but initialScores are empty)
           userData.initialScores = categoryScores;
-          userData.initialResponses = surveyResponses;
+          userData.initialResponses = {
+            ...userData.initialResponses,
+            ...personalDetails,
+          };
+          userData.updatedResponses = surveyResponses;
           console.log("Set initialScores:", categoryScores); // Debugging
         } else {
           // Subsequent survey submissions
@@ -487,13 +534,14 @@ async function updateCSV() {
   const records = await Promise.all(
     allUserData.map(async (user) => {
       const codeDoc = await Code.findOne({ _id: user.userId });
-      const responses = user.data.responses || {};
+      const personalResponses = user.initialResponses || {};
+      const surveyResponses = user.updatedResponses || {};
 
       return {
         userId: user.userId,
         userCode: codeDoc ? codeDoc.code : "Unknown",
-        gender: responses.q0_0 || "",
-        birthYear: responses.q0_1 || "",
+        gender: personalResponses.q0_0 || "",
+        birthYear: personalResponses.q0_1 || "",
         firstSubmissionTime: user.firstSubmissionTime,
         latestSubmissionTime: user.latestSubmissionTime,
         courses: user.courses ? user.courses.join(", ") : "",
@@ -502,26 +550,8 @@ async function updateCSV() {
             const questionId = `q${sectionIndex}_${questionIndex}`;
             let cellContent = "";
 
-            if (
-              user.initialResponses &&
-              user.initialResponses[questionId] !== undefined
-            ) {
-              const initialResponse = user.initialResponses[questionId];
-              const updatedResponse = user.updatedResponses
-                ? user.updatedResponses[questionId]
-                : undefined;
-
-              if (updatedResponse !== undefined) {
-                if (initialResponse === updatedResponse) {
-                  cellContent = initialResponse;
-                } else {
-                  cellContent = `${initialResponse} → ${updatedResponse}`;
-                }
-              } else {
-                cellContent = initialResponse;
-              }
-            } else if (user.updatedResponses) {
-              cellContent = user.updatedResponses[questionId] || "";
+            if (surveyResponses[questionId] !== undefined) {
+              cellContent = surveyResponses[questionId];
             }
 
             acc[questionId] = cellContent;
