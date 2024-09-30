@@ -153,27 +153,8 @@ function loadUserData() {
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
 
-          const form = document.getElementById('surveyForm')
-
-          if (data.isComplete) {
-            if (Object.keys(userDataUpdated).length > 0) {
-              // User has already taken the survey and can re-take
-              currentSection = 0 // Start the survey again
-              userData = { ...userDataInitial } // Prefill only personal info
-              if (form) {
-                populatePersonalInfo(form, userDataInitial)
-              }
-            } else {
-              // User has taken the survey for the first time
-              currentSection = surveyData.length // Show 'Datenschutz'
-            }
-          } else {
-            currentSection = data.currentSection || 0
-            userData = { ...userDataInitial, ...userDataUpdated }
-            if (form) {
-              populateFormFields(form, userData)
-            }
-          }
+          // **Combine initial and updated responses**
+          userData = { ...userDataInitial, ...userDataUpdated }
         }
         renderSection(currentSection)
         updateProgressBar()
@@ -206,7 +187,7 @@ function renderSection(index) {
     const section = surveyData[index]
     let html = `<div class="section"><h2>${section.title}</h2>`
 
-    // Add instruction before "Suchen, Verarbeiten und Aufbewahren"
+    // Add instruction before specific sections if needed
     if (section.title === 'Suchen, Verarbeiten und Aufbewahren') {
       html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
     }
@@ -215,11 +196,9 @@ function renderSection(index) {
       const questionId = `q${index}_${qIndex}`
       let savedValue = ''
 
-      // Prefill only if it's not a re-take or if the section is "Persönliche Angaben"
-      if (
-        section.title === 'Persönliche Angaben' &&
-        userData[questionId] !== undefined
-      ) {
+      // **Remove the restrictive condition**
+      // Prefill if data exists
+      if (userData[questionId] !== undefined) {
         savedValue = userData[questionId]
       }
 
@@ -286,6 +265,12 @@ function renderSection(index) {
 
     html += `</div>`
     document.getElementById('surveyForm').innerHTML = html
+
+    // Prefill form fields with existing data
+    const form = document.getElementById('surveyForm')
+    if (form) {
+      populateFormFields(form, userData, index)
+    }
 
     // Add event listeners to scale buttons for accessibility
     document.querySelectorAll('.scale-button').forEach((button) => {
@@ -703,29 +688,33 @@ function createCompetencyChart1(initialScores, updatedScores) {
   chart1Instance.update()
 }
 
-// Populate Form Fields Function (Prefills only 'Persönliche Angaben')
-function populateFormFields(form, data) {
-  surveyData.forEach((section, sectionIndex) => {
-    if (section.title === 'Persönliche Angaben') {
-      section.questions.forEach((question, questionIndex) => {
-        const questionId = `q${sectionIndex}_${questionIndex}`
-        const value = data[questionId]
-        if (value !== undefined) {
-          const field = form.querySelector(`[name="${questionId}"]`)
-          if (field) {
-            if (field.type === 'radio') {
-              const radioButton = form.querySelector(
-                `[name="${questionId}"][value="${value}"]`
-              )
-              if (radioButton) radioButton.checked = true
-            } else if (field.type === 'date') {
-              field.value = value // Already set to today's date and read-only
-            } else {
-              field.value = value
-            }
-          }
+/**
+ * Populates the form fields based on user data for the given section.
+ * @param {HTMLElement} form - The survey form element.
+ * @param {Object} data - The user data containing responses.
+ * @param {number} sectionIndex - The current section index.
+ */
+function populateFormFields(form, data, sectionIndex) {
+  const section = surveyData[sectionIndex]
+  if (!section) return
+
+  section.questions.forEach((question, questionIndex) => {
+    const questionId = `q${sectionIndex}_${questionIndex}`
+    const value = data[questionId]
+    if (value !== undefined) {
+      const field = form.querySelector(`[name="${questionId}"]`)
+      if (field) {
+        if (field.type === 'radio') {
+          const radioButton = form.querySelector(
+            `[name="${questionId}"][value="${value}"]`
+          )
+          if (radioButton) radioButton.checked = true
+        } else if (field.type === 'date') {
+          field.value = value // Already set to today's date and read-only
+        } else {
+          field.value = value
         }
-      })
+      }
     }
   })
 }
