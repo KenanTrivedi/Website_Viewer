@@ -18,45 +18,26 @@
     <div class="login-container">
       <img src="images/logo.png" alt="Open-Digi Logo" class="logo" />
       <form id="loginForm">
-        <div class="form-group">
-          <legend>Bitte wählen Sie eine Option:</legend>
-          <div>
-            <input
-              type="radio"
-              id="surveyNo"
-              name="surveyOption"
-              value="no"
-              required
-            />
-            <label for="surveyNo"
-              >Nein, ich habe den Fragebogen noch nicht ausgefüllt</label
-            >
+        <fieldset class="form-group">
+          <legend>Willkommen! Wie möchten Sie fortfahren?</legend>
+          <div class="choice-container">
+            <div class="choice-card" data-value="no">
+              <h3>Nein</h3>
+              <p>Ich habe den Fragebogen noch nicht ausgefüllt</p>
+            </div>
+            <div class="choice-card" data-value="yes">
+              <h3>Ja</h3>
+              <p>Ich habe den Fragebogen schon einmal ausgefüllt</p>
+            </div>
+            <div class="choice-card" data-value="continue">
+              <h3>Fortsetzen</h3>
+              <p>Ich möchte meinen begonnenen Fragebogen fortsetzen</p>
+            </div>
           </div>
-          <div>
-            <input
-              type="radio"
-              id="surveyYes"
-              name="surveyOption"
-              value="yes"
-              required
-            />
-            <label for="surveyYes"
-              >Ja, ich habe den Fragebogen schon einmal ausgefüllt</label
-            >
-          </div>
-          <div>
-            <input
-              type="radio"
-              id="surveyContinue"
-              name="surveyOption"
-              value="continue"
-              required
-            />
-            <label for="surveyContinue"
-              >Ich möchte meinen begonnenen Fragebogen fortsetzen</label
-            >
-          </div>
-        </div>
+        </fieldset>
+
+        <!-- Hidden input to store the selected option -->
+        <input type="hidden" id="surveyOption" name="surveyOption" required />
 
         <div id="codeInput" style="display: none">
           <div class="input-group">
@@ -103,13 +84,6 @@
       >
         Klicken Sie hier, um einen neuen Code zu generieren
       </button>
-
-      <div
-        id="errorMessage"
-        class="error-message"
-        role="alert"
-        aria-live="assertive"
-      ></div>
     </div>
     <script src="js/script.js"></script>
   </body>

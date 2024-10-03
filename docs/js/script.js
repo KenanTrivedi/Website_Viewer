@@ -205,19 +205,26 @@ async function submitForm(url, data) {
 function handleLoginFormSubmission() {
   const loginForm = document.getElementById('loginForm')
   if (loginForm) {
-    loginForm.addEventListener('submit', async function (event) {
+    loginForm.addEventListener('submit', function (event) {
       event.preventDefault()
-      await handleLogin()
+      handleLogin()
     })
   }
 }
 
 async function handleLogin() {
-  const selectedOption = document.querySelector(
-    'input[name="surveyOption"]:checked'
-  )?.value
+  const selectedOption = document.getElementById('surveyOption')?.value
   let loginCode = document.getElementById('loginCode')?.value.trim() || ''
   const courses = document.getElementById('courses')?.value.trim() || ''
+
+  if (!selectedOption) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Fehler',
+      text: 'Bitte wählen Sie eine Option aus.',
+    })
+    return
+  }
 
   if (selectedOption === 'no') {
     // User needs to generate a code
@@ -234,7 +241,14 @@ async function handleLogin() {
     return
   }
 
-  loginCode = loginCode.toUpperCase()
+  if (selectedOption === 'yes' && !courses) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Fehler',
+      text: 'Bitte geben Sie die absolvierten Kurse an.',
+    })
+    return
+  }
 
   const loginButton = document.getElementById('loginButton')
   const generateCodeButton = document.getElementById('generateCodeButton')
@@ -252,14 +266,6 @@ async function handleLogin() {
     }
 
     if (selectedOption === 'yes') {
-      if (!courses) {
-        Swal.fire({
-          icon: 'error',
-          title: 'Fehler',
-          text: 'Bitte geben Sie die absolvierten Kurse an.',
-        })
-        return
-      }
       payload.courses = courses
       payload.startNewAttempt = true
     } else if (selectedOption === 'continue') {
@@ -495,51 +501,53 @@ function setupSurveyDataPersistence() {
   }
 }
 
+// script.js
+
 function setupLoginPageFunctionality() {
-  const surveyOptionRadios = document.querySelectorAll(
-    'input[name="surveyOption"]'
-  )
+  const choiceCards = document.querySelectorAll('.choice-card')
+  const surveyOptionInput = document.getElementById('surveyOption')
   const codeInput = document.getElementById('codeInput')
   const coursesList = document.getElementById('coursesList')
   const loginButton = document.getElementById('loginButton')
   const generateCodeButton = document.getElementById('generateCodeButton')
 
-  // Check if the elements exist before proceeding
-  if (!surveyOptionRadios.length || !codeInput || !coursesList) {
-    // Elements not found; likely not on the login page
+  if (
+    !choiceCards ||
+    !choiceCards.length ||
+    !surveyOptionInput ||
+    !codeInput ||
+    !coursesList
+  ) {
     return
   }
 
-  surveyOptionRadios.forEach((radio) => {
-    radio.addEventListener('change', function () {
-      const selectedOption = this.value
-      if (selectedOption === 'no') {
-        // User has not done the survey before, needs to generate a code
-        codeInput.style.display = 'none'
-        coursesList.style.display = 'none'
-        if (loginButton) loginButton.style.display = 'none'
-        if (generateCodeButton) generateCodeButton.style.display = 'block'
-      } else if (selectedOption === 'yes') {
-        // User has done the survey before, wants to start a new attempt
-        codeInput.style.display = 'block'
-        coursesList.style.display = 'block'
-        if (loginButton) loginButton.style.display = 'block'
-        if (generateCodeButton) generateCodeButton.style.display = 'none'
-      } else if (selectedOption === 'continue') {
-        // User wants to continue initial survey
-        codeInput.style.display = 'block'
-        coursesList.style.display = 'none'
-        if (loginButton) loginButton.style.display = 'block'
-        if (generateCodeButton) generateCodeButton.style.display = 'none'
-      }
+  choiceCards.forEach((card) => {
+    card.addEventListener('click', function () {
+      choiceCards.forEach((c) => c.classList.remove('selected'))
+      this.classList.add('selected')
+      const selectedOption = this.getAttribute('data-value')
+      surveyOptionInput.value = selectedOption
+      handleSurveyOptionChange(selectedOption)
     })
   })
 
-  if (loginButton) {
-    loginButton.addEventListener('click', function (event) {
-      event.preventDefault()
-      handleLogin()
-    })
+  function handleSurveyOptionChange(selectedOption) {
+    if (selectedOption === 'no') {
+      codeInput.style.display = 'none'
+      coursesList.style.display = 'none'
+      if (loginButton) loginButton.style.display = 'none'
+      if (generateCodeButton) generateCodeButton.style.display = 'block'
+    } else if (selectedOption === 'yes') {
+      codeInput.style.display = 'block'
+      coursesList.style.display = 'block'
+      if (loginButton) loginButton.style.display = 'block'
+      if (generateCodeButton) generateCodeButton.style.display = 'none'
+    } else if (selectedOption === 'continue') {
+      codeInput.style.display = 'block'
+      coursesList.style.display = 'none'
+      if (loginButton) loginButton.style.display = 'block'
+      if (generateCodeButton) generateCodeButton.style.display = 'none'
+    }
   }
 
   if (generateCodeButton) {
