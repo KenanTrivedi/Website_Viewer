@@ -148,25 +148,23 @@ function saveSectionData(isComplete = false) {
   removeUnansweredMarkers()
 
   const formData = new FormData(document.getElementById('surveyForm'))
-  const currentData = {}
   for (let [key, value] of formData.entries()) {
-    currentData[key] = value
     userData[key] = value // Update userData object
   }
 
   const userId = sessionStorage.getItem('userId')
   if (userId) {
-    const categoryScores = calculateCategoryScores(currentData)
+    const categoryScores = calculateCategoryScores(userData)
 
     const data = {
       userId: userId,
-      data: currentData,
+      data: userData,
       isComplete: isComplete,
       categoryScores: categoryScores,
       currentSection: currentSection,
     }
 
-    // Only include datenschutzConsent and unterschrift if they exist
+    // Include datenschutzConsent and unterschrift if they exist
     const datenschutzConsentElement =
       document.getElementById('datenschutzConsent')
     const unterschriftElement = document.getElementById('unterschrift')
@@ -304,8 +302,13 @@ function validateYear(input) {
 function renderSection(index) {
   console.log(`Rendering section ${index}`)
 
-  if (index < 0 || index >= surveyData.length) {
+  if (index < 0 || index > surveyData.length) {
     console.error(`Invalid section index: ${index}`)
+    return
+  }
+
+  if (index === surveyData.length) {
+    renderDatenschutzSection()
     return
   }
 
@@ -520,14 +523,20 @@ function updateProgressBar() {
 // Finish Survey Function
 function finishSurvey() {
   if (validateSection()) {
-    saveSectionData(true)
-    if (currentSection < surveyData.length) {
-      currentSection++
+    saveSectionData(false) // Not setting isComplete yet
+    currentSection++
+    if (currentSection === surveyData.length) {
+      renderDatenschutzSection()
+      updateProgressBar()
+      window.scrollTo(0, 0)
+    } else if (currentSection > surveyData.length) {
+      // Now proceed to show results
+      saveSectionData(true) // Now set isComplete to true
+      showResults()
+    } else {
       renderSection(currentSection)
       updateProgressBar()
-    } else {
-      // Proceed to show results
-      showResults()
+      window.scrollTo(0, 0)
     }
   } else {
     alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
@@ -859,28 +868,30 @@ function updateNavigationButtons() {
   if (currentSection === surveyData.length) {
     // Hide the Next button and show only the Final button if needed
     if (nextButton) nextButton.style.display = 'none'
+  } else if (currentSection === surveyData.length - 1) {
+    // Change the Next button to 'Finish' on the last survey section
+    if (nextButton) {
+      nextButton.style.display = 'inline-block'
+      nextButton.textContent = 'Finish'
+      // Remove existing event listeners to prevent multiple triggers
+      nextButton.removeEventListener('click', nextSection)
+      nextButton.removeEventListener('click', finishSurvey)
+      // Add Finish event listener
+      nextButton.addEventListener('click', finishSurvey)
+    }
   } else {
     if (nextButton) {
       nextButton.style.display = 'inline-block'
-      if (currentSection === surveyData.length - 1) {
-        // Change the Next button to 'Finish' on the last survey section
-        nextButton.textContent = 'Finish'
-        // Remove existing event listeners to prevent multiple triggers
-        nextButton.removeEventListener('click', nextSection)
-        nextButton.removeEventListener('click', finishSurvey)
-        // Add Finish event listener
-        nextButton.addEventListener('click', finishSurvey)
-      } else {
-        nextButton.textContent = 'Weiter'
-        // Remove existing event listeners to prevent multiple triggers
-        nextButton.removeEventListener('click', finishSurvey)
-        // Add Next event listener
-        nextButton.removeEventListener('click', nextSection) // Ensure it's removed first
-        nextButton.addEventListener('click', nextSection)
-      }
+      nextButton.textContent = 'Weiter'
+      // Remove existing event listeners to prevent multiple triggers
+      nextButton.removeEventListener('click', finishSurvey)
+      // Add Next event listener
+      nextButton.removeEventListener('click', nextSection) // Ensure it's removed first
+      nextButton.addEventListener('click', nextSection)
     }
   }
 }
+
 // Modify the startNewSurvey function in survey.js
 
 async function startNewSurvey() {
