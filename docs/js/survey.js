@@ -147,6 +147,7 @@ function loadUserData(isNewAttempt = false) {
         return response.json()
       })
       .then((data) => {
+        console.log('Loaded user data:', data)
         if (data.data) {
           // Always keep personal information
           const personalInfo = {}
@@ -168,8 +169,9 @@ function loadUserData(isNewAttempt = false) {
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
 
-          console.log('Loaded user data:', userData)
+          console.log('Processed user data:', userData)
         }
+        currentSection = 0 // Always start from the first section
         renderSection(currentSection)
         updateProgressBar()
       })
@@ -196,53 +198,115 @@ function resetUserData() {
 
 // Render Section Function
 function renderSection(index) {
-  if (index < surveyData.length) {
-    const section = surveyData[index]
-    let html = `<div class="section"><h2>${section.title}</h2>`
+  console.log(`Rendering section ${index}`)
 
-    // Add instruction before specific sections if needed
-    if (section.title === 'Suchen, Verarbeiten und Aufbewahren') {
-      html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
+  if (index < 0 || index >= surveyData.length) {
+    console.error(`Invalid section index: ${index}`)
+    return
+  }
+
+  const section = surveyData[index]
+  console.log(`Section title: ${section.title}`)
+
+  // Clear previous content
+  document.getElementById('surveyForm').innerHTML = ''
+
+  let html = `<div class="section"><h2>${section.title}</h2>`
+
+  // Add instruction before specific sections if needed
+  if (section.title === 'Suchen, Verarbeiten und Aufbewahren') {
+    html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
+  }
+
+  section.questions.forEach((question, qIndex) => {
+    const questionId = `q${index}_${qIndex}`
+    console.log(`Rendering question: ${questionId}`)
+    let savedValue = ''
+
+    // Only prefill for Persönliche Angaben section
+    if (
+      section.title === 'Persönliche Angaben' &&
+      userData[questionId] !== undefined
+    ) {
+      savedValue = userData[questionId]
     }
 
-    section.questions.forEach((question, qIndex) => {
-      const questionId = `q${index}_${qIndex}`
-      let savedValue = ''
+    html += `<div class="question"><p>${question.text}</p>`
 
-      // Only prefill for Persönliche Angaben section
-      if (
-        section.title === 'Persönliche Angaben' &&
-        userData[questionId] !== undefined
-      ) {
-        savedValue = userData[questionId]
+    // Render inputs based on question type
+    if (question.type === 'radio') {
+      question.options.forEach((option) => {
+        html += `<label><input type="radio" name="${questionId}" value="${option}" ${
+          savedValue === option ? 'checked' : ''
+        } required> ${option}</label><br>`
+      })
+    } else if (question.type === 'number' && question.text.includes('Jahr')) {
+      html += `<div class="input-container">
+                <input type="text" id="${questionId}" name="${questionId}" 
+                       value="${savedValue}" 
+                       oninput="this.value=this.value.slice(0,4); validateYear(this);"
+                       pattern="[0-9]{4}"
+                       maxlength="4"
+                       inputmode="numeric"
+                       required>
+                <label for="${questionId}" class="floating-label">Geben Sie das Jahr ein</label>
+               </div>
+               <span class="error-message" id="${questionId}-error"></span>`
+    } else if (question.type === 'scale') {
+      html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`
+      for (let i = 0; i <= 6; i++) {
+        html += `<label class="scale-label">
+                  <input type="radio" name="${questionId}" value="${i}" ${
+          savedValue === i.toString() ? 'checked' : ''
+        } required>
+                  <span class="scale-button" role="radio" aria-checked="${
+                    savedValue === i.toString() ? 'true' : 'false'
+                  }" tabindex="0">${i}</span>
+                  <span class="sr-only">${
+                    i === 0
+                      ? 'gar nicht kompetent'
+                      : i === 6
+                      ? 'ausgesprochen kompetent'
+                      : ''
+                  }</span>
+             </label>`
       }
-
-      html += `<div class="question"><p>${question.text}</p>`
-
-      // Render inputs based on question type
-      // ... (rest of the rendering logic remains the same)
-
-      html += `</div>`
-    })
+      html += `</div>
+               <div class="scale-labels">
+                 <span>gar nicht kompetent</span>
+                 <span>ausgesprochen kompetent</span>
+               </div>`
+    } else if (question.type === 'dropdown') {
+      html += `<select id="${questionId}" name="${questionId}" required>
+                <option value="" disabled ${
+                  !savedValue ? 'selected' : ''
+                }>Bitte wählen Sie eine Option</option>
+                ${question.options
+                  .map(
+                    (option) =>
+                      `<option value="${option}" ${
+                        savedValue === option ? 'selected' : ''
+                      }>${option}</option>`
+                  )
+                  .join('')}
+             </select>`
+    } else if (question.type === 'text') {
+      html += `<input type="text" id="${questionId}" name="${questionId}" value="${savedValue}" required>`
+    }
 
     html += `</div>`
-    document.getElementById('surveyForm').innerHTML = html
+  })
 
-    // No need to call populateFormFields for non-personal sections
-    if (section.title === 'Persönliche Angaben') {
-      populatePersonalInfo(document.getElementById('surveyForm'), userData)
-    }
+  html += `</div>`
+  document.getElementById('surveyForm').innerHTML = html
 
-    // Add event listeners to scale buttons for accessibility
-    document.querySelectorAll('.scale-button').forEach((button) => {
-      button.addEventListener('keydown', handleScaleKeydown)
-    })
+  // Add event listeners to scale buttons for accessibility
+  document.querySelectorAll('.scale-button').forEach((button) => {
+    button.addEventListener('keydown', handleScaleKeydown)
+  })
 
-    updateNavigationButtons()
-    window.scrollTo(0, 0)
-  } else if (index === surveyData.length) {
-    renderDatenschutzSection()
-  }
+  updateNavigationButtons()
+  updateProgressBar()
 }
 
 function validateYear(input) {
@@ -839,29 +903,36 @@ async function startNewSurvey() {
 
 // Next Section Function
 function nextSection() {
-  if (currentSection < surveyData.length) {
+  console.log('Attempting to move to next section')
+  if (currentSection < surveyData.length - 1) {
     if (validateSection()) {
       saveSectionData(false)
       currentSection++
+      console.log(`Moving to section ${currentSection}`)
       renderSection(currentSection)
       updateProgressBar()
-      updateNavigationButtons()
       window.scrollTo(0, 0)
     } else {
+      console.log('Section validation failed')
       alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
       markUnansweredQuestions()
     }
+  } else {
+    console.log('Already at last section')
   }
 }
 
 // Previous Section Function
 function previousSection() {
+  console.log('Attempting to move to previous section')
   if (currentSection > 0) {
     currentSection--
+    console.log(`Moving to section ${currentSection}`)
     renderSection(currentSection)
     updateProgressBar()
-    updateNavigationButtons()
     window.scrollTo(0, 0)
+  } else {
+    console.log('Already at first section')
   }
 }
 
