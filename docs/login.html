@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - Open Digi</title>
     <link rel="stylesheet" href="css/login.css" />
+    <!-- Font Awesome for Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <!-- SweetAlert2 CSS for better alerts -->
     <link
       rel="stylesheet"
@@ -17,19 +22,23 @@
   <body>
     <div class="login-container">
       <img src="images/logo.png" alt="Open-Digi Logo" class="logo" />
+
       <form id="loginForm">
         <fieldset class="form-group">
           <legend>Willkommen! Wie möchten Sie fortfahren?</legend>
           <div class="choice-container">
             <div class="choice-card" data-value="no">
-              <h3>Nein</h3>
+              <i class="fas fa-user-plus card-icon"></i>
+              <h3>Neu registrieren</h3>
               <p>Ich habe den Fragebogen noch nicht ausgefüllt</p>
             </div>
             <div class="choice-card" data-value="yes">
-              <h3>Ja</h3>
+              <i class="fas fa-redo-alt card-icon"></i>
+              <h3>Erneut ausfüllen</h3>
               <p>Ich habe den Fragebogen schon einmal ausgefüllt</p>
             </div>
             <div class="choice-card" data-value="continue">
+              <i class="fas fa-play-circle card-icon"></i>
               <h3>Fortsetzen</h3>
               <p>Ich möchte meinen begonnenen Fragebogen fortsetzen</p>
             </div>
@@ -71,7 +80,12 @@
           </div>
         </div>
 
-        <button type="submit" id="loginButton" style="display: none">
+        <button
+          type="submit"
+          id="loginButton"
+          class="primary-button"
+          style="display: none"
+        >
           Weiter
         </button>
       </form>
