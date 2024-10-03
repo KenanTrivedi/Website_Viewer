@@ -532,21 +532,35 @@ function setupLoginPageFunctionality() {
   })
 
   function handleSurveyOptionChange(selectedOption) {
+    const coursesField = document.getElementById('courses')
+
     if (selectedOption === 'no') {
       codeInput.style.display = 'none'
       coursesList.style.display = 'none'
       if (loginButton) loginButton.style.display = 'none'
       if (generateCodeButton) generateCodeButton.style.display = 'block'
+      if (coursesField) {
+        coursesField.required = false
+        coursesField.disabled = true // Disable the field
+      }
     } else if (selectedOption === 'yes') {
       codeInput.style.display = 'block'
       coursesList.style.display = 'block'
       if (loginButton) loginButton.style.display = 'block'
       if (generateCodeButton) generateCodeButton.style.display = 'none'
+      if (coursesField) {
+        coursesField.required = true
+        coursesField.disabled = false // Enable the field
+      }
     } else if (selectedOption === 'continue') {
       codeInput.style.display = 'block'
       coursesList.style.display = 'none'
       if (loginButton) loginButton.style.display = 'block'
       if (generateCodeButton) generateCodeButton.style.display = 'none'
+      if (coursesField) {
+        coursesField.required = false
+        coursesField.disabled = true // Disable the field
+      }
     }
   }
 
