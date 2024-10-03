@@ -136,6 +136,116 @@ function populatePersonalInfo(form, data) {
   })
 }
 
+// Reset User Data Function
+function resetUserData() {
+  userData = {}
+  currentSection = 0
+  initialScores = {}
+  updatedScores = {}
+}
+
+function saveSectionData(isComplete = false) {
+  removeUnansweredMarkers()
+
+  const formData = new FormData(document.getElementById('surveyForm'))
+  const currentData = {}
+  for (let [key, value] of formData.entries()) {
+    currentData[key] = value
+  }
+
+  const userId = sessionStorage.getItem('userId')
+  if (userId) {
+    const categoryScores = calculateCategoryScores(currentData)
+
+    const data = {
+      userId: userId,
+      data: currentData,
+      isComplete: isComplete,
+      categoryScores: categoryScores,
+      currentSection: currentSection,
+    }
+
+    // Only include datenschutzConsent and unterschrift if they exist
+    const datenschutzConsentElement =
+      document.getElementById('datenschutzConsent')
+    const unterschriftElement = document.getElementById('unterschrift')
+
+    if (datenschutzConsentElement) {
+      data.datenschutzConsent = datenschutzConsentElement.checked
+    }
+
+    if (unterschriftElement) {
+      data.unterschrift = unterschriftElement.value.trim()
+    }
+
+    fetch('/api/save-user-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Server responded with status ${response.status}`)
+        }
+        return response.json()
+      })
+      .then((result) => {
+        console.log('Data saved successfully:', result)
+        sessionStorage.setItem(
+          'updatedScores',
+          JSON.stringify(result.updatedScores)
+        )
+        updatedScores = result.updatedScores
+
+        if (isComplete) {
+          showResults()
+        }
+      })
+      .catch((error) => {
+        console.error('Error saving data:', error)
+        alert(
+          'Es gab einen Fehler beim Speichern Ihrer Daten. Bitte versuchen Sie es erneut.'
+        )
+      })
+  }
+}
+
+function nextSection() {
+  console.log('Attempting to move to next section')
+  if (currentSection < surveyData.length - 1) {
+    if (validateSection()) {
+      saveSectionData(false)
+      currentSection++
+      console.log(`Moving to section ${currentSection}`)
+      renderSection(currentSection)
+      updateProgressBar()
+      window.scrollTo(0, 0)
+    } else {
+      console.log('Section validation failed')
+      alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
+      markUnansweredQuestions()
+    }
+  } else {
+    console.log('Already at last section')
+  }
+}
+
+function previousSection() {
+  console.log('Attempting to move to previous section')
+  if (currentSection > 0) {
+    saveSectionData(false)
+    currentSection--
+    console.log(`Moving to section ${currentSection}`)
+    renderSection(currentSection)
+    updateProgressBar()
+    window.scrollTo(0, 0)
+  } else {
+    console.log('Already at first section')
+  }
+}
+
 function loadUserData(isNewAttempt = false) {
   const userId = sessionStorage.getItem('userId')
   if (userId) {
@@ -149,23 +259,18 @@ function loadUserData(isNewAttempt = false) {
       .then((data) => {
         console.log('Loaded user data:', data)
         if (data.data) {
-          // Always keep personal information
-          const personalInfo = {}
-          surveyData.forEach((section, sectionIndex) => {
-            if (section.title === 'Persönliche Angaben') {
-              section.questions.forEach((_, questionIndex) => {
-                const key = `q${sectionIndex}_${questionIndex}`
-                if (data.initialResponses[key] !== undefined) {
-                  personalInfo[key] = data.initialResponses[key]
-                }
-              })
+          if (isNewAttempt) {
+            // Keep only personal information for new attempts
+            userData = {
+              q0_0: data.data.q0_0,
+              q0_1: data.data.q0_1,
+              q0_2: data.data.q0_2,
+              q0_3: data.data.q0_3,
             }
-          })
+          } else {
+            userData = data.data
+          }
 
-          // Set userData to only contain personal information
-          userData = personalInfo
-
-          // Keep track of initial and updated scores, but don't display them in the form
           initialScores = data.initialScores || {}
           updatedScores = data.updatedScores || {}
 
@@ -188,15 +293,13 @@ function loadUserData(isNewAttempt = false) {
   }
 }
 
-// Reset User Data Function
-function resetUserData() {
-  userData = {}
-  currentSection = 0
-  initialScores = {}
-  updatedScores = {}
+function validateYear(input) {
+  input.value = input.value.replace(/\D/g, '')
+  if (input.value.length > 4) {
+    input.value = input.value.slice(0, 4)
+  }
 }
 
-// Render Section Function
 function renderSection(index) {
   console.log(`Rendering section ${index}`)
 
@@ -208,12 +311,10 @@ function renderSection(index) {
   const section = surveyData[index]
   console.log(`Section title: ${section.title}`)
 
-  // Clear previous content
   document.getElementById('surveyForm').innerHTML = ''
 
   let html = `<div class="section"><h2>${section.title}</h2>`
 
-  // Add instruction before specific sections if needed
   if (section.title === 'Suchen, Verarbeiten und Aufbewahren') {
     html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
   }
@@ -221,19 +322,10 @@ function renderSection(index) {
   section.questions.forEach((question, qIndex) => {
     const questionId = `q${index}_${qIndex}`
     console.log(`Rendering question: ${questionId}`)
-    let savedValue = ''
-
-    // Only prefill for Persönliche Angaben section
-    if (
-      section.title === 'Persönliche Angaben' &&
-      userData[questionId] !== undefined
-    ) {
-      savedValue = userData[questionId]
-    }
+    let savedValue = userData[questionId] || ''
 
     html += `<div class="question"><p>${question.text}</p>`
 
-    // Render inputs based on question type
     if (question.type === 'radio') {
       question.options.forEach((option) => {
         html += `<label><input type="radio" name="${questionId}" value="${option}" ${
@@ -241,17 +333,12 @@ function renderSection(index) {
         } required> ${option}</label><br>`
       })
     } else if (question.type === 'number' && question.text.includes('Jahr')) {
-      html += `<div class="input-container">
-                <input type="text" id="${questionId}" name="${questionId}" 
-                       value="${savedValue}" 
-                       oninput="this.value=this.value.slice(0,4); validateYear(this);"
-                       pattern="[0-9]{4}"
-                       maxlength="4"
-                       inputmode="numeric"
-                       required>
-                <label for="${questionId}" class="floating-label">Geben Sie das Jahr ein</label>
-               </div>
-               <span class="error-message" id="${questionId}-error"></span>`
+      html += `<input type="text" id="${questionId}" name="${questionId}" 
+                     value="${savedValue}" 
+                     oninput="validateYear(this)" 
+                     maxlength="4" 
+                     pattern="[0-9]{4}"
+                     required>`
     } else if (question.type === 'scale') {
       html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`
       for (let i = 0; i <= 6; i++) {
@@ -300,30 +387,12 @@ function renderSection(index) {
   html += `</div>`
   document.getElementById('surveyForm').innerHTML = html
 
-  // Add event listeners to scale buttons for accessibility
   document.querySelectorAll('.scale-button').forEach((button) => {
     button.addEventListener('keydown', handleScaleKeydown)
   })
 
   updateNavigationButtons()
   updateProgressBar()
-}
-
-function validateYear(input) {
-  const errorSpan = document.getElementById(`${input.id}-error`)
-  const year = parseInt(input.value)
-
-  if (input.value.length < 4) {
-    errorSpan.textContent =
-      'Bitte geben Sie ein vollständiges Jahr ein (4 Ziffern).'
-    input.setCustomValidity('Incomplete year')
-  } else if (isNaN(year) || year < 1900 || year > 9999) {
-    errorSpan.textContent = 'Bitte geben Sie ein gültiges Jahr ein.'
-    input.setCustomValidity('Invalid year')
-  } else {
-    errorSpan.textContent = ''
-    input.setCustomValidity('')
-  }
 }
 
 // Submit Final Data Function
@@ -444,60 +513,6 @@ function updateProgressBar() {
 
   if (progressText) {
     progressText.textContent = `Schritt ${currentStep} von ${totalSteps}`
-  }
-}
-
-// Save Section Data Function
-function saveSectionData(isComplete = false) {
-  removeUnansweredMarkers()
-
-  const formData = new FormData(document.getElementById('surveyForm'))
-  const currentData = {}
-  for (let [key, value] of formData.entries()) {
-    currentData[key] = value
-  }
-
-  const userId = sessionStorage.getItem('userId')
-  if (userId) {
-    const categoryScores = calculateCategoryScores(currentData)
-
-    const data = {
-      userId: userId,
-      data: currentData,
-      isComplete: isComplete,
-      categoryScores: categoryScores,
-      currentSection: currentSection,
-    }
-
-    if (currentSection === surveyData.length) {
-      data.datenschutzConsent =
-        document.getElementById('datenschutzConsent').checked
-      data.unterschrift = document.getElementById('unterschrift').value.trim()
-    }
-
-    fetch('/api/save-user-data', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Server responded with status ${response.status}`)
-        }
-        return response.json()
-      })
-      .then((result) => {
-        console.log('Data saved successfully:', result)
-        // Only update sessionStorage with the current attempt's data
-        sessionStorage.setItem(
-          'updatedScores',
-          JSON.stringify(result.updatedScores)
-        )
-        updatedScores = result.updatedScores
-      })
-      .catch((error) => console.error('Error saving data:', error))
   }
 }
 
@@ -898,41 +913,6 @@ async function startNewSurvey() {
     alert(
       'Fehler beim Zurücksetzen der Umfrage. Bitte versuchen Sie es erneut.'
     )
-  }
-}
-
-// Next Section Function
-function nextSection() {
-  console.log('Attempting to move to next section')
-  if (currentSection < surveyData.length - 1) {
-    if (validateSection()) {
-      saveSectionData(false)
-      currentSection++
-      console.log(`Moving to section ${currentSection}`)
-      renderSection(currentSection)
-      updateProgressBar()
-      window.scrollTo(0, 0)
-    } else {
-      console.log('Section validation failed')
-      alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
-      markUnansweredQuestions()
-    }
-  } else {
-    console.log('Already at last section')
-  }
-}
-
-// Previous Section Function
-function previousSection() {
-  console.log('Attempting to move to previous section')
-  if (currentSection > 0) {
-    currentSection--
-    console.log(`Moving to section ${currentSection}`)
-    renderSection(currentSection)
-    updateProgressBar()
-    window.scrollTo(0, 0)
-  } else {
-    console.log('Already at first section')
   }
 }
 
