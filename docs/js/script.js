@@ -213,11 +213,17 @@ function handleLoginFormSubmission() {
 }
 
 async function handleLogin() {
-  const surveyCompleted = document.querySelector(
-    'input[name="surveyCompleted"]:checked'
+  const selectedOption = document.querySelector(
+    'input[name="surveyOption"]:checked'
   )?.value
-  const courses = document.getElementById('courses')?.value.trim() || ''
   let loginCode = document.getElementById('loginCode')?.value.trim() || ''
+  const courses = document.getElementById('courses')?.value.trim() || ''
+
+  if (selectedOption === 'no') {
+    // User needs to generate a code
+    window.location.href = 'generateCode.html'
+    return
+  }
 
   if (!loginCode) {
     Swal.fire({
@@ -228,20 +234,8 @@ async function handleLogin() {
     return
   }
 
-  // Convert loginCode to uppercase before sending
   loginCode = loginCode.toUpperCase()
 
-  // Additional validation based on survey completion
-  if (surveyCompleted === 'yes' && courses === '') {
-    Swal.fire({
-      icon: 'error',
-      title: 'Fehler',
-      text: 'Bitte geben Sie die absolvierten Kurse an.',
-    })
-    return
-  }
-
-  // Disable buttons to prevent multiple submissions
   const loginButton = document.getElementById('loginButton')
   const generateCodeButton = document.getElementById('generateCodeButton')
   if (loginButton) {
@@ -253,49 +247,40 @@ async function handleLogin() {
   }
 
   try {
-    const payload = {
+    let payload = {
       code: loginCode,
-      courses: surveyCompleted === 'yes' ? courses : '',
     }
 
-    const response = await submitForm('/login', payload)
-    const data = response
+    if (selectedOption === 'yes') {
+      if (!courses) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Fehler',
+          text: 'Bitte geben Sie die absolvierten Kurse an.',
+        })
+        return
+      }
+      payload.courses = courses
+      payload.startNewAttempt = true
+    } else if (selectedOption === 'continue') {
+      payload.startNewAttempt = false
+    }
+
+    const response = await fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+
+    const data = await response.json()
 
     if (response.ok) {
-      // Clear sessionStorage before setting new data
       sessionStorage.clear()
       sessionStorage.setItem('userId', data.userId)
-      sessionStorage.setItem('isNewUser', data.isNewUser.toString())
-      sessionStorage.setItem('courses', JSON.stringify(data.courses))
+      sessionStorage.setItem('isComplete', data.isComplete)
+      sessionStorage.setItem('currentSection', data.currentSection || '0')
+      sessionStorage.setItem('startNewAttempt', payload.startNewAttempt)
 
-      // Store initial and updated scores, but don't display them in the form
-      sessionStorage.setItem(
-        'initialScores',
-        JSON.stringify(data.initialScores || {})
-      )
-      sessionStorage.setItem(
-        'updatedScores',
-        JSON.stringify(data.updatedScores || {})
-      )
-
-      console.log('User data stored in session storage')
-
-      // Always call loadUserData with isNewAttempt = true
-      if (typeof loadUserData === 'function') {
-        loadUserData(true)
-      } else {
-        console.error(
-          'loadUserData function not found. Make sure survey.js is loaded correctly.'
-        )
-      }
-
-      await Swal.fire({
-        icon: 'success',
-        title: 'Erfolg',
-        text: 'Login erfolgreich!',
-        timer: 2000,
-        showConfirmButton: false,
-      })
       window.location.href = 'survey.html'
     } else {
       await Swal.fire({
@@ -312,10 +297,9 @@ async function handleLogin() {
       text: 'Fehler beim Einloggen. Bitte versuchen Sie es später erneut.',
     })
   } finally {
-    // Re-enable buttons
     if (loginButton) {
       loginButton.disabled = false
-      loginButton.textContent = 'Login'
+      loginButton.textContent = 'Weiter'
     }
     if (generateCodeButton) {
       generateCodeButton.disabled = false
@@ -512,65 +496,44 @@ function setupSurveyDataPersistence() {
 }
 
 function setupLoginPageFunctionality() {
-  const surveyCompletedRadios = document.querySelectorAll(
-    'input[name="surveyCompleted"]'
+  const surveyOptionRadios = document.querySelectorAll(
+    'input[name="surveyOption"]'
   )
-  const coursesList = document.getElementById('coursesList')
   const codeInput = document.getElementById('codeInput')
+  const coursesList = document.getElementById('coursesList')
   const loginButton = document.getElementById('loginButton')
   const generateCodeButton = document.getElementById('generateCodeButton')
 
-  // Check if we're on the login page
-  if (
-    surveyCompletedRadios.length === 0 ||
-    !coursesList ||
-    !codeInput ||
-    !loginButton ||
-    !generateCodeButton
-  ) {
-    return // Exit if we're not on the login page
-  }
-
-  const questionElement = document.querySelector('label[for="surveyCompleted"]')
-  if (questionElement) {
-    questionElement.textContent =
-      'Haben Sie den Fragebogen schon einmal ausgefüllt, also bereits Fortbildungen auf ILIAS absolviert?'
-  }
-
-  // Update the courses input
-  const coursesInput = document.getElementById('courses')
-  if (coursesInput) {
-    coursesInput.style.height = '100px' // Make the input box bigger
-    coursesInput.placeholder =
-      'Bitte geben Sie die Namen der Kurse oder eindeutige Stichworte zur Kursidentifizierung ein.'
-  }
-
-  surveyCompletedRadios.forEach((radio) => {
+  surveyOptionRadios.forEach((radio) => {
     radio.addEventListener('change', function () {
-      if (this.value === 'yes') {
-        coursesList.style.display = 'block'
-        codeInput.style.display = 'block'
-        generateCodeButton.style.display = 'none'
-        checkInputsAndToggleLoginButton()
-      } else {
-        coursesList.style.display = 'none'
+      const selectedOption = this.value
+      if (selectedOption === 'no') {
+        // User has not done the survey before, needs to generate a code
         codeInput.style.display = 'none'
+        coursesList.style.display = 'none'
         loginButton.style.display = 'none'
         generateCodeButton.style.display = 'block'
+      } else if (selectedOption === 'yes') {
+        // User has done the survey before, wants to start a new attempt
+        codeInput.style.display = 'block'
+        coursesList.style.display = 'block'
+        loginButton.style.display = 'block'
+        generateCodeButton.style.display = 'none'
+      } else if (selectedOption === 'continue') {
+        // User wants to continue initial survey
+        codeInput.style.display = 'block'
+        coursesList.style.display = 'none'
+        loginButton.style.display = 'block'
+        generateCodeButton.style.display = 'none'
       }
     })
   })
 
-  // Add input event listeners to check when fields are filled
-  const coursesField = document.getElementById('courses')
-  const loginCodeField = document.getElementById('loginCode')
+  loginButton.addEventListener('click', function (event) {
+    event.preventDefault()
+    handleLogin()
+  })
 
-  if (coursesField && loginCodeField) {
-    coursesField.addEventListener('input', checkInputsAndToggleLoginButton)
-    loginCodeField.addEventListener('input', checkInputsAndToggleLoginButton)
-  }
-
-  loginButton.addEventListener('click', handleLogin)
   generateCodeButton.addEventListener('click', function () {
     window.location.href = 'generateCode.html'
   })

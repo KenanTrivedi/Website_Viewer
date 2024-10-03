@@ -23,6 +23,7 @@ mongoose
   .connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    // useCreateIndex: true, // No longer necessary in newer Mongoose versions
   })
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
@@ -45,10 +46,10 @@ const userDataSchema = new mongoose.Schema({
   updatedScores: { type: Object, default: {} },
   initialResponses: { type: Object, default: {} },
   updatedResponses: { type: Object, default: {} },
-  datenschutzConsent: { type: Boolean, default: false }, // New Field: User Consent
-  unterschrift: { type: String, default: "" }, // New Field: User Signature
+  currentSection: { type: Number, default: 0 }, // New field to track current section
+  datenschutzConsent: { type: Boolean, default: false }, // User Consent
+  unterschrift: { type: String, default: "" }, // User Signature
 });
-
 const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
 
 // Constants
@@ -93,9 +94,19 @@ app.post("/api/reset-user-data", async (req, res) => {
     if (!userData) {
       return res.status(404).json({ message: "User not found." });
     }
+    // Preserve personal information
+    const personalInfo = {
+      q0_0: userData.data.q0_0,
+      q0_1: userData.data.q0_1,
+      q0_2: userData.data.q0_2,
+      q0_3: userData.data.q0_3,
+    };
+
+    userData.data = personalInfo;
     userData.updatedResponses = {};
     userData.updatedScores = {};
     userData.isComplete = false;
+    userData.currentSection = 1; // Start from the section after personal info
     await userData.save();
     res.status(200).json({ message: "Survey data reset successfully." });
   } catch (error) {
@@ -136,46 +147,72 @@ app.post("/register", async (req, res) => {
 
 /**
  * @route   POST /login
- * @desc    Handle user login
+ * @desc    Handle user login with three options
  * @access  Public
  */
 app.post("/login", async (req, res) => {
-  const { code, courses } = req.body;
-  if (!code) {
-    return res.status(400).json({ message: "Code ist erforderlich" });
-  }
-
+  const { code, courses, startNewAttempt } = req.body;
   try {
-    const existingCode = await Code.findOne({ code });
+    const existingCode = await Code.findOne({ code: code.toUpperCase() });
     if (!existingCode) {
       return res.status(400).json({ message: "Ungültiger Code" });
     }
 
     let userData = await UserData.findOne({ userId: existingCode._id });
 
-    // Do not create UserData here. It will be created when the user submits the survey.
-
-    if (userData) {
-      // Update latestSubmissionTime and courses if needed
-      userData.latestSubmissionTime = new Date();
-      if (courses && !userData.courses.includes(courses)) {
-        userData.courses.push(courses);
-      }
+    if (!userData) {
+      // Create new user data entry
+      userData = new UserData({
+        userId: existingCode._id,
+        data: {},
+        courses: courses ? [courses] : [],
+        isComplete: false,
+        firstSubmissionTime: new Date(),
+        latestSubmissionTime: new Date(),
+        initialScores: {},
+        updatedScores: {},
+        initialResponses: {},
+        updatedResponses: {},
+        currentSection: 0,
+        datenschutzConsent: false,
+        unterschrift: "",
+      });
       await userData.save();
+    } else {
+      if (startNewAttempt) {
+        // User wants to start a new attempt
+        // Preserve personal information
+        const personalInfo = {
+          q0_0: userData.data.q0_0,
+          q0_1: userData.data.q0_1,
+          q0_2: userData.data.q0_2,
+          q0_3: userData.data.q0_3,
+        };
+
+        userData.data = personalInfo;
+        userData.updatedResponses = {};
+        userData.updatedScores = {};
+        userData.isComplete = false;
+        userData.currentSection = 1; // Start from the section after personal info
+
+        if (courses && !userData.courses.includes(courses)) {
+          userData.courses.push(courses);
+        }
+
+        await userData.save();
+      } else {
+        // User wants to continue initial survey or resume
+        userData.latestSubmissionTime = new Date();
+        await userData.save();
+      }
     }
 
     res.status(200).json({
       message: "Login erfolgreich",
       userId: existingCode._id,
-      isNewUser: !userData || !userData.isComplete,
-      courses: userData ? userData.courses : [],
-      data: userData ? userData.data : {},
-      initialScores: userData ? userData.initialScores : {},
-      updatedScores: userData ? userData.updatedScores : {},
-      initialResponses: userData ? userData.initialResponses : {},
-      updatedResponses: userData ? userData.updatedResponses : {},
-      datenschutzConsent: userData ? userData.datenschutzConsent : false, // Include Consent
-      unterschrift: userData ? userData.unterschrift : "", // Include Signature
+      isComplete: userData.isComplete || false,
+      currentSection: userData.currentSection || 0,
+      startNewAttempt: startNewAttempt || false,
     });
   } catch (err) {
     console.error("Fehler beim Login:", err);
@@ -224,45 +261,40 @@ app.post("/api/save-user-data", async (req, res) => {
         updatedScores: {},
         initialResponses: {},
         updatedResponses: {},
+        currentSection: currentSection || 0,
         datenschutzConsent: false,
         unterschrift: "",
       });
     }
 
-    // Update personal information
-    if (currentSection === 0) {
-      userData.data = { ...userData.data, ...data };
-      userData.initialResponses = { ...userData.initialResponses, ...data };
-    }
-
-    // Update survey responses
-    if (currentSection > 0) {
-      userData.updatedResponses = { ...userData.updatedResponses, ...data };
-    }
-
+    // Update data
+    userData.data = { ...userData.data, ...data };
+    userData.currentSection = currentSection || userData.currentSection || 0;
     userData.latestSubmissionTime = currentTime;
     userData.isComplete = isComplete;
 
+    // Update responses
     if (isComplete) {
       if (
         !userData.initialScores ||
         Object.keys(userData.initialScores).length === 0
       ) {
+        // First complete survey attempt
         userData.initialScores = categoryScores;
+        userData.initialResponses = data;
       } else {
+        // Subsequent complete survey attempts
         userData.updatedScores = categoryScores;
+        userData.updatedResponses = data;
       }
     }
 
-    if (data.courses) {
-      userData.courses = Array.from(
-        new Set([...userData.courses, data.courses])
-      );
+    if (datenschutzConsent !== undefined) {
+      userData.datenschutzConsent = datenschutzConsent;
     }
-
-    userData.datenschutzConsent =
-      datenschutzConsent || userData.datenschutzConsent;
-    userData.unterschrift = unterschrift || userData.unterschrift;
+    if (unterschrift) {
+      userData.unterschrift = unterschrift;
+    }
 
     await userData.save();
 
@@ -298,6 +330,7 @@ app.get("/api/user-data/:userId", async (req, res) => {
         updatedScores: userData.updatedScores,
         initialResponses: userData.initialResponses,
         updatedResponses: userData.updatedResponses,
+        currentSection: userData.currentSection || 0,
         datenschutzConsent: userData.datenschutzConsent, // Include Consent
         unterschrift: userData.unterschrift, // Include Signature
       });
@@ -361,7 +394,7 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
     const formattedUsers = await Promise.all(
       users.map(async (user) => {
         const codeDoc = await Code.findOne({ _id: user.userId });
-        const responses = user.data.responses || {};
+        const responses = user.data || {};
 
         return {
           userId: user.userId,
@@ -384,7 +417,7 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
           initialResponses: user.initialResponses || {},
           updatedResponses: user.updatedResponses || {},
           datenschutzConsent: user.datenschutzConsent, // Include Consent
-          unterschrift: user.unterschrift, // Include Signature
+          unterschrift: user.unterschrift || "", // Include Signature
         };
       })
     );

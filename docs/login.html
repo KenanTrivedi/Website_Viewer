@@ -19,29 +19,58 @@
       <img src="images/logo.png" alt="Open-Digi Logo" class="logo" />
       <form id="loginForm">
         <div class="form-group">
-          <legend>
-            Haben Sie den Fragebogen schon einmal ausgefüllt, also bereits
-            Fortbildungen auf ILIAS absolviert?
-          </legend>
-          <div>
-            <input
-              type="radio"
-              id="surveyYes"
-              name="surveyCompleted"
-              value="yes"
-              required
-            />
-            <label for="surveyYes">Ja</label>
-          </div>
+          <legend>Bitte wählen Sie eine Option:</legend>
           <div>
             <input
               type="radio"
               id="surveyNo"
-              name="surveyCompleted"
+              name="surveyOption"
               value="no"
               required
             />
-            <label for="surveyNo">Nein</label>
+            <label for="surveyNo"
+              >Nein, ich habe den Fragebogen noch nicht ausgefüllt</label
+            >
+          </div>
+          <div>
+            <input
+              type="radio"
+              id="surveyYes"
+              name="surveyOption"
+              value="yes"
+              required
+            />
+            <label for="surveyYes"
+              >Ja, ich habe den Fragebogen schon einmal ausgefüllt</label
+            >
+          </div>
+          <div>
+            <input
+              type="radio"
+              id="surveyContinue"
+              name="surveyOption"
+              value="continue"
+              required
+            />
+            <label for="surveyContinue"
+              >Ich möchte meinen begonnenen Fragebogen fortsetzen</label
+            >
+          </div>
+        </div>
+
+        <div id="codeInput" style="display: none">
+          <div class="input-group">
+            <label for="loginCode">
+              Geben Sie hier Ihren persönlichen Code ein. Bitte geben Sie den
+              Code mit Bindestrich ein, z.B. GW-SI-06-KE
+            </label>
+            <input
+              type="text"
+              id="loginCode"
+              name="loginCode"
+              required
+              placeholder="GW-SI-06-KE"
+            />
           </div>
         </div>
 
@@ -55,30 +84,14 @@
               id="courses"
               name="courses"
               rows="4"
-              placeholder="Welche Kurse bzw. Fortbildungen haben Sie in den letzten Wochen auf ILIAS absolviert? Bitte gebe die Namen der Kurse oder eindeutige Stichworte zur Kursidentifizierung ein."
+              placeholder="Bitte geben Sie die Namen der Kurse oder eindeutige Stichworte zur Kursidentifizierung ein."
               required
             ></textarea>
           </div>
         </div>
 
-        <div id="codeInput" style="display: none">
-          <div class="input-group">
-            <label for="loginCode">
-              Gebe hier deinen vorher kreierten persönlichen Code an. Bitte gebe
-              den Code mit Bindestrich ein, z.B. GW-SI-06-KE
-            </label>
-            <input
-              type="text"
-              id="loginCode"
-              name="loginCode"
-              required
-              placeholder="GW-SI-06-KE"
-            />
-          </div>
-        </div>
-
         <button type="submit" id="loginButton" style="display: none">
-          Login
+          Weiter
         </button>
       </form>
 
@@ -88,7 +101,7 @@
         class="primary-button"
         style="display: none"
       >
-        Klicke hier, um einen neuen Code zu generieren
+        Klicken Sie hier, um einen neuen Code zu generieren
       </button>
 
       <div

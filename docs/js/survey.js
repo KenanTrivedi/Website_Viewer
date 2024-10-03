@@ -65,6 +65,7 @@ function setupEventListeners() {
   const nextButton = document.getElementById('nextButton')
   const logoutButton = document.getElementById('logoutButton')
   const saveProgressButton = document.getElementById('saveProgressButton')
+  const surveyForm = document.getElementById('surveyForm')
 
   if (prevButton) {
     prevButton.addEventListener('click', previousSection)
@@ -80,6 +81,13 @@ function setupEventListeners() {
 
   if (saveProgressButton) {
     saveProgressButton.addEventListener('click', saveAndResumeLater)
+  }
+
+  if (surveyForm) {
+    // Auto-save on input change
+    surveyForm.addEventListener('input', function () {
+      saveSectionData(false)
+    })
   }
 }
 
@@ -212,36 +220,29 @@ function saveSectionData(isComplete = false) {
 }
 
 function nextSection() {
-  console.log('Attempting to move to next section')
   if (currentSection < surveyData.length - 1) {
     if (validateSection()) {
-      saveSectionData(false)
       currentSection++
-      console.log(`Moving to section ${currentSection}`)
+      saveSectionData(false) // Save data and currentSection
       renderSection(currentSection)
       updateProgressBar()
       window.scrollTo(0, 0)
     } else {
-      console.log('Section validation failed')
       alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
       markUnansweredQuestions()
     }
   } else {
-    console.log('Already at last section')
+    finishSurvey()
   }
 }
 
 function previousSection() {
-  console.log('Attempting to move to previous section')
   if (currentSection > 0) {
-    saveSectionData(false)
     currentSection--
-    console.log(`Moving to section ${currentSection}`)
+    saveSectionData(false) // Save data and currentSection
     renderSection(currentSection)
     updateProgressBar()
     window.scrollTo(0, 0)
-  } else {
-    console.log('Already at first section')
   }
 }
 
@@ -266,18 +267,23 @@ function loadUserData(isNewAttempt = false) {
               q0_2: data.data.q0_2,
               q0_3: data.data.q0_3,
             }
+            currentSection = 1 // Start from the section after personal info
+            updatedScores = {} // Reset updatedScores
+            // Optionally reset other variables if needed
           } else {
             userData = data.data
+            currentSection = data.currentSection || 0
+            updatedScores = data.updatedScores || {}
           }
 
           initialScores = data.initialScores || {}
-          updatedScores = data.updatedScores || {}
 
           console.log('Processed user data:', userData)
         }
-        currentSection = 0 // Always start from the first section
         renderSection(currentSection)
         updateProgressBar()
+        // Clear 'startNewAttempt' after handling
+        sessionStorage.removeItem('startNewAttempt')
       })
       .catch((error) => {
         console.error('Error loading user data:', error)
@@ -893,7 +899,6 @@ function updateNavigationButtons() {
 }
 
 // Modify the startNewSurvey function in survey.js
-
 async function startNewSurvey() {
   const userId = sessionStorage.getItem('userId')
   if (!userId) {
@@ -917,6 +922,9 @@ async function startNewSurvey() {
     alert(
       'Ihre Umfrage wurde erfolgreich zurückgesetzt. Sie können jetzt eine neue Umfrage starten.'
     )
+
+    // Set 'startNewAttempt' to 'true' in sessionStorage
+    sessionStorage.setItem('startNewAttempt', 'true')
 
     // Load user data as a new attempt
     loadUserData(true)
