@@ -248,7 +248,6 @@ async function handleLogin() {
     loginButton.disabled = true
     loginButton.textContent = 'Login läuft...'
   }
-
   if (generateCodeButton) {
     generateCodeButton.disabled = true
   }
@@ -263,7 +262,7 @@ async function handleLogin() {
     const data = response
 
     if (response.ok) {
-      // **Clear sessionStorage before setting new data**
+      // Clear sessionStorage before setting new data
       sessionStorage.clear()
       sessionStorage.setItem('userId', data.userId)
       sessionStorage.setItem('isNewUser', data.isNewUser.toString())
@@ -285,6 +284,18 @@ async function handleLogin() {
       }
 
       console.log('User data stored in session storage')
+
+      // Call loadUserData with isNewAttempt = true for subsequent attempts
+      if (surveyCompleted === 'yes') {
+        if (typeof loadUserData === 'function') {
+          loadUserData(true)
+        } else {
+          console.error(
+            'loadUserData function not found. Make sure survey.js is loaded correctly.'
+          )
+        }
+      }
+
       await Swal.fire({
         icon: 'success',
         title: 'Erfolg',
@@ -313,7 +324,6 @@ async function handleLogin() {
       loginButton.disabled = false
       loginButton.textContent = 'Login'
     }
-
     if (generateCodeButton) {
       generateCodeButton.disabled = false
     }
