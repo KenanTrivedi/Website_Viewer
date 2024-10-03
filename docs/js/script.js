@@ -504,6 +504,12 @@ function setupLoginPageFunctionality() {
   const loginButton = document.getElementById('loginButton')
   const generateCodeButton = document.getElementById('generateCodeButton')
 
+  // Check if the elements exist before proceeding
+  if (!surveyOptionRadios.length || !codeInput || !coursesList) {
+    // Elements not found; likely not on the login page
+    return
+  }
+
   surveyOptionRadios.forEach((radio) => {
     radio.addEventListener('change', function () {
       const selectedOption = this.value
@@ -511,32 +517,36 @@ function setupLoginPageFunctionality() {
         // User has not done the survey before, needs to generate a code
         codeInput.style.display = 'none'
         coursesList.style.display = 'none'
-        loginButton.style.display = 'none'
-        generateCodeButton.style.display = 'block'
+        if (loginButton) loginButton.style.display = 'none'
+        if (generateCodeButton) generateCodeButton.style.display = 'block'
       } else if (selectedOption === 'yes') {
         // User has done the survey before, wants to start a new attempt
         codeInput.style.display = 'block'
         coursesList.style.display = 'block'
-        loginButton.style.display = 'block'
-        generateCodeButton.style.display = 'none'
+        if (loginButton) loginButton.style.display = 'block'
+        if (generateCodeButton) generateCodeButton.style.display = 'none'
       } else if (selectedOption === 'continue') {
         // User wants to continue initial survey
         codeInput.style.display = 'block'
         coursesList.style.display = 'none'
-        loginButton.style.display = 'block'
-        generateCodeButton.style.display = 'none'
+        if (loginButton) loginButton.style.display = 'block'
+        if (generateCodeButton) generateCodeButton.style.display = 'none'
       }
     })
   })
 
-  loginButton.addEventListener('click', function (event) {
-    event.preventDefault()
-    handleLogin()
-  })
+  if (loginButton) {
+    loginButton.addEventListener('click', function (event) {
+      event.preventDefault()
+      handleLogin()
+    })
+  }
 
-  generateCodeButton.addEventListener('click', function () {
-    window.location.href = 'generateCode.html'
-  })
+  if (generateCodeButton) {
+    generateCodeButton.addEventListener('click', function () {
+      window.location.href = 'generateCode.html'
+    })
+  }
 }
 
 function checkInputsAndToggleLoginButton() {
