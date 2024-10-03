@@ -151,6 +151,7 @@ function saveSectionData(isComplete = false) {
   const currentData = {}
   for (let [key, value] of formData.entries()) {
     currentData[key] = value
+    userData[key] = value // Update userData object
   }
 
   const userId = sessionStorage.getItem('userId')
