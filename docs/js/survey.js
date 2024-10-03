@@ -229,24 +229,24 @@ function renderSection(index) {
             savedValue === option ? 'checked' : ''
           } required> ${option}</label><br>`
         })
+      } else if (question.type === 'number' && question.text.includes('Jahr')) {
+        html += `<div class="input-container">
+                  <input type="text" id="${questionId}" name="${questionId}" 
+                         value="${savedValue}" 
+                         oninput="this.value=this.value.slice(0,4); validateYear(this);"
+                         pattern="[0-9]{4}"
+                         maxlength="4"
+                         inputmode="numeric"
+                         required>
+                  <label for="${questionId}" class="floating-label">Geben Sie das Jahr ein</label>
+                 </div>
+                 <span class="error-message" id="${questionId}-error"></span>`
       } else if (question.type === 'number') {
-        if (question.text.includes('Jahr')) {
-          // Special handling for birth year
-          const currentYear = new Date().getFullYear()
-          html += `<div class="input-container">
-                    <input type="number" id="${questionId}" name="${questionId}" 
-                           value="${savedValue}" min="${question.min}" max="${question.max}" 
-                           oninput="validateYear(this)" required>
-                    <span class="error-message" id="${questionId}-error"></span>
-                    <label for="${questionId}" class="floating-label">Geben Sie das Jahr ein (1900-${currentYear})</label>
-                   </div>`
-        } else {
-          html += `<div class="input-container">
-                    <input type="number" id="${questionId}" name="${questionId}" value="${savedValue}" 
-                           min="${question.min}" max="${question.max}" required>
-                    <label for="${questionId}" class="floating-label">Fügen Sie die Zahl ein</label>
-                   </div>`
-        }
+        html += `<div class="input-container">
+                  <input type="number" id="${questionId}" name="${questionId}" value="${savedValue}" 
+                         min="${question.min}" max="${question.max}" required>
+                  <label for="${questionId}" class="floating-label">Fügen Sie die Zahl ein</label>
+                 </div>`
       } else if (question.type === 'scale') {
         html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`
         for (let i = 0; i <= 6; i++) {
@@ -320,14 +320,16 @@ function renderSection(index) {
   }
 }
 
-// Add this new function to validate the year input
 function validateYear(input) {
   const errorSpan = document.getElementById(`${input.id}-error`)
   const year = parseInt(input.value)
-  const currentYear = new Date().getFullYear()
 
-  if (isNaN(year) || year < 1900 || year > currentYear) {
-    errorSpan.textContent = `Bitte geben Sie ein gültiges Jahr zwischen 1900 und ${currentYear} ein.`
+  if (input.value.length < 4) {
+    errorSpan.textContent =
+      'Bitte geben Sie ein vollständiges Jahr ein (4 Ziffern).'
+    input.setCustomValidity('Incomplete year')
+  } else if (isNaN(year) || year < 1900 || year > 9999) {
+    errorSpan.textContent = 'Bitte geben Sie ein gültiges Jahr ein.'
     input.setCustomValidity('Invalid year')
   } else {
     errorSpan.textContent = ''
