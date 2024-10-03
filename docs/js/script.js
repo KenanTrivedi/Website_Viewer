@@ -268,32 +268,25 @@ async function handleLogin() {
       sessionStorage.setItem('isNewUser', data.isNewUser.toString())
       sessionStorage.setItem('courses', JSON.stringify(data.courses))
 
-      if (data.data && data.data.responses) {
-        sessionStorage.setItem(
-          'surveyData',
-          JSON.stringify(data.data.responses)
-        )
-        sessionStorage.setItem(
-          'initialScores',
-          JSON.stringify(data.initialScores || {})
-        )
-        sessionStorage.setItem(
-          'updatedScores',
-          JSON.stringify(data.updatedScores || {})
-        )
-      }
+      // Store initial and updated scores, but don't display them in the form
+      sessionStorage.setItem(
+        'initialScores',
+        JSON.stringify(data.initialScores || {})
+      )
+      sessionStorage.setItem(
+        'updatedScores',
+        JSON.stringify(data.updatedScores || {})
+      )
 
       console.log('User data stored in session storage')
 
-      // Call loadUserData with isNewAttempt = true for subsequent attempts
-      if (surveyCompleted === 'yes') {
-        if (typeof loadUserData === 'function') {
-          loadUserData(true)
-        } else {
-          console.error(
-            'loadUserData function not found. Make sure survey.js is loaded correctly.'
-          )
-        }
+      // Always call loadUserData with isNewAttempt = true
+      if (typeof loadUserData === 'function') {
+        loadUserData(true)
+      } else {
+        console.error(
+          'loadUserData function not found. Make sure survey.js is loaded correctly.'
+        )
       }
 
       await Swal.fire({
