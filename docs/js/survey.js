@@ -267,18 +267,20 @@ function loadUserData(isNewAttempt = false) {
               q0_2: data.data.q0_2,
               q0_3: data.data.q0_3,
             }
-            currentSection = 1 // Start from the section after personal info
+            currentSection = 0 // Start from the first section (Personal Information)
             updatedScores = {} // Reset updatedScores
-            // Optionally reset other variables if needed
           } else {
             userData = data.data
-            currentSection = data.currentSection || 0
+            currentSection =
+              data.currentSection !== undefined ? data.currentSection : 0
             updatedScores = data.updatedScores || {}
           }
-
           initialScores = data.initialScores || {}
-
           console.log('Processed user data:', userData)
+        } else {
+          // No data found, start from the first section
+          userData = {}
+          currentSection = 0
         }
         renderSection(currentSection)
         updateProgressBar()
@@ -310,7 +312,8 @@ function renderSection(index) {
 
   if (index < 0 || index > surveyData.length) {
     console.error(`Invalid section index: ${index}`)
-    return
+    currentSection = 0 // Reset to first section
+    index = 0
   }
 
   if (index === surveyData.length) {

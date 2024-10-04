@@ -106,7 +106,7 @@ app.post("/api/reset-user-data", async (req, res) => {
     userData.updatedResponses = {};
     userData.updatedScores = {};
     userData.isComplete = false;
-    userData.currentSection = 1; // Start from the section after personal info
+    userData.currentSection = 0; // Changed from 1 to 0 to start from the first section
     await userData.save();
     res.status(200).json({ message: "Survey data reset successfully." });
   } catch (error) {
@@ -193,7 +193,7 @@ app.post("/login", async (req, res) => {
         userData.updatedResponses = {};
         userData.updatedScores = {};
         userData.isComplete = false;
-        userData.currentSection = 1; // Start from the section after personal info
+        userData.currentSection = 0; // Changed from 1 to 0 to start from the first section
 
         if (courses && !userData.courses.includes(courses)) {
           userData.courses.push(courses);
@@ -269,7 +269,10 @@ app.post("/api/save-user-data", async (req, res) => {
 
     // Update data
     userData.data = { ...userData.data, ...data };
-    userData.currentSection = currentSection || userData.currentSection || 0;
+    userData.currentSection =
+      currentSection !== undefined
+        ? currentSection
+        : userData.currentSection || 0;
     userData.latestSubmissionTime = currentTime;
     userData.isComplete = isComplete;
 
