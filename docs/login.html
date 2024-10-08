@@ -24,30 +24,33 @@
       <img src="images/logo.png" alt="Open-Digi Logo" class="logo" />
 
       <form id="loginForm">
+        <!-- First Question -->
         <fieldset class="form-group">
-          <legend>Willkommen! Wie möchten Sie fortfahren?</legend>
-          <div class="choice-container">
-            <div class="choice-card" data-value="no">
-              <i class="fas fa-user-plus card-icon"></i>
-              <h3>Neu registrieren</h3>
-              <p>Ich habe den Fragebogen noch nicht ausgefüllt</p>
-            </div>
-            <div class="choice-card" data-value="yes">
-              <i class="fas fa-redo-alt card-icon"></i>
-              <h3>Erneut ausfüllen</h3>
-              <p>Ich habe den Fragebogen schon einmal ausgefüllt</p>
-            </div>
-            <div class="choice-card" data-value="continue">
-              <i class="fas fa-play-circle card-icon"></i>
-              <h3>Fortsetzen</h3>
-              <p>Ich möchte meinen begonnenen Fragebogen fortsetzen</p>
-            </div>
+          <legend>Hast du schon Kurse auf ILIAS absolviert?</legend>
+          <div class="radio-container">
+            <label>
+              <input type="radio" name="iliasCourseCompleted" value="no" /> Nein
+            </label>
+            <label>
+              <input type="radio" name="iliasCourseCompleted" value="yes" /> Ja
+            </label>
           </div>
         </fieldset>
+
+        <!-- Second Question (Options will be shown based on the first answer) -->
+        <div id="secondQuestion" style="display: none">
+          <fieldset class="form-group">
+            <legend>Wie möchten Sie fortfahren?</legend>
+            <div class="choice-container" id="choiceContainer">
+              <!-- Choice cards will be generated dynamically -->
+            </div>
+          </fieldset>
+        </div>
 
         <!-- Hidden input to store the selected option -->
         <input type="hidden" id="surveyOption" name="surveyOption" required />
 
+        <!-- Code Input -->
         <div id="codeInput" style="display: none">
           <div class="input-group">
             <label for="loginCode">
@@ -64,6 +67,7 @@
           </div>
         </div>
 
+        <!-- Courses List -->
         <div id="coursesList" style="display: none">
           <div class="input-group">
             <label for="courses">
@@ -80,6 +84,7 @@
           </div>
         </div>
 
+        <!-- Buttons -->
         <button
           type="submit"
           id="loginButton"
@@ -90,6 +95,7 @@
         </button>
       </form>
 
+      <!-- Generate Code Button -->
       <button
         type="button"
         id="generateCodeButton"

@@ -27,7 +27,146 @@ function setupCodeGenerationForm() {
     form.addEventListener('submit', handleCodeGenerationFormSubmission)
   }
 }
+function setupLoginPageFunctionality() {
+  const iliasRadioButtons = document.querySelectorAll(
+    'input[name="iliasCourseCompleted"]'
+  )
+  const secondQuestionDiv = document.getElementById('secondQuestion')
+  const choiceContainer = document.getElementById('choiceContainer')
+  const surveyOptionInput = document.getElementById('surveyOption')
+  const codeInput = document.getElementById('codeInput')
+  const coursesList = document.getElementById('coursesList')
+  const loginButton = document.getElementById('loginButton')
+  const generateCodeButton = document.getElementById('generateCodeButton')
 
+  if (
+    !iliasRadioButtons.length ||
+    !secondQuestionDiv ||
+    !choiceContainer ||
+    !surveyOptionInput
+  ) {
+    return
+  }
+
+  iliasRadioButtons.forEach((radio) => {
+    radio.addEventListener('change', function () {
+      const iliasCourseCompleted = this.value
+      // Clear previous selection
+      choiceContainer.innerHTML = ''
+      secondQuestionDiv.style.display = 'block'
+      surveyOptionInput.value = ''
+      codeInput.style.display = 'none'
+      coursesList.style.display = 'none'
+      if (loginButton) loginButton.style.display = 'none'
+      if (generateCodeButton) generateCodeButton.style.display = 'none'
+      // Depending on answer, show different options
+      if (iliasCourseCompleted === 'no') {
+        // Options for 'Nein'
+        createChoiceCard(
+          'register',
+          'Ich möchte mich neu registrieren',
+          'Neuen Code generieren',
+          'fas fa-user-plus'
+        )
+        createChoiceCard(
+          'continue',
+          'Ich möchte meinen Fragebogen fortsetzen',
+          'Mit Code Fragebogen fortsetzen',
+          'fas fa-play-circle'
+        )
+      } else if (iliasCourseCompleted === 'yes') {
+        // Options for 'Ja'
+        createChoiceCard(
+          'redo',
+          'Ich möchte den Fragebogen erneut ausfüllen',
+          'Neues Mal ausfüllen',
+          'fas fa-redo-alt'
+        )
+        createChoiceCard(
+          'continue',
+          'Ich möchte meinen Fragebogen fortsetzen',
+          'Mit Code Fragebogen fortsetzen',
+          'fas fa-play-circle'
+        )
+      }
+      setupChoiceCardListeners()
+    })
+  })
+
+  function createChoiceCard(value, title, description, iconClass) {
+    const card = document.createElement('div')
+    card.classList.add('choice-card')
+    card.setAttribute('data-value', value)
+
+    const icon = document.createElement('i')
+    icon.className = `${iconClass} card-icon`
+
+    const h3 = document.createElement('h3')
+    h3.textContent = title
+
+    const p = document.createElement('p')
+    p.textContent = description
+
+    card.appendChild(icon)
+    card.appendChild(h3)
+    card.appendChild(p)
+
+    choiceContainer.appendChild(card)
+  }
+
+  function setupChoiceCardListeners() {
+    const choiceCards = document.querySelectorAll('.choice-card')
+
+    choiceCards.forEach((card) => {
+      card.addEventListener('click', function () {
+        choiceCards.forEach((c) => c.classList.remove('selected'))
+        this.classList.add('selected')
+        const selectedOption = this.getAttribute('data-value')
+        surveyOptionInput.value = selectedOption
+        handleSurveyOptionChange(selectedOption)
+      })
+    })
+  }
+
+  function handleSurveyOptionChange(selectedOption) {
+    const coursesField = document.getElementById('courses')
+
+    if (selectedOption === 'register') {
+      codeInput.style.display = 'none'
+      coursesList.style.display = 'none'
+      if (loginButton) loginButton.style.display = 'none'
+      if (generateCodeButton) generateCodeButton.style.display = 'block'
+      if (coursesField) {
+        coursesField.required = false
+        coursesField.disabled = true
+      }
+    } else if (selectedOption === 'redo') {
+      codeInput.style.display = 'block'
+      coursesList.style.display = 'block'
+      if (loginButton) loginButton.style.display = 'block'
+      if (generateCodeButton) generateCodeButton.style.display = 'none'
+      if (coursesField) {
+        coursesField.required = true
+        coursesField.disabled = false
+      }
+    } else if (selectedOption === 'continue') {
+      codeInput.style.display = 'block'
+      coursesList.style.display = 'none'
+      if (loginButton) loginButton.style.display = 'block'
+      if (generateCodeButton) generateCodeButton.style.display = 'none'
+      if (coursesField) {
+        coursesField.required = false
+        coursesField.disabled = true
+      }
+    }
+  }
+
+  if (generateCodeButton) {
+    generateCodeButton.addEventListener('click', function () {
+      window.location.href = 'generateCode.html'
+    })
+  }
+}
 function setupNavigationButtons() {
   const buttons = ['letsGetStarted', 'startSurvey']
   buttons.forEach((buttonId) => {
@@ -226,7 +365,7 @@ async function handleLogin() {
     return
   }
 
-  if (selectedOption === 'no') {
+  if (selectedOption === 'register') {
     // User needs to generate a code
     window.location.href = 'generateCode.html'
     return
@@ -241,7 +380,7 @@ async function handleLogin() {
     return
   }
 
-  if (selectedOption === 'yes' && !courses) {
+  if (selectedOption === 'redo' && !courses) {
     Swal.fire({
       icon: 'error',
       title: 'Fehler',
@@ -265,7 +404,7 @@ async function handleLogin() {
       code: loginCode,
     }
 
-    if (selectedOption === 'yes') {
+    if (selectedOption === 'redo') {
       payload.courses = courses
       payload.startNewAttempt = true
     } else if (selectedOption === 'continue') {
@@ -502,74 +641,6 @@ function setupSurveyDataPersistence() {
 }
 
 // script.js
-
-function setupLoginPageFunctionality() {
-  const choiceCards = document.querySelectorAll('.choice-card')
-  const surveyOptionInput = document.getElementById('surveyOption')
-  const codeInput = document.getElementById('codeInput')
-  const coursesList = document.getElementById('coursesList')
-  const loginButton = document.getElementById('loginButton')
-  const generateCodeButton = document.getElementById('generateCodeButton')
-
-  if (
-    !choiceCards ||
-    !choiceCards.length ||
-    !surveyOptionInput ||
-    !codeInput ||
-    !coursesList
-  ) {
-    return
-  }
-
-  choiceCards.forEach((card) => {
-    card.addEventListener('click', function () {
-      choiceCards.forEach((c) => c.classList.remove('selected'))
-      this.classList.add('selected')
-      const selectedOption = this.getAttribute('data-value')
-      surveyOptionInput.value = selectedOption
-      handleSurveyOptionChange(selectedOption)
-    })
-  })
-
-  function handleSurveyOptionChange(selectedOption) {
-    const coursesField = document.getElementById('courses')
-
-    if (selectedOption === 'no') {
-      codeInput.style.display = 'none'
-      coursesList.style.display = 'none'
-      if (loginButton) loginButton.style.display = 'none'
-      if (generateCodeButton) generateCodeButton.style.display = 'block'
-      if (coursesField) {
-        coursesField.required = false
-        coursesField.disabled = true // Disable the field
-      }
-    } else if (selectedOption === 'yes') {
-      codeInput.style.display = 'block'
-      coursesList.style.display = 'block'
-      if (loginButton) loginButton.style.display = 'block'
-      if (generateCodeButton) generateCodeButton.style.display = 'none'
-      if (coursesField) {
-        coursesField.required = true
-        coursesField.disabled = false // Enable the field
-      }
-    } else if (selectedOption === 'continue') {
-      codeInput.style.display = 'block'
-      coursesList.style.display = 'none'
-      if (loginButton) loginButton.style.display = 'block'
-      if (generateCodeButton) generateCodeButton.style.display = 'none'
-      if (coursesField) {
-        coursesField.required = false
-        coursesField.disabled = true // Disable the field
-      }
-    }
-  }
-
-  if (generateCodeButton) {
-    generateCodeButton.addEventListener('click', function () {
-      window.location.href = 'generateCode.html'
-    })
-  }
-}
 
 function checkInputsAndToggleLoginButton() {
   const courses = document.getElementById('courses')?.value.trim() || ''
