@@ -72,7 +72,7 @@ function setupEventListeners() {
   }
 
   if (nextButton) {
-    nextButton.addEventListener('click', nextSection)
+    // Initial event listener; will be managed in updateNavigationButtons
   }
 
   if (logoutButton) {
@@ -286,57 +286,57 @@ function validateYear(input) {
 }
 
 function renderSection(index) {
-  console.log(`Rendering section ${index}`);
+  console.log(`Rendering section ${index}`)
 
   if (index < 0 || index > surveyData.length) {
-    console.error(`Invalid section index: ${index}`);
-    currentSection = 0; // Reset to first section
-    index = 0;
+    console.error(`Invalid section index: ${index}`)
+    currentSection = 0 // Reset to first section
+    index = 0
   }
 
   // Get attemptNumber from sessionStorage
   const attemptNumber =
-    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1;
+    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
   if (index === surveyData.length) {
-    renderDatenschutzSection();
-    return;
+    renderDatenschutzSection()
+    return
   }
 
-  const section = surveyData[index];
-  console.log(`Section title: ${section.title}`);
+  const section = surveyData[index]
+  console.log(`Section title: ${section.title}`)
 
-  document.getElementById('surveyForm').innerHTML = '';
+  document.getElementById('surveyForm').innerHTML = ''
 
-  let html = `<div class="section"><h2>${section.title}</h2>`;
+  let html = `<div class="section"><h2>${section.title}</h2>`
 
   // Display the introductory text before every category section except 'Persönliche Angaben'
   if (section.title !== 'Persönliche Angaben') {
-    html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`;
+    html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
   }
 
   section.questions.forEach((question, qIndex) => {
-    const questionId = `q${index}_${qIndex}`;
-    console.log(`Rendering question: ${questionId}`);
-    let savedValue = userData[questionId] || '';
+    const questionId = `q${index}_${qIndex}`
+    console.log(`Rendering question: ${questionId}`)
+    let savedValue = userData[questionId] || ''
 
-    html += `<div class="question"><p>${question.text}</p>`;
+    html += `<div class="question"><p>${question.text}</p>`
 
     if (question.type === 'radio') {
       question.options.forEach((option) => {
         html += `<label><input type="radio" name="${questionId}" value="${option}" ${
           savedValue === option ? 'checked' : ''
-        } required> ${option}</label><br>`;
-      });
+        } required> ${option}</label><br>`
+      })
     } else if (question.type === 'number' && question.text.includes('Jahr')) {
       html += `<input type="text" id="${questionId}" name="${questionId}" 
                        value="${savedValue}" 
                        oninput="validateYear(this)" 
                        maxlength="4" 
                        pattern="[0-9]{4}"
-                       required>`;
+                       required>`
     } else if (question.type === 'scale') {
-      html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`;
+      html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`
       for (let i = 0; i <= 6; i++) {
         html += `<label class="scale-label">
                     <input type="radio" name="${questionId}" value="${i}" ${
@@ -352,13 +352,13 @@ function renderSection(index) {
                         ? 'ausgesprochen kompetent'
                         : ''
                     }</span>
-                 </label>`;
+                 </label>`
       }
       html += `</div>
                <div class="scale-labels">
                  <span>gar nicht kompetent</span>
                  <span>ausgesprochen kompetent</span>
-               </div>`;
+               </div>`
     } else if (question.type === 'dropdown') {
       html += `<select id="${questionId}" name="${questionId}" required>
                 <option value="" disabled ${
@@ -372,13 +372,13 @@ function renderSection(index) {
                       }>${option}</option>`
                   )
                   .join('')}
-             </select>`;
+             </select>`
     } else if (question.type === 'text') {
-      html += `<input type="text" id="${questionId}" name="${questionId}" value="${savedValue}" required>`;
+      html += `<input type="text" id="${questionId}" name="${questionId}" value="${savedValue}" required>`
     }
 
-    html += `</div>`;
-  });
+    html += `</div>`
+  })
 
   // After rendering the first section, add the open-ended question for T2
   if (index === 0 && attemptNumber > 1) {
@@ -389,33 +389,33 @@ function renderSection(index) {
           userData['t2_course_feedback'] || ''
         }</textarea>
       </div>
-    `;
+    `
   }
 
-  html += `</div>`;
-  document.getElementById('surveyForm').innerHTML = html;
+  html += `</div>`
+  document.getElementById('surveyForm').innerHTML = html
 
   // Add event listeners for scale buttons
   document.querySelectorAll('.scale-button').forEach((button) => {
-    button.addEventListener('keydown', handleScaleKeydown);
-  });
+    button.addEventListener('keydown', handleScaleKeydown)
+  })
 
-  updateNavigationButtons();
-  updateProgressBar();
+  updateNavigationButtons()
+  updateProgressBar()
 }
 
 // Submit Final Data Function
 function submitFinalData(event) {
-  event.preventDefault();
+  event.preventDefault()
   if (validateDatenschutz()) {
-    saveSectionData(true);
-    showResults();
+    saveSectionData(true)
+    showResults()
   } else {
-    alert('Bitte beantworten Sie alle Pflichtfelder.');
+    alert('Bitte beantworten Sie alle Pflichtfelder.')
   }
 }
 
-window.submitFinalData = submitFinalData;
+window.submitFinalData = submitFinalData
 
 // Function to render the Datenschutz section
 function renderDatenschutzSection() {
@@ -424,51 +424,47 @@ function renderDatenschutzSection() {
       <!-- Datenschutz content as before -->
       <!-- ... -->
     </div>
-  `;
+  `
 
-  document.getElementById('surveyForm').innerHTML = datenschutzHtml;
+  document.getElementById('surveyForm').innerHTML = datenschutzHtml
 
   // Add event listener to the final submit button
   document
     .getElementById('submitFinal')
-    .addEventListener('click', submitFinalData);
+    .addEventListener('click', submitFinalData)
 
-  updateNavigationButtons();
+  updateNavigationButtons()
 }
 
 // Update Navigation Buttons Function
 function updateNavigationButtons() {
-  const prevButton = document.getElementById('prevButton');
-  const nextButton = document.getElementById('nextButton');
+  const prevButton = document.getElementById('prevButton')
+  const nextButton = document.getElementById('nextButton')
 
   // Disable the Previous button on the first section
   if (currentSection === 0) {
-    if (prevButton) prevButton.disabled = true;
+    if (prevButton) prevButton.disabled = true
   } else {
-    if (prevButton) prevButton.disabled = false;
+    if (prevButton) prevButton.disabled = false
   }
 
-  if (currentSection === surveyData.length) {
-    // Hide the Next button on the Datenschutz section
-    if (nextButton) nextButton.style.display = 'none';
-  } else if (currentSection === surveyData.length - 1) {
-    // Change the Next button to 'Finish' on the last survey section
-    if (nextButton) {
-      nextButton.style.display = 'inline-block';
-      nextButton.textContent = 'Finish';
-      // Remove existing event listeners to prevent multiple triggers
-      nextButton.replaceWith(nextButton.cloneNode(true));
-      nextButton = document.getElementById('nextButton');
-      nextButton.addEventListener('click', finishSurvey);
-    }
-  } else {
-    if (nextButton) {
-      nextButton.style.display = 'inline-block';
-      nextButton.textContent = 'Weiter';
-      // Remove existing event listeners to prevent multiple triggers
-      nextButton.replaceWith(nextButton.cloneNode(true));
-      nextButton = document.getElementById('nextButton');
-      nextButton.addEventListener('click', nextSection);
+  if (nextButton) {
+    // Remove existing event listeners
+    nextButton.removeEventListener('click', nextSection)
+    nextButton.removeEventListener('click', finishSurvey)
+
+    if (currentSection === surveyData.length) {
+      // Hide the Next button on the Datenschutz section
+      nextButton.style.display = 'none'
+    } else if (currentSection === surveyData.length - 1) {
+      // Change the Next button to 'Finish' on the last survey section
+      nextButton.style.display = 'inline-block'
+      nextButton.textContent = 'Finish'
+      nextButton.addEventListener('click', finishSurvey)
+    } else {
+      nextButton.style.display = 'inline-block'
+      nextButton.textContent = 'Weiter'
+      nextButton.addEventListener('click', nextSection)
     }
   }
 }
@@ -476,111 +472,111 @@ function updateNavigationButtons() {
 // Finish Survey Function
 function finishSurvey() {
   if (validateSection()) {
-    saveSectionData(false); // Not setting isComplete yet
-    currentSection++;
+    saveSectionData(false) // Not setting isComplete yet
+    currentSection++
     if (currentSection === surveyData.length) {
-      renderDatenschutzSection();
-      updateProgressBar();
-      window.scrollTo(0, 0);
+      renderDatenschutzSection()
+      updateProgressBar()
+      window.scrollTo(0, 0)
     } else if (currentSection > surveyData.length) {
       // Now proceed to show results
-      saveSectionData(true); // Now set isComplete to true
-      showResults();
+      saveSectionData(true) // Now set isComplete to true
+      showResults()
     } else {
-      renderSection(currentSection);
-      updateProgressBar();
-      window.scrollTo(0, 0);
+      renderSection(currentSection)
+      updateProgressBar()
+      window.scrollTo(0, 0)
     }
   } else {
-    alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.');
-    markUnansweredQuestions();
+    alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
+    markUnansweredQuestions()
   }
 }
 
 // Validate Section Function
 function validateSection() {
-  const form = document.getElementById('surveyForm');
-  if (!form) return false;
+  const form = document.getElementById('surveyForm')
+  if (!form) return false
 
-  const firstUnanswered = markUnansweredQuestions();
+  const firstUnanswered = markUnansweredQuestions()
   if (firstUnanswered) {
     // Scroll to the first unanswered question smoothly
-    firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return false;
+    firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    return false
   }
 
-  return true;
+  return true
 }
 
 // Mark Unanswered Questions Function
 function markUnansweredQuestions() {
-  const form = document.getElementById('surveyForm');
-  const requiredFields = form.querySelectorAll('[required]');
-  let firstUnanswered = null;
+  const form = document.getElementById('surveyForm')
+  const requiredFields = form.querySelectorAll('[required]')
+  let firstUnanswered = null
 
   requiredFields.forEach((field) => {
-    const questionDiv = field.closest('.question');
+    const questionDiv = field.closest('.question')
     const isUnanswered =
       (field.type === 'radio' &&
         !form.querySelector(`input[name="${field.name}"]:checked`)) ||
-      (field.type !== 'radio' && !field.value.trim());
+      (field.type !== 'radio' && !field.value.trim())
 
     if (isUnanswered) {
-      questionDiv.classList.add('unanswered');
+      questionDiv.classList.add('unanswered')
       questionDiv.style.animation =
-        'shake 0.82s cubic-bezier(.36,.07,.19,.97) both';
+        'shake 0.82s cubic-bezier(.36,.07,.19,.97) both'
       if (!firstUnanswered) {
-        firstUnanswered = questionDiv;
+        firstUnanswered = questionDiv
       }
     } else {
-      questionDiv.classList.remove('unanswered');
-      questionDiv.style.animation = '';
+      questionDiv.classList.remove('unanswered')
+      questionDiv.style.animation = ''
     }
-  });
+  })
 
   if (firstUnanswered) {
-    firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
-  return firstUnanswered;
+  return firstUnanswered
 }
 
 // Remove Unanswered Markers Function
 function removeUnansweredMarkers() {
-  const unansweredQuestions = document.querySelectorAll('.question.unanswered');
+  const unansweredQuestions = document.querySelectorAll('.question.unanswered')
   unansweredQuestions.forEach((question) => {
-    question.classList.remove('unanswered');
-    question.style.animation = '';
-  });
+    question.classList.remove('unanswered')
+    question.style.animation = ''
+  })
 }
 
 // Show Results Function
 async function showResults() {
-  const userId = sessionStorage.getItem('userId');
+  const userId = sessionStorage.getItem('userId')
   if (!userId) {
-    console.error('No userId found in sessionStorage.');
-    return;
+    console.error('No userId found in sessionStorage.')
+    return
   }
 
   try {
-    const response = await fetch(`/api/user-data/${userId}`);
+    const response = await fetch(`/api/user-data/${userId}`)
     if (!response.ok) {
-      throw new Error('Failed to fetch user data');
+      throw new Error('Failed to fetch user data')
     }
-    const data = await response.json();
+    const data = await response.json()
 
-    initialScores = data.initialScores || {};
-    updatedScores = data.updatedScores || {};
+    initialScores = data.initialScores || {}
+    updatedScores = data.updatedScores || {}
 
-    console.log('Fetched User Data:', data);
+    console.log('Fetched User Data:', data)
 
     const attemptNumber =
-      parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1;
+      parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
     // Calculate competency score using updatedScores if available, otherwise use initialScores
     const scoreData =
-      Object.keys(updatedScores).length > 0 ? updatedScores : initialScores;
-    const score = calculateCompetenzScore(scoreData);
+      Object.keys(updatedScores).length > 0 ? updatedScores : initialScores
+    const score = calculateCompetenzScore(scoreData)
 
     // Generate HTML for results without course recommendations
     let resultHtml = `
@@ -602,7 +598,7 @@ async function showResults() {
       <div id="descriptionBox1"></div>
       <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Diagramm herunterladen</button>
       <hr>
-    `;
+    `
 
     if (attemptNumber === 1) {
       // T1 specific content
@@ -612,7 +608,7 @@ async function showResults() {
         <p><strong>Welche Strategie/n hast du bei der Auswahl der Kompetenzbereiche genutzt?</strong></p>
         <textarea id="t1OpenEndedResponse" rows="4" style="width:100%;" required></textarea>
         <button id="submitT1OpenEndedResponse" class="btn btn-primary">Absenden</button>
-      `;
+      `
     } else if (attemptNumber > 1) {
       // T2 specific content
       resultHtml += `
@@ -620,70 +616,70 @@ async function showResults() {
         <p><strong>Wie haben sich deine Kompetenzüberzeugungen nun verändert? Beschreibe, was du im Diagramm siehst und teile uns mit, welche Schlüsse du aus deiner Lernerfahrung ziehst.</strong></p>
         <textarea id="t2OpenEndedResponse" rows="4" style="width:100%;" required></textarea>
         <button id="submitT2OpenEndedResponse" class="btn btn-primary">Absenden</button>
-      `;
+      `
     }
 
-    document.getElementById('surveyForm').innerHTML = resultHtml;
+    document.getElementById('surveyForm').innerHTML = resultHtml
 
     // Hide the progress bar
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    if (progressBar) progressBar.style.display = 'none';
-    if (progressText) progressText.style.display = 'none';
+    const progressBar = document.getElementById('progressBar')
+    const progressText = document.getElementById('progressText')
+    if (progressBar) progressBar.style.display = 'none'
+    if (progressText) progressText.style.display = 'none'
 
     // Create the competency chart
     if (Object.keys(updatedScores).length > 0) {
       // Show both initial and updated scores
-      createCompetencyChart1(initialScores, updatedScores);
+      createCompetencyChart1(initialScores, updatedScores)
     } else {
       // Show only initial scores
-      createCompetencyChart1(initialScores, {});
+      createCompetencyChart1(initialScores, {})
     }
 
     // Add event listener to the download button
-    const downloadButton = document.getElementById('downloadChart');
+    const downloadButton = document.getElementById('downloadChart')
     if (downloadButton) {
-      downloadButton.addEventListener('click', downloadChart);
+      downloadButton.addEventListener('click', downloadChart)
     } else {
-      console.error('Download button not found');
+      console.error('Download button not found')
     }
 
     // Hide navigation buttons
-    hideNavigationButtons();
+    hideNavigationButtons()
 
     // Add event listeners for open-ended responses
     if (attemptNumber === 1) {
       document
         .getElementById('submitT1OpenEndedResponse')
-        .addEventListener('click', submitT1OpenEndedResponse);
+        .addEventListener('click', submitT1OpenEndedResponse)
     } else if (attemptNumber > 1) {
       document
         .getElementById('submitT2OpenEndedResponse')
-        .addEventListener('click', submitT2OpenEndedResponse);
+        .addEventListener('click', submitT2OpenEndedResponse)
     }
   } catch (error) {
-    console.error('Error displaying results:', error);
-    alert('Fehler beim Anzeigen der Ergebnisse. Bitte versuchen Sie es erneut.');
+    console.error('Error displaying results:', error)
+    alert('Fehler beim Anzeigen der Ergebnisse. Bitte versuchen Sie es erneut.')
   }
 }
 
 // Assign showResults to window after its definition
-window.showResults = showResults;
+window.showResults = showResults
 
 // Function to handle T1 open-ended response submission
 function submitT1OpenEndedResponse(event) {
-  event.preventDefault();
+  event.preventDefault()
   const openEndedResponse = document
     .getElementById('t1OpenEndedResponse')
-    .value.trim();
+    .value.trim()
   if (!openEndedResponse) {
-    alert('Bitte füllen Sie das Textfeld aus.');
-    return;
+    alert('Bitte füllen Sie das Textfeld aus.')
+    return
   }
 
-  const userId = sessionStorage.getItem('userId');
+  const userId = sessionStorage.getItem('userId')
   const attemptNumber =
-    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1;
+    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
   fetch('/api/save-open-ended-response', {
     method: 'POST',
@@ -696,36 +692,36 @@ function submitT1OpenEndedResponse(event) {
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`Server responded with status ${response.status}`);
+        throw new Error(`Server responded with status ${response.status}`)
       }
-      return response.json();
+      return response.json()
     })
     .then(() => {
-      document.getElementById('t1OpenEndedResponse').value = '';
-      showCourseLinks();
+      document.getElementById('t1OpenEndedResponse').value = ''
+      showCourseLinks()
     })
     .catch((error) => {
-      console.error('Error saving open-ended response:', error);
+      console.error('Error saving open-ended response:', error)
       alert(
         'Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.'
-      );
-    });
+      )
+    })
 }
 
 // Function to handle T2 open-ended response submission
 function submitT2OpenEndedResponse(event) {
-  event.preventDefault();
+  event.preventDefault()
   const openEndedResponse = document
     .getElementById('t2OpenEndedResponse')
-    .value.trim();
+    .value.trim()
   if (!openEndedResponse) {
-    alert('Bitte füllen Sie das Textfeld aus.');
-    return;
+    alert('Bitte füllen Sie das Textfeld aus.')
+    return
   }
 
-  const userId = sessionStorage.getItem('userId');
+  const userId = sessionStorage.getItem('userId')
   const attemptNumber =
-    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1;
+    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
   fetch('/api/save-open-ended-response', {
     method: 'POST',
@@ -738,21 +734,21 @@ function submitT2OpenEndedResponse(event) {
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`Server responded with status ${response.status}`);
+        throw new Error(`Server responded with status ${response.status}`)
       }
-      return response.json();
+      return response.json()
     })
     .then(() => {
-      document.getElementById('t2OpenEndedResponse').value = '';
+      document.getElementById('t2OpenEndedResponse').value = ''
       // Optionally, you can show a thank you message or redirect
-      alert('Vielen Dank für Ihre Antwort!');
+      alert('Vielen Dank für Ihre Antwort!')
     })
     .catch((error) => {
-      console.error('Error saving open-ended response:', error);
+      console.error('Error saving open-ended response:', error)
       alert(
         'Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.'
-      );
-    });
+      )
+    })
 }
 
 // Function to display course links
@@ -767,36 +763,36 @@ function showCourseLinks() {
       <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122047&client_id=ilias_hro" target="_blank">Produzieren</a></li>
       <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122049&client_id=ilias_hro" target="_blank">Schützen und sicher Agieren</a></li>
     </ul>
-  `;
+  `
 
   document
     .getElementById('surveyForm')
-    .insertAdjacentHTML('beforeend', courseLinksHtml);
+    .insertAdjacentHTML('beforeend', courseLinksHtml)
 }
 
 // Create Competency Chart Function
 function createCompetencyChart1(initialScores, updatedScores) {
-  const canvas = document.getElementById('competencyChart1');
-  const descriptionBox = document.getElementById('descriptionBox1');
+  const canvas = document.getElementById('competencyChart1')
+  const descriptionBox = document.getElementById('descriptionBox1')
   if (!canvas || !descriptionBox) {
-    console.error('Chart canvas or description box not found');
-    return;
+    console.error('Chart canvas or description box not found')
+    return
   }
 
   if (chart1Instance) {
-    chart1Instance.destroy();
+    chart1Instance.destroy()
   }
 
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d')
 
   // Determine all unique labels from initial and updated scores
   const allLabels = new Set([
     ...Object.keys(initialScores),
     ...Object.keys(updatedScores),
-  ]);
-  const fullLabels = Array.from(allLabels);
-  const labels = fullLabels.map((key) => labelMap[key] || key);
-  let currentHoveredIndex = -1;
+  ])
+  const fullLabels = Array.from(allLabels)
+  const labels = fullLabels.map((key) => labelMap[key] || key)
+  let currentHoveredIndex = -1
 
   const datasets = [
     {
@@ -808,7 +804,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
       borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderWidth: 1,
     },
-  ];
+  ]
 
   if (Object.keys(updatedScores).length > 0) {
     datasets.push({
@@ -817,7 +813,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
       backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderWidth: 1,
-    });
+    })
   }
 
   chart1Instance = new Chart(ctx, {
@@ -853,9 +849,9 @@ function createCompetencyChart1(initialScores, updatedScores) {
         tooltip: {
           callbacks: {
             title: (tooltipItems) => {
-              const index = tooltipItems[0].dataIndex;
-              const fullLabel = fullLabels[index];
-              return fullLabel || tooltipItems[0].label;
+              const index = tooltipItems[0].dataIndex
+              const fullLabel = fullLabels[index]
+              return fullLabel || tooltipItems[0].label
             },
             label: (context) =>
               `${context.dataset.label}: ${context.parsed.y}%`,
@@ -864,102 +860,102 @@ function createCompetencyChart1(initialScores, updatedScores) {
       },
       onHover: (event, activeElements) => {
         if (activeElements.length > 0) {
-          const dataIndex = activeElements[0].index;
+          const dataIndex = activeElements[0].index
           if (dataIndex !== currentHoveredIndex) {
-            currentHoveredIndex = dataIndex;
-            const fullCompetency = fullLabels[dataIndex];
+            currentHoveredIndex = dataIndex
+            const fullCompetency = fullLabels[dataIndex]
             updateDescriptionBox(
               descriptionBox,
               fullCompetency,
               competencyDescriptions[fullCompetency]
-            );
+            )
           }
         } else {
-          currentHoveredIndex = -1;
-          descriptionBox.innerHTML = '';
-          descriptionBox.style.backgroundColor = '';
-          descriptionBox.style.border = '';
+          currentHoveredIndex = -1
+          descriptionBox.innerHTML = ''
+          descriptionBox.style.backgroundColor = ''
+          descriptionBox.style.border = ''
         }
       },
     },
-  });
+  })
 
-  chart1Instance.update();
+  chart1Instance.update()
 }
 
 // Update Description Box Function
 function updateDescriptionBox(descriptionBox, fullCompetency, description) {
-  const competency = labelMap[fullCompetency] || fullCompetency;
-  const color = colorMap[fullCompetency] || '#999999';
-  const lighterColor = getLighterColor(color);
+  const competency = labelMap[fullCompetency] || fullCompetency
+  const color = colorMap[fullCompetency] || '#999999'
+  const lighterColor = getLighterColor(color)
 
   descriptionBox.innerHTML = `
     <h3>${fullCompetency}</h3>
     <p>${description || 'Beschreibung nicht verfügbar.'}</p>
-  `;
-  descriptionBox.style.backgroundColor = lighterColor;
-  descriptionBox.style.padding = '15px';
-  descriptionBox.style.borderRadius = '5px';
-  descriptionBox.style.border = `2px solid ${color}`;
-  descriptionBox.style.color = getContrastColor(lighterColor);
+  `
+  descriptionBox.style.backgroundColor = lighterColor
+  descriptionBox.style.padding = '15px'
+  descriptionBox.style.borderRadius = '5px'
+  descriptionBox.style.border = `2px solid ${color}`
+  descriptionBox.style.color = getContrastColor(lighterColor)
 }
 
 // Utility Function to Get Lighter Color
 function getLighterColor(hexColor) {
   if (!hexColor || hexColor.length !== 7 || hexColor[0] !== '#') {
-    return '#cccccc'; // Return a default color if invalid
+    return '#cccccc' // Return a default color if invalid
   }
-  let r = parseInt(hexColor.slice(1, 3), 16);
-  let g = parseInt(hexColor.slice(3, 5), 16);
-  let b = parseInt(hexColor.slice(5, 7), 16);
+  let r = parseInt(hexColor.slice(1, 3), 16)
+  let g = parseInt(hexColor.slice(3, 5), 16)
+  let b = parseInt(hexColor.slice(5, 7), 16)
 
   // Make the color significantly lighter
-  r = Math.min(255, r + Math.floor((255 - r) * 0.7));
-  g = Math.min(255, g + Math.floor((255 - g) * 0.7));
-  b = Math.min(255, b + Math.floor((255 - b) * 0.7));
+  r = Math.min(255, r + Math.floor((255 - r) * 0.7))
+  g = Math.min(255, g + Math.floor((255 - g) * 0.7))
+  b = Math.min(255, b + Math.floor((255 - b) * 0.7))
 
   return `#${r.toString(16).padStart(2, '0')}${g
     .toString(16)
-    .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 
 // Utility Function to Get Contrast Color
 function getContrastColor(hexColor) {
-  const r = parseInt(hexColor.slice(1, 3), 16);
-  const g = parseInt(hexColor.slice(3, 5), 16);
-  const b = parseInt(hexColor.slice(5, 7), 16);
-  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 128 ? 'black' : 'white';
+  const r = parseInt(hexColor.slice(1, 3), 16)
+  const g = parseInt(hexColor.slice(3, 5), 16)
+  const b = parseInt(hexColor.slice(5, 7), 16)
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000
+  return yiq >= 128 ? 'black' : 'white'
 }
 
 // Download Chart Function
 function downloadChart(event) {
-  event.preventDefault();
-  const canvas1 = document.getElementById('competencyChart1');
+  event.preventDefault()
+  const canvas1 = document.getElementById('competencyChart1')
   if (canvas1) {
-    const link = document.createElement('a');
-    link.download = 'kompetenz-diagramm.png';
-    link.href = canvas1.toDataURL();
-    link.click();
+    const link = document.createElement('a')
+    link.download = 'kompetenz-diagramm.png'
+    link.href = canvas1.toDataURL()
+    link.click()
   }
 }
 
 // Hide Navigation Buttons Function
 function hideNavigationButtons() {
-  const navButtons = document.querySelector('.navigation-buttons');
+  const navButtons = document.querySelector('.navigation-buttons')
   if (navButtons) {
-    navButtons.style.display = 'none';
+    navButtons.style.display = 'none'
   }
 }
 
 // Calculate Kompetenz Score Function
 function calculateCompetenzScore(scores) {
-  const scoreValues = Object.values(scores);
-  if (scoreValues.length === 0) return 0;
-  const total = scoreValues.reduce((acc, val) => acc + val, 0);
-  return Math.round(total / scoreValues.length);
+  const scoreValues = Object.values(scores)
+  if (scoreValues.length === 0) return 0
+  const total = scoreValues.reduce((acc, val) => acc + val, 0)
+  return Math.round(total / scoreValues.length)
 }
 
 // Expose Necessary Functions Globally
-window.saveSectionData = saveSectionData;
-window.validateYear = validateYear;
+window.saveSectionData = saveSectionData
+window.validateYear = validateYear
