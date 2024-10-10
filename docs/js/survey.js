@@ -163,8 +163,10 @@ function saveSectionData(isComplete = false) {
   const userId = sessionStorage.getItem('userId')
   if (userId) {
     const categoryScores = calculateCategoryScores(userData)
+    const attemptNumber =
+      parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
-    const data = {
+    const dataToSend = {
       userId: userId,
       data: userData,
       isComplete: isComplete,
@@ -178,11 +180,19 @@ function saveSectionData(isComplete = false) {
     const unterschriftElement = document.getElementById('unterschrift')
 
     if (datenschutzConsentElement) {
-      data.datenschutzConsent = datenschutzConsentElement.checked
+      dataToSend.datenschutzConsent = datenschutzConsentElement.checked
     }
 
     if (unterschriftElement) {
-      data.unterschrift = unterschriftElement.value.trim()
+      dataToSend.unterschrift = unterschriftElement.value.trim()
+    }
+
+    // Include open-ended responses
+    if (attemptNumber > 1 && userData['t2_course_feedback']) {
+      dataToSend.openEndedResponses = {
+        [`attempt${attemptNumber}_course_feedback`]:
+          userData['t2_course_feedback'],
+      }
     }
 
     fetch('/api/save-user-data', {
@@ -190,7 +200,7 @@ function saveSectionData(isComplete = false) {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(dataToSend),
     })
       .then((response) => {
         if (!response.ok) {
@@ -258,6 +268,7 @@ function loadUserData(isNewAttempt = false) {
       })
       .then((data) => {
         console.log('Loaded user data:', data)
+        sessionStorage.setItem('attemptNumber', data.attemptNumber || '1')
         if (data.data) {
           if (isNewAttempt) {
             // Keep only personal information for new attempts
@@ -315,6 +326,10 @@ function renderSection(index) {
     currentSection = 0 // Reset to first section
     index = 0
   }
+
+  // Get attemptNumber from sessionStorage
+  const attemptNumber =
+    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
   if (index === surveyData.length) {
     renderDatenschutzSection()
@@ -397,6 +412,18 @@ function renderSection(index) {
     html += `</div>`
   })
 
+  // After rendering the first section, add the open-ended question for T2
+  if (index === 0 && attemptNumber > 1) {
+    html += `
+      <div class="question">
+        <p>Wie fandest du deine absolvierten Kurse in ILIAS in Bezug auf Inhalt und Struktur? Was hast du für dich mitgenommen? Was war hilfreich für dich?</p>
+        <textarea name="t2_course_feedback" id="t2_course_feedback" rows="4" style="width:100%;" required>${
+          userData['t2_course_feedback'] || ''
+        }</textarea>
+      </div>
+    `
+  }
+
   html += `</div>`
   document.getElementById('surveyForm').innerHTML = html
 
@@ -426,12 +453,15 @@ function renderDatenschutzSection() {
   const datenschutzHtml = `
     <div class="datenschutz-section">
       <h2>Datenschutzerklärung</h2>
+      <p>
+        Danke, dass Sie den Fragebogen ausgefüllt haben. Bevor wir Ihnen eine persönliche Rückmeldung geben, müssen wir sicher stellen, dass wir Ihre Daten speichern dürfen. Dafür lesen Sie sich bitte die Datenschutzerklärung durch und stimmen Sie dieser durch Ihre digitale Unterschrift zu.
+      </p>
       <div class="datenschutz-content">
         <h3>Projektleitung:</h3>
         <p>Prof.in Dr. Charlott Rubach & Anne-Kathrin Hirsch</p>
         <p>Sehr geehrte Lehramtsstudierende,</p>
         <p>
-          die Digitalisierung und Digitalität im Bildungsbereich erhielten in den letzten Jahren große Aufmerksamkeit. Der kompetente Umgang mit digitalen Medien gehört zum Aufgabenbereich von Lehrkräften. Daher ist es bedeutsam, dass Lehramtsstudierende während ihrer Ausbildung auf diesen Umgang vorbereitet werden. Wir interessieren uns im Rahmen dieser Studie „Open-Digi“ dafür, inwieweit die von uns erstellten Lernerfahrung zur Förderung digitaler Kompetenzen beitragen.
+          die Digitalisierung und Digitalität im Bildungsbereich erhielten in den letzten Jahren große Aufmerksamkeit. Der kompetente Umgang mit digitalen Medien gehört zum Aufgabenbereich von Lehrkräften. Daher ist es bedeutsam, dass Lehramtsstudierende während ihrer Ausbildung auf diesen Umgang vorbereitet werden. Wir interessieren uns im Rahmen dieser Studie „Open-Digi“ dafür, inwieweit die von uns erstellten Lernerfahrungen zur Förderung digitaler Kompetenzen beitragen.
         </p>
         <h3>Wer sind wir?</h3>
         <p>
@@ -442,18 +472,18 @@ function renderDatenschutzSection() {
           Ziel des Projektes ist die Untersuchung von effektiven Lernerfahrungen für die Entwicklung digitaler Kompetenzen. Das Projekt besteht aus mehreren Schritten:
         </p>
         <ul>
-          <li>Sie füllen die Befragung zum Open-Digi Projekt aus, welcher der Pre-Diagnostik gilt und zirka X Minuten dauert. Alle Befragungen thematisieren ausschließlich Aspekte von digitaler Kompetenz.</li>
-          <li>Ihnen werden auf Grundlage der Diagnostik 2-3 Kurse vorgeschlagen, die Sie bearbeiten sollen.</li>
-          <li>Sie bearbeiten die Kurse in einer Dauer von zirka einer Stunde.</li>
+          <li>Sie füllen die Befragung zum Open-Digi Projekt aus, welcher der Pre-Diagnostik gilt und zirka 10 Minuten dauert. Alle Befragungen thematisieren ausschließlich Aspekte von digitaler Kompetenz.</li>
+          <li>Ihnen werden auf Grundlage der Diagnostik mehrere Vorschläge gemacht, wie sie eigene Kompetenzen weiterentwickeln können.</li>
+          <li>Sie bearbeiten verschiedene Kurse.</li>
           <li>Sie durchlaufen die Post-Diagnostik direkt nach Bearbeitung der Kurse.</li>
           <li>Sie machen eine dritte Befragung, 1 Monat nach Bearbeitung der Kurse.</li>
         </ul>
         <h3>Was bedeutet die Teilnahme für mich und meine Daten?</h3>
         <p>
-          Ihre Teilnahme an unserer Studie ist freiwillig. Wenn Sie an der Studie teilnehmen, können Sie einzelne Fragen überspringen oder die gesamte Befragung jederzeit ganz abbrechen. In letzterem Falle, vernichten wir die Daten.
+          Ihre Teilnahme an unserer Studie ist freiwillig. Wenn Sie an der Studie teilnehmen, können Sie die Befragung jederzeit abbrechen. In diesem Falle werden die Daten nicht gespeichert.
         </p>
         <p>
-          Die Befragung ist anonym. Das heißt, es werden auch ausschließlich anonymisierte Informationen analysiert und im Rahmen wissenschaftlicher Arbeiten veröffentlicht. Es werden keine Informationen gespeichert, die es uns möglich machen, Sie als Person zu identifizieren. Eine Rücknahme Ihres Einverständnisses und damit Löschung Ihrer Daten, nachdem Sie den Fragebogen ausgefüllt und abgegeben haben, ist demnach nicht möglich. Anonymisierung ist das Verändern personenbezogener Daten in der Weise, dass Informationen nicht mehr oder nur mit einem unverhältnismäßig großen Aufwand an Zeit, Kosten und Arbeitskraft einer bestimmten Person zugeordnet werden können. Anonymisiert sind auch Daten, die keine persönliche Information mehr enthalten, bspw. Alter, Geschlecht, Lehramtstyp, Fächer und Hochschulsemester.
+          Die Befragung ist anonym. Das heißt, es werden auch ausschließlich anonymisierte Informationen analysiert und im Rahmen wissenschaftlicher Arbeiten veröffentlicht. Es werden keine Informationen gespeichert, die es uns möglich machen, Sie als Person zu identifizieren. Eine Rücknahme Ihres Einverständnisses und damit Löschung Ihrer Daten, nachdem Sie den Fragebogen ausgefüllt und abgegeben haben, ist demnach nicht möglich. Anonymisiert sind auch Daten, die keine persönliche Information mehr enthalten, bspw. Alter, Geschlecht, Lehramtstyp, Fächer und Hochschulsemester.
         </p>
         <p>
           Wir speichern Ihre Antworten und Ihre Angaben (z. B. Alter und Geschlecht). Diese werden bis zum Abschluss der Untersuchung und maximal 10 Jahre auf den Dienstrechnern der Wissenschaftlerinnen aus dem Projekt gespeichert und danach gelöscht.
@@ -482,7 +512,7 @@ function renderDatenschutzSection() {
             <span>Ich stimme der Datenschutzerklärung zu.</span>
           </label>
         </div>
-        <button id="submitFinal" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Weiter</button>
+        <button id="submitFinal" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Hier gelangst du zu deiner individuellen Diagnostik</button>
       </div>
     </div>
   `
@@ -808,22 +838,30 @@ async function showResults() {
 
     console.log('Fetched User Data:', data)
 
-    const averageInitialScore = calculateCompetenzScore(initialScores)
-    const averageUpdatedScore = calculateCompetenzScore(updatedScores)
-    const courses = getCoursesSuggestions(averageUpdatedScore)
+    const attemptNumber =
+      parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
+
+    // Calculate competency score using updatedScores if available, otherwise use initialScores
+    const scoreData =
+      Object.keys(updatedScores).length > 0 ? updatedScores : initialScores
+    const score = calculateCompetenzScore(scoreData)
+    const courses = getCoursesSuggestions(score)
 
     // Generate HTML for results
-    const resultHtml = `
-      <h2>Ihr initialer Kompetenzscore betrug ${averageInitialScore}%</h2>
-      <h2>Ihr aktueller Kompetenzscore beträgt ${averageUpdatedScore}%</h2>
-      <p>Diese Scores repräsentieren Ihren Stand in digitalen Kompetenzen basierend auf Ihren Antworten.</p>
+    let resultHtml = `
+      <h2>Ihr Kompetenzscore beträgt ${score}%</h2>
+      <p>Dieser Score repräsentiert Ihren aktuellen Stand in digitalen Kompetenzen basierend auf Ihren Antworten.</p>
       <h3>Kursempfehlungen</h3>
-      <p>Basierend auf Ihrem aktuellen Score empfehlen wir folgende Kurse zur Verbesserung Ihrer digitalen Kompetenzen:</p>
+      <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse zur Verbesserung Ihrer digitalen Kompetenzen:</p>
       <ul>
         ${courses.map((course) => `<li>${course}</li>`).join('')}
       </ul>
       <h3>Kompetenzdiagramm</h3>
-      <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen. <strong>Bewegen Sie den Mauszeiger über die Balken, um detaillierte Informationen zu den einzelnen Scores zu erhalten.</strong> Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der aktuellen Befragung (T2) darstellen.</p>
+      <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
+        Object.keys(updatedScores).length > 0
+          ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der aktuellen Befragung (T2) darstellen.'
+          : ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung.'
+      }</p>
       <div class="attention-box">
         <span class="info-icon">ℹ️</span>
         Bewegen Sie den Mauszeiger über die Balken, um detaillierte Informationen zu den einzelnen Kompetenzen zu erhalten.
@@ -836,6 +874,25 @@ async function showResults() {
       <hr>
     `
 
+    if (attemptNumber === 1) {
+      // T1 specific content
+      resultHtml += `
+        <p>Basierend auf deinen Ergebnissen wähle nun einen oder mehrere Kompetenzbereiche aus, in denen du dich weiterbilden möchtest. Wir haben für jeden Kompetenzbereiche mehrere Mikrofortbildungen entwickelt, die du absolvieren kannst. Die Auswahl der Kompetenzbereiche kannst du anhand verschiedener Motive selbst vornehmen: Möchtest du den Kompetenzbereich mit dem geringsten Score verbessern, oder interessierst du dich besonders für einen Kompetenzbereich bzw. ist ein Thema gerade sehr aktuell bei dir.</p>
+        <p>Schaue dir nun die Kompetenzbereiche an und entscheide dich für 1 bis 2.</p>
+        <p><strong>Welche Strategie/n hast du bei der Auswahl der Kompetenzbereiche genutzt?</strong></p>
+        <textarea id="t1OpenEndedResponse" rows="4" style="width:100%;" required></textarea>
+        <button id="submitT1OpenEndedResponse" class="btn btn-primary">Absenden</button>
+      `
+    } else if (attemptNumber > 1) {
+      // T2 specific content
+      resultHtml += `
+        <p>Jetzt hast du den Vergleich zwischen deiner Kompetenzeinschätzung vor und nach der Absolvierung der ILIAS Kurse. Wenn der helle Balken niedriger ist als der dunklere, bedeutet das, dass du dich nach den ILIAS-Kursen besser einschätzt als zuvor. Ist der helle Balken höher als der dunklere ist es genau umgekehrt. Es ist auch möglich, dass du dich bei beiden Befragungen in gewissen Kompetenzbereichen gleich eingeschätzt hast: dann sind beide Balken gleich hoch.</p>
+        <p><strong>Wie haben sich deine Kompetenzüberzeugungen nun verändert? Beschreibe, was du im Diagramm siehst und teile uns mit, welche Schlüsse du aus deiner Lernerfahrung ziehst.</strong></p>
+        <textarea id="t2OpenEndedResponse" rows="4" style="width:100%;" required></textarea>
+        <button id="submitT2OpenEndedResponse" class="btn btn-primary">Absenden</button>
+      `
+    }
+
     document.getElementById('surveyForm').innerHTML = resultHtml
 
     // Hide the progress bar
@@ -845,7 +902,13 @@ async function showResults() {
     if (progressText) progressText.style.display = 'none'
 
     // Create the competency chart
-    createCompetencyChart1(initialScores, updatedScores)
+    if (Object.keys(updatedScores).length > 0) {
+      // Show both initial and updated scores
+      createCompetencyChart1(initialScores, updatedScores)
+    } else {
+      // Show only initial scores
+      createCompetencyChart1(initialScores, {})
+    }
 
     // Add event listener to the download button
     const downloadButton = document.getElementById('downloadChart')
@@ -857,6 +920,17 @@ async function showResults() {
 
     // Hide navigation buttons
     hideNavigationButtons()
+
+    // Add event listeners for open-ended responses
+    if (attemptNumber === 1) {
+      document
+        .getElementById('submitT1OpenEndedResponse')
+        .addEventListener('click', submitT1OpenEndedResponse)
+    } else if (attemptNumber > 1) {
+      document
+        .getElementById('submitT2OpenEndedResponse')
+        .addEventListener('click', submitT2OpenEndedResponse)
+    }
   } catch (error) {
     console.error('Error displaying results:', error)
     alert('Fehler beim Anzeigen der Ergebnisse. Bitte versuchen Sie es erneut.')
@@ -865,6 +939,99 @@ async function showResults() {
 
 // Assign showResults to window after its definition
 window.showResults = showResults
+
+
+// Function to handle T1 open-ended response submission
+function submitT1OpenEndedResponse(event) {
+  event.preventDefault();
+  const openEndedResponse = document.getElementById('t1OpenEndedResponse').value.trim();
+  if (!openEndedResponse) {
+    alert('Bitte füllen Sie das Textfeld aus.');
+    return;
+  }
+
+  const userId = sessionStorage.getItem('userId');
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1;
+
+  fetch('/api/save-open-ended-response', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userId: userId,
+      attemptNumber: attemptNumber,
+      response: openEndedResponse,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Server responded with status ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(() => {
+      document.getElementById('t1OpenEndedResponse').value = '';
+      showCourseLinks();
+    })
+    .catch((error) => {
+      console.error('Error saving open-ended response:', error);
+      alert('Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.');
+    });
+}
+
+// Function to handle T2 open-ended response submission
+function submitT2OpenEndedResponse(event) {
+  event.preventDefault();
+  const openEndedResponse = document.getElementById('t2OpenEndedResponse').value.trim();
+  if (!openEndedResponse) {
+    alert('Bitte füllen Sie das Textfeld aus.');
+    return;
+  }
+
+  const userId = sessionStorage.getItem('userId');
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1;
+
+  fetch('/api/save-open-ended-response', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      userId: userId,
+      attemptNumber: attemptNumber,
+      response: openEndedResponse,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Server responded with status ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(() => {
+      document.getElementById('t2OpenEndedResponse').value = '';
+      // Optionally, you can show a thank you message or redirect
+      alert('Vielen Dank für Ihre Antwort!');
+    })
+    .catch((error) => {
+      console.error('Error saving open-ended response:', error);
+      alert('Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.');
+    });
+}
+
+// Function to display course links
+function showCourseLinks() {
+  const courseLinksHtml = `
+    <p>Nun ist es Zeit, deine digitalen Kompetenzen zu fördern. Hier kommst du zu den Kursen der jeweiligen Kompetenzbereiche. Klicke einfach auf den Link und du wirst zu ILIAS weitergeleitet.</p>
+    <ul>
+      <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_121177&client_id=ilias_hro" target="_blank">Suchen, Verarbeiten und Aufbewahren</a></li>
+      <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122050&client_id=ilias_hro" target="_blank">Analysieren und Reflektieren</a></li>
+      <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_120680&client_id=ilias_hro" target="_blank">Kommunikation & Kollaboration</a></li>
+      <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122048&client_id=ilias_hro" target="_blank">Problemlösen und Handeln</a></li>
+      <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122047&client_id=ilias_hro" target="_blank">Produzieren</a></li>
+      <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122049&client_id=ilias_hro" target="_blank">Schützen und sicher Agieren</a></li>
+    </ul>
+  `;
+
+  document.getElementById('surveyForm').insertAdjacentHTML('beforeend', courseLinksHtml);
+}
 
 // Update Navigation Buttons Function (Single Definition)
 function updateNavigationButtons() {

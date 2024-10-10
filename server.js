@@ -46,9 +46,11 @@ const userDataSchema = new mongoose.Schema({
   updatedScores: { type: Object, default: {} },
   initialResponses: { type: Object, default: {} },
   updatedResponses: { type: Object, default: {} },
-  currentSection: { type: Number, default: 0 }, // New field to track current section
-  datenschutzConsent: { type: Boolean, default: false }, // User Consent
-  unterschrift: { type: String, default: "" }, // User Signature
+  currentSection: { type: Number, default: 0 },
+  datenschutzConsent: { type: Boolean, default: false },
+  unterschrift: { type: String, default: "" },
+  attemptNumber: { type: Number, default: 1 }, // New field to track T1 or T2
+  openEndedResponses: { type: Object, default: {} }, // New field to store open-ended responses
 });
 const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
 
@@ -176,6 +178,8 @@ app.post("/login", async (req, res) => {
         currentSection: 0,
         datenschutzConsent: false,
         unterschrift: "",
+        attemptNumber: 1,
+        openEndedResponses: {},
       });
       await userData.save();
     } else {
@@ -193,11 +197,14 @@ app.post("/login", async (req, res) => {
         userData.updatedResponses = {};
         userData.updatedScores = {};
         userData.isComplete = false;
-        userData.currentSection = 0; // Changed from 1 to 0 to start from the first section
+        userData.currentSection = 0;
 
         if (courses && !userData.courses.includes(courses)) {
           userData.courses.push(courses);
         }
+
+        // Increment attemptNumber
+        userData.attemptNumber = (userData.attemptNumber || 1) + 1;
 
         await userData.save();
       } else {
@@ -213,6 +220,7 @@ app.post("/login", async (req, res) => {
       isComplete: userData.isComplete || false,
       currentSection: userData.currentSection || 0,
       startNewAttempt: startNewAttempt || false,
+      attemptNumber: userData.attemptNumber || 1,
     });
   } catch (err) {
     console.error("Fehler beim Login:", err);
@@ -237,6 +245,7 @@ app.post("/api/save-user-data", async (req, res) => {
     currentSection,
     datenschutzConsent,
     unterschrift,
+    openEndedResponses,
   } = req.body;
 
   if (!userId || !data) {
@@ -264,6 +273,8 @@ app.post("/api/save-user-data", async (req, res) => {
         currentSection: currentSection || 0,
         datenschutzConsent: false,
         unterschrift: "",
+        attemptNumber: 1,
+        openEndedResponses: {},
       });
     }
 
@@ -297,6 +308,16 @@ app.post("/api/save-user-data", async (req, res) => {
     }
     if (unterschrift) {
       userData.unterschrift = unterschrift;
+    }
+
+    if (openEndedResponses) {
+      if (!userData.openEndedResponses) {
+        userData.openEndedResponses = {};
+      }
+      userData.openEndedResponses = {
+        ...userData.openEndedResponses,
+        ...openEndedResponses,
+      };
     }
 
     await userData.save();
@@ -335,7 +356,8 @@ app.get("/api/user-data/:userId", async (req, res) => {
         updatedResponses: userData.updatedResponses,
         currentSection: userData.currentSection || 0,
         datenschutzConsent: userData.datenschutzConsent, // Include Consent
-        unterschrift: userData.unterschrift, // Include Signature
+        unterschrift: userData.unterschrift || "", // Include Signature
+        attemptNumber: userData.attemptNumber || 1, // Include attemptNumber
       });
     } else {
       res.status(404).json({ message: "User data not found" });
@@ -560,4 +582,47 @@ async function updateCSV() {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+/**
+ * @route   POST /api/save-open-ended-response
+ * @desc    Save user's open-ended responses
+ * @access  Public
+ */
+app.post("/api/save-open-ended-response", async (req, res) => {
+  const { userId, attemptNumber, response } = req.body;
+
+  if (!userId || !response || !attemptNumber) {
+    return res
+      .status(400)
+      .json({
+        message: "Missing userId, response, or attemptNumber in request body.",
+      });
+  }
+
+  try {
+    let userData = await UserData.findOne({ userId });
+    if (!userData) {
+      return res.status(404).json({ message: "User data not found." });
+    }
+
+    if (!userData.openEndedResponses) {
+      userData.openEndedResponses = {};
+    }
+
+    userData.openEndedResponses[`attempt${attemptNumber}`] = response;
+    await userData.save();
+
+    res
+      .status(200)
+      .json({ message: "Open-ended response saved successfully." });
+  } catch (err) {
+    console.error("Error saving open-ended response:", err);
+    res
+      .status(500)
+      .json({
+        message: "Error saving open-ended response",
+        details: err.message,
+      });
+  }
 });
