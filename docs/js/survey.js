@@ -196,14 +196,55 @@ function saveSectionData(isComplete = false) {
   }
 }
 
+function calculateCategoryScores(userData) {
+  const categoryTotals = {}
+  const categoryCounts = {}
+
+  // Loop through userData to sum up scores per category
+  for (let key in userData) {
+    if (key.startsWith('q')) {
+      const questionIndex = parseInt(key.split('_')[0].substring(1), 10)
+      const section = surveyData[questionIndex]
+      if (section && section.title !== 'Persönliche Angaben') {
+        const category = section.title
+        const value = parseInt(userData[key], 10)
+        if (!isNaN(value)) {
+          categoryTotals[category] = (categoryTotals[category] || 0) + value
+          categoryCounts[category] = (categoryCounts[category] || 0) + 1
+        }
+      }
+    }
+  }
+
+  // Calculate average scores per category
+  const categoryScores = {}
+  for (let category in categoryTotals) {
+    const average =
+      (categoryTotals[category] / (categoryCounts[category] * 6)) * 100 // Convert to percentage
+    categoryScores[category] = Math.round(average)
+  }
+
+  return categoryScores
+}
+
 function nextSection() {
   if (currentSection < surveyData.length - 1) {
     if (validateSection()) {
       currentSection++
+      sessionStorage.setItem('currentSection', currentSection) // Update sessionStorage
       saveSectionData(false) // Save data and currentSection
       renderSection(currentSection)
       updateProgressBar()
-      window.scrollTo(0, 0)
+
+      // Scroll to the first question
+      setTimeout(() => {
+        const firstQuestion = document.querySelector('.question')
+        if (firstQuestion) {
+          firstQuestion.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        } else {
+          window.scrollTo(0, 0)
+        }
+      }, 0)
     } else {
       alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
       markUnansweredQuestions()
@@ -216,10 +257,20 @@ function nextSection() {
 function previousSection() {
   if (currentSection > 0) {
     currentSection--
+    sessionStorage.setItem('currentSection', currentSection) // Update sessionStorage
     saveSectionData(false) // Save data and currentSection
     renderSection(currentSection)
     updateProgressBar()
-    window.scrollTo(0, 0)
+
+    // Scroll to the first question
+    setTimeout(() => {
+      const firstQuestion = document.querySelector('.question')
+      if (firstQuestion) {
+        firstQuestion.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      } else {
+        window.scrollTo(0, 0)
+      }
+    }, 0)
   }
 }
 
@@ -246,11 +297,13 @@ function loadUserData(isNewAttempt = false) {
               q0_3: data.data.q0_3,
             }
             currentSection = 0 // Start from the first section (Personal Information)
+            sessionStorage.setItem('currentSection', currentSection)
             updatedScores = {} // Reset updatedScores
           } else {
             userData = data.data
             currentSection =
               data.currentSection !== undefined ? data.currentSection : 0
+            sessionStorage.setItem('currentSection', currentSection)
             updatedScores = data.updatedScores || {}
           }
           initialScores = data.initialScores || {}
@@ -259,6 +312,7 @@ function loadUserData(isNewAttempt = false) {
           // No data found, start from the first section
           userData = {}
           currentSection = 0
+          sessionStorage.setItem('currentSection', currentSection)
         }
         renderSection(currentSection)
         updateProgressBar()
