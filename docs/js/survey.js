@@ -458,7 +458,7 @@ function renderDatenschutzSection() {
         Danke, dass Sie den Fragebogen ausgefüllt haben. Bevor wir Ihnen eine persönliche Rückmeldung geben, müssen wir sicher stellen, dass wir Ihre Daten speichern dürfen. Dafür lesen Sie sich bitte die Datenschutzerklärung durch und stimmen Sie dieser durch Ihre digitale Unterschrift zu.
       </p>
       <div class="datenschutz-content">
-        <h3>Projektleitung:</h3>
+         <h3>Projektleitung:</h3>
         <p>Prof.in Dr. Charlott Rubach & Anne-Kathrin Hirsch</p>
         <p>Sehr geehrte Lehramtsstudierende,</p>
         <p>
@@ -654,26 +654,6 @@ function calculateCategoryScores(data) {
   return categoryScores
 }
 
-// Get Courses Suggestions Function
-function getCoursesSuggestions(score) {
-  if (score < 30) {
-    return [
-      'Grundlegende digitale Fähigkeiten',
-      'Einführung in die Online-Sicherheit',
-    ]
-  } else if (score < 60) {
-    return [
-      'Digitale Kompetenz für Fortgeschrittene',
-      'Effektive Online-Kommunikation',
-    ]
-  } else {
-    return [
-      'Fortgeschrittene digitale Kompetenzen',
-      'Digital Leadership in der Bildung',
-    ]
-  }
-}
-
 // Create Competency Chart Function
 function createCompetencyChart1(initialScores, updatedScores) {
   const canvas = document.getElementById('competencyChart1')
@@ -846,7 +826,6 @@ async function showResults() {
     const scoreData =
       Object.keys(updatedScores).length > 0 ? updatedScores : initialScores
     const score = calculateCompetenzScore(scoreData)
-    //const courses = getCoursesSuggestions(score)
 
     // Generate HTML for results
     let resultHtml = `
@@ -869,10 +848,11 @@ async function showResults() {
       <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Diagramm herunterladen</button>
       <hr>
     `
+
     if (attemptNumber === 1) {
       // T1 specific content
       resultHtml += `
-        <p>Basierend auf deinen Ergebnissen wähle nun einen oder mehrere Kompetenzbereiche aus, in denen du dich weiterbilden möchtest. Wir haben für jeden Kompetenzbereiche mehrere Mikrofortbildungen entwickelt, die du absolvieren kannst. Die Auswahl der Kompetenzbereiche kannst du anhand verschiedener Motive selbst vornehmen: Möchtest du den Kompetenzbereich mit dem geringsten Score verbessern, oder interessierst du dich besonders für einen Kompetenzbereich bzw. ist ein Thema gerade sehr aktuell bei dir.</p>
+        <p>Basierend auf deinen Ergebnissen wähle nun einen oder mehrere Kompetenzbereiche aus, in denen du dich weiterbilden möchtest. Wir haben für jeden Kompetenzbereich mehrere Mikrofortbildungen entwickelt, die du absolvieren kannst. Die Auswahl der Kompetenzbereiche kannst du anhand verschiedener Motive selbst vornehmen: Möchtest du den Kompetenzbereich mit dem geringsten Score verbessern, oder interessierst du dich besonders für einen Kompetenzbereich bzw. ist ein Thema gerade sehr aktuell bei dir.</p>
         <p>Schaue dir nun die Kompetenzbereiche an und entscheide dich für 1 bis 2.</p>
         <p><strong>Welche Strategie/n hast du bei der Auswahl der Kompetenzbereiche genutzt?</strong></p>
         <textarea id="t1OpenEndedResponse" rows="4" style="width:100%;" required></textarea>
@@ -1009,7 +989,6 @@ function submitT2OpenEndedResponse(event) {
     })
     .then(() => {
       document.getElementById('t2OpenEndedResponse').value = ''
-      // Optionally, you can show a thank you message or redirect
       alert('Vielen Dank für Ihre Antwort!')
     })
     .catch((error) => {
@@ -1078,7 +1057,6 @@ function updateNavigationButtons() {
   }
 }
 
-// Modify the startNewSurvey function in survey.js
 async function startNewSurvey() {
   const userId = sessionStorage.getItem('userId')
   if (!userId) {
@@ -1108,6 +1086,44 @@ async function startNewSurvey() {
 
     // Load user data as a new attempt
     loadUserData(true)
+  } catch (error) {
+    console.error('Fehler beim Zurücksetzen der Umfrage:', error)
+    alert(
+      'Fehler beim Zurücksetzen der Umfrage. Bitte versuchen Sie es erneut.'
+    )
+  }
+}
+
+async function resetSurveyData() {
+  const userId = sessionStorage.getItem('userId')
+  if (!userId) {
+    alert('Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.')
+    return
+  }
+
+  try {
+    const response = await fetch('/api/reset-user-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Fehler beim Zurücksetzen der Umfrage.')
+    }
+
+    alert(
+      'Ihre Umfrage wurde erfolgreich zurückgesetzt. Sie können jetzt eine neue Umfrage starten.'
+    )
+
+    // Reload the survey to reflect the reset
+    resetUserData()
+    currentSection = 0
+    renderSection(currentSection)
+    updateProgressBar()
+    updateNavigationButtons()
   } catch (error) {
     console.error('Fehler beim Zurücksetzen der Umfrage:', error)
     alert(
@@ -1243,44 +1259,6 @@ function downloadChart(event) {
   }
 }
 
-async function resetSurveyData() {
-  const userId = sessionStorage.getItem('userId')
-  if (!userId) {
-    alert('Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.')
-    return
-  }
-
-  try {
-    const response = await fetch('/api/reset-user-data', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId }),
-    })
-
-    if (!response.ok) {
-      throw new Error('Fehler beim Zurücksetzen der Umfrage.')
-    }
-
-    alert(
-      'Ihre Umfrage wurde erfolgreich zurückgesetzt. Sie können jetzt eine neue Umfrage starten.'
-    )
-
-    // Reload the survey to reflect the reset
-    resetUserData()
-    currentSection = 0
-    renderSection(currentSection)
-    updateProgressBar()
-    updateNavigationButtons()
-  } catch (error) {
-    console.error('Fehler beim Zurücksetzen der Umfrage:', error)
-    alert(
-      'Fehler beim Zurücksetzen der Umfrage. Bitte versuchen Sie es erneut.'
-    )
-  }
-}
-
 // Hide Navigation Buttons Function
 function hideNavigationButtons() {
   const navButtons = document.querySelector('.navigation-buttons')
@@ -1288,99 +1266,6 @@ function hideNavigationButtons() {
     navButtons.style.display = 'none'
   }
 }
-
-// Show Results Function (Already Correct)
-// Show Results Function (Already Correct)
-async function showResults() {
-  const userId = sessionStorage.getItem('userId')
-  if (!userId) {
-    console.error('No userId found in sessionStorage.')
-    return
-  }
-
-  try {
-    const response = await fetch(`/api/user-data/${userId}`)
-    if (!response.ok) {
-      throw new Error('Failed to fetch user data')
-    }
-    const data = await response.json()
-
-    // Update sessionStorage and global variables
-    sessionStorage.setItem('initialScores', JSON.stringify(data.initialScores))
-    sessionStorage.setItem('updatedScores', JSON.stringify(data.updatedScores))
-    initialScores = data.initialScores || {}
-    updatedScores = data.updatedScores || {}
-
-    console.log('Fetched User Data:', data) // Debugging
-
-    // Calculate competency score using updatedScores if available, otherwise use initialScores
-    const scoreData =
-      Object.keys(updatedScores).length > 0 ? updatedScores : initialScores
-    const score = calculateCompetenzScore(scoreData)
-    const courses = getCoursesSuggestions(score)
-
-    // Generate HTML for results
-    const resultHtml = `
-      <h2>Ihr Kompetenzscore beträgt ${score}%</h2>
-      <p>Dieser Score repräsentiert Ihren aktuellen Stand in digitalen Kompetenzen basierend auf Ihren Antworten.</p>
-      <h3>Kursempfehlungen</h3>
-      <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse zur Verbesserung Ihrer digitalen Kompetenzen:</p>
-      <ul>
-        ${courses.map((course) => `<li>${course}</li>`).join('')}
-      </ul>
-      <h3>Kompetenzdiagramm</h3>
-      <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
-        Object.keys(updatedScores).length > 0
-          ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der aktuellen Befragung (T2) darstellen.'
-          : ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung.'
-      }</p>
-      <div class="attention-box">
-        <span class="info-icon">ℹ️</span>
-        Bewegen Sie den Mauszeiger über die Balken, um detaillierte Informationen zu den einzelnen Kompetenzen zu erhalten.
-      </div>
-      <div style="height: 300px; width: 100%;">
-        <canvas id="competencyChart1"></canvas>
-      </div>
-      <div id="descriptionBox1"></div>
-      <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Diagramm herunterladen</button>
-      <hr>
-    `
-
-    document.getElementById('surveyForm').innerHTML = resultHtml
-
-    // Hide the progress bar
-    const progressBar = document.getElementById('progressBar')
-    const progressText = document.getElementById('progressText')
-    if (progressBar) progressBar.style.display = 'none'
-    if (progressText) progressText.style.display = 'none'
-
-    // Create the competency chart
-    if (Object.keys(updatedScores).length > 0) {
-      // Show both initial and updated scores
-      createCompetencyChart1(initialScores, updatedScores)
-    } else {
-      // Show only initial scores
-      createCompetencyChart1(initialScores, {})
-    }
-
-    // Add event listener to the download button
-    const downloadButton = document.getElementById('downloadChart')
-    if (downloadButton) {
-      downloadButton.addEventListener('click', downloadChart)
-    } else {
-      console.error('Download button not found')
-    }
-
-    // Hide navigation buttons
-    hideNavigationButtons()
-  } catch (error) {
-    console.error('Error displaying results:', error)
-    alert('Fehler beim Anzeigen der Ergebnisse. Bitte versuchen Sie es erneut.')
-  }
-}
-
-// Assign showResults to window after its definition
-window.showResults = showResults
 
 // Expose Necessary Functions Globally
 window.saveSectionData = saveSectionData
