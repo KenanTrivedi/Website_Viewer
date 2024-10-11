@@ -343,7 +343,8 @@ function renderSection(index) {
 
   let html = `<div class="section"><h2>${section.title}</h2>`
 
-  if (section.title === 'Suchen, Verarbeiten und Aufbewahren') {
+  // Display the introductory text before every category section except 'Persönliche Angaben'
+  if (section.title !== 'Persönliche Angaben') {
     html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
   }
 
@@ -845,17 +846,12 @@ async function showResults() {
     const scoreData =
       Object.keys(updatedScores).length > 0 ? updatedScores : initialScores
     const score = calculateCompetenzScore(scoreData)
-    const courses = getCoursesSuggestions(score)
+    //const courses = getCoursesSuggestions(score)
 
     // Generate HTML for results
     let resultHtml = `
       <h2>Ihr Kompetenzscore beträgt ${score}%</h2>
       <p>Dieser Score repräsentiert Ihren aktuellen Stand in digitalen Kompetenzen basierend auf Ihren Antworten.</p>
-      <h3>Kursempfehlungen</h3>
-      <p>Basierend auf Ihrem Score empfehlen wir folgende Kurse zur Verbesserung Ihrer digitalen Kompetenzen:</p>
-      <ul>
-        ${courses.map((course) => `<li>${course}</li>`).join('')}
-      </ul>
       <h3>Kompetenzdiagramm</h3>
       <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
         Object.keys(updatedScores).length > 0
@@ -873,7 +869,6 @@ async function showResults() {
       <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Diagramm herunterladen</button>
       <hr>
     `
-
     if (attemptNumber === 1) {
       // T1 specific content
       resultHtml += `
@@ -940,18 +935,20 @@ async function showResults() {
 // Assign showResults to window after its definition
 window.showResults = showResults
 
-
 // Function to handle T1 open-ended response submission
 function submitT1OpenEndedResponse(event) {
-  event.preventDefault();
-  const openEndedResponse = document.getElementById('t1OpenEndedResponse').value.trim();
+  event.preventDefault()
+  const openEndedResponse = document
+    .getElementById('t1OpenEndedResponse')
+    .value.trim()
   if (!openEndedResponse) {
-    alert('Bitte füllen Sie das Textfeld aus.');
-    return;
+    alert('Bitte füllen Sie das Textfeld aus.')
+    return
   }
 
-  const userId = sessionStorage.getItem('userId');
-  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1;
+  const userId = sessionStorage.getItem('userId')
+  const attemptNumber =
+    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
   fetch('/api/save-open-ended-response', {
     method: 'POST',
@@ -964,31 +961,36 @@ function submitT1OpenEndedResponse(event) {
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`Server responded with status ${response.status}`);
+        throw new Error(`Server responded with status ${response.status}`)
       }
-      return response.json();
+      return response.json()
     })
     .then(() => {
-      document.getElementById('t1OpenEndedResponse').value = '';
-      showCourseLinks();
+      document.getElementById('t1OpenEndedResponse').value = ''
+      showCourseLinks()
     })
     .catch((error) => {
-      console.error('Error saving open-ended response:', error);
-      alert('Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.');
-    });
+      console.error('Error saving open-ended response:', error)
+      alert(
+        'Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.'
+      )
+    })
 }
 
 // Function to handle T2 open-ended response submission
 function submitT2OpenEndedResponse(event) {
-  event.preventDefault();
-  const openEndedResponse = document.getElementById('t2OpenEndedResponse').value.trim();
+  event.preventDefault()
+  const openEndedResponse = document
+    .getElementById('t2OpenEndedResponse')
+    .value.trim()
   if (!openEndedResponse) {
-    alert('Bitte füllen Sie das Textfeld aus.');
-    return;
+    alert('Bitte füllen Sie das Textfeld aus.')
+    return
   }
 
-  const userId = sessionStorage.getItem('userId');
-  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1;
+  const userId = sessionStorage.getItem('userId')
+  const attemptNumber =
+    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
   fetch('/api/save-open-ended-response', {
     method: 'POST',
@@ -1001,19 +1003,21 @@ function submitT2OpenEndedResponse(event) {
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`Server responded with status ${response.status}`);
+        throw new Error(`Server responded with status ${response.status}`)
       }
-      return response.json();
+      return response.json()
     })
     .then(() => {
-      document.getElementById('t2OpenEndedResponse').value = '';
+      document.getElementById('t2OpenEndedResponse').value = ''
       // Optionally, you can show a thank you message or redirect
-      alert('Vielen Dank für Ihre Antwort!');
+      alert('Vielen Dank für Ihre Antwort!')
     })
     .catch((error) => {
-      console.error('Error saving open-ended response:', error);
-      alert('Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.');
-    });
+      console.error('Error saving open-ended response:', error)
+      alert(
+        'Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.'
+      )
+    })
 }
 
 // Function to display course links
@@ -1028,9 +1032,11 @@ function showCourseLinks() {
       <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122047&client_id=ilias_hro" target="_blank">Produzieren</a></li>
       <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122049&client_id=ilias_hro" target="_blank">Schützen und sicher Agieren</a></li>
     </ul>
-  `;
+  `
 
-  document.getElementById('surveyForm').insertAdjacentHTML('beforeend', courseLinksHtml);
+  document
+    .getElementById('surveyForm')
+    .insertAdjacentHTML('beforeend', courseLinksHtml)
 }
 
 // Update Navigation Buttons Function (Single Definition)
