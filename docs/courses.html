@@ -1,64 +1,71 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <title>Kurse - Open Digi</title>
-  <!-- Include Font Awesome -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    integrity="sha512-oZLvZsp6VF6+W0KgEdL1fGe4V/Ev+IoqeTXVn1YB5PkvbJ3PRFqD+4UcXSc42pVYlo1V+nx7uACfjaY+Z3hZ4w=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
-  <link rel="stylesheet" href="css/styles.css" />
-</head>
-<body>
-  <!-- Header -->
-  <header>
-    <a href="index.html">
-      <img src="images/logo.png" alt="Logo" style="height: 50px" />
-    </a>
-    <nav>
-      <a href="project.html">Projekt</a>
-      <a href="datenschutz.html">Datenschutz</a>
-      <a href="team.html">Team</a>
-    </nav>
-    <button
-      id="letsGetStarted"
-      class="button"
-      onclick="window.location.href='survey.html'"
-    >
-      Let's Get Started
-    </button>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kurse - Open Digi</title>
+    <!-- Include Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      integrity="sha512-6R2odCDAmOMCzLdo8VY5hzqF6qXCM1T4wj3S6RDrCOmHiJAgdJdsgbhW8e+eNqNkRUMzwE1cEmF6TEpnCFYAcA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <a href="index.html">
+        <img src="images/logo.png" alt="Logo" style="height: 50px" />
+      </a>
+      <nav>
+        <a href="project.html">Projekt</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="team.html">Team</a>
+      </nav>
+      <button
+        id="letsGetStarted"
+        class="button"
+        onclick="window.location.href='survey.html'"
+      >
+        Let's Get Started
+      </button>
+    </header>
 
-  <!-- Main Content -->
-  <main>
-    <section class="intro-text">
-      <p>
-        Wenn du mehr über digitale Kompetenzen und dessen Kompetenzbereiche
-        erfahren möchtest, bist du hier richtig. Wir haben Kurse anhand eines
-        Kompetenzrasters (siehe Abbildung 1) entwickelt, die deine digitalen
-        Kompetenzen fördern sollen (Law et al. 2018; Rubach, 2023; Rubach &
-        Lazarides, 2021; 2023; Vuorikari et al. 2016). Schaue dir hierfür die
-        Abbildung 1 an und finde anhand der interaktiven Mouseover-Funktion
-        heraus, was jeder einzelne Kompetenzbereich beinhaltet.
-      </p>
-    </section>
+    <!-- Main Content -->
+    <main>
+      <section class="intro-text">
+        <p>
+          Wenn du mehr über digitale Kompetenzen und dessen Kompetenzbereiche
+          erfahren möchtest, bist du hier richtig. Wir haben Kurse anhand eines
+          Kompetenzrasters (siehe Abbildung 1) entwickelt, die deine digitalen
+          Kompetenzen fördern sollen (Law et al. 2018; Rubach, 2023; Rubach &
+          Lazarides, 2021; 2023; Vuorikari et al. 2016). Schaue dir hierfür die
+          Abbildung 1 an und finde anhand der interaktiven Mouseover-Funktion
+          heraus, was jeder einzelne Kompetenzbereich beinhaltet.
+        </p>
+      </section>
 
-    <!-- Competency Cards -->
-    <section id="competency-cards">
-      <!-- Cards will be generated here -->
-    </section>
-  </main>
+      <!-- Competency Grid -->
+      <section id="competency-section">
+        <div id="competency-grid">
+          <!-- Competency icons will be generated here -->
+        </div>
+        <div id="competency-description">
+          <!-- Competency description will be displayed here -->
+          <h2>Kompetenzbereich auswählen</h2>
+          <p>Klicke auf eine Kompetenz, um die Beschreibung anzuzeigen.</p>
+        </div>
+      </section>
+    </main>
 
-  <!-- Footer -->
-  <footer>
-    <p>Copyright © 2024 Open-Digi</p>
-  </footer>
+    <!-- Footer -->
+    <footer>
+      <p>Copyright © 2024 Open-Digi</p>
+    </footer>
 
-  <!-- Scripts -->
-  <script src="js/courses.js"></script>
-</body>
+    <!-- Scripts -->
+    <script src="js/courses.js"></script>
+  </body>
 </html>
