@@ -85,8 +85,8 @@ const competencies = [
   },
 ]
 
-function generateAccordions() {
-  const container = document.getElementById('competency-accordions')
+function generateCards() {
+  const container = document.getElementById('competency-cards')
 
   competencies.forEach((category) => {
     // Create category heading
@@ -94,58 +94,53 @@ function generateAccordions() {
     categoryHeading.textContent = category.category
     container.appendChild(categoryHeading)
 
-    // Create accordion container
-    const accordionContainer = document.createElement('div')
-    accordionContainer.classList.add('accordion')
+    // Create grid container
+    const grid = document.createElement('div')
+    grid.classList.add('card-grid')
 
-    category.items.forEach((item, index) => {
-      // Accordion item
-      const accordionItem = document.createElement('div')
-      accordionItem.classList.add('accordion-item')
+    category.items.forEach((item) => {
+      // Create card
+      const card = document.createElement('div')
+      card.classList.add('expandable-card')
 
-      // Accordion header
-      const header = document.createElement('button')
-      header.classList.add('accordion-header')
-      header.setAttribute('aria-expanded', 'false')
+      // Card header
+      const cardHeader = document.createElement('div')
+      cardHeader.classList.add('card-header')
 
       // Icon
       const icon = document.createElement('i')
-      icon.className = `${item.iconClass} accordion-icon`
+      icon.className = `${item.iconClass} card-icon`
 
       // Title
-      const title = document.createElement('span')
+      const title = document.createElement('h3')
       title.textContent = item.title
 
       // Append icon and title to header
-      header.appendChild(icon)
-      header.appendChild(title)
+      cardHeader.appendChild(icon)
+      cardHeader.appendChild(title)
 
-      // Accordion content
-      const content = document.createElement('div')
-      content.classList.add('accordion-content')
-      content.setAttribute('aria-hidden', 'true')
+      // Card content
+      const cardContent = document.createElement('div')
+      cardContent.classList.add('card-content')
 
       const description = document.createElement('p')
       description.textContent = item.description
 
-      content.appendChild(description)
+      cardContent.appendChild(description)
 
-      // Event listener for accordion toggle
-      header.addEventListener('click', () => {
-        const isExpanded = header.getAttribute('aria-expanded') === 'true'
-        header.setAttribute('aria-expanded', !isExpanded)
-        content.setAttribute('aria-hidden', isExpanded)
-        header.classList.toggle('active')
+      // Event listener for expanding card
+      cardHeader.addEventListener('click', () => {
+        card.classList.toggle('expanded')
       })
 
-      // Assemble accordion item
-      accordionItem.appendChild(header)
-      accordionItem.appendChild(content)
-      accordionContainer.appendChild(accordionItem)
+      // Assemble card
+      card.appendChild(cardHeader)
+      card.appendChild(cardContent)
+      grid.appendChild(card)
     })
 
-    container.appendChild(accordionContainer)
+    container.appendChild(grid)
   })
 }
 
-document.addEventListener('DOMContentLoaded', generateAccordions)
+document.addEventListener('DOMContentLoaded', generateCards)
