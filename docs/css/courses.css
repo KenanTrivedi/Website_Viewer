@@ -5,7 +5,7 @@ body {
     font-family: Arial, sans-serif;
     line-height: 1.5;
     color: hsl(0, 0%, 20%);
-    background-color: #f8f9fa;
+    background-color: white;
     margin: 0;
     padding: 0;
     display: flex;
@@ -13,14 +13,19 @@ body {
     min-height: 100vh;
 }
 
-/* Header Styling (Matching Index Page) */
+/* Header Styling */
 header {
-    background-color: white;
+    background: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px 20px;
-    /* Remove position fixed to match index page */
+    position: fixed;
+    /* Ensures the header is fixed at the top */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
 }
 
 header img.logo {
@@ -30,18 +35,19 @@ header img.logo {
 
 nav {
     display: flex;
-    gap: 20px;
+    justify-content: center;
 }
 
 nav a {
+    color: #004A99;
     text-decoration: none;
-    color: #004a99;
+    padding: 0 20px;
     font-weight: bold;
-    transition: color 0.3s ease;
+    transition: color 0.3s;
 }
 
 nav a:hover {
-    color: #003366;
+    color: #007bff;
 }
 
 nav a:focus {
@@ -51,13 +57,14 @@ nav a:focus {
 
 /* "Let's Get Started" Button Styling */
 .get-started-button {
-    background-color: #004a99;
+    background-color: #004A99;
     color: white;
     border: none;
     padding: 10px 20px;
-    cursor: pointer;
+    font-size: 16px;
     border-radius: 5px;
-    transition: background-color 0.3s ease;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
 .get-started-button:hover {
@@ -71,17 +78,16 @@ nav a:focus {
 
 /* Main Content Styling */
 main {
-    width: 90%;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #ffffff;
-    border-radius: 8px;
     flex: 1;
+    padding: 80px 20px 20px;
+    /* Adjusted padding to account for fixed header */
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 /* Introductory Text */
 .intro-text {
-    border: 2px solid #004a99;
+    border: 2px solid #004A99;
     padding: 20px;
     background-color: #f0f4f8;
     border-radius: 8px;
@@ -171,22 +177,18 @@ main {
     line-height: 1.6;
 }
 
-/* Footer Styling (Matching Index Page) */
+/* Footer Styling */
 footer {
     text-align: center;
     padding: 10px;
     background: #004A99;
     color: white;
     width: 100%;
-    /* Ensures footer stretches across the full width */
-    position: relative;
-    /* Changed from 'absolute' to 'relative' */
+    /* Position footer at the bottom */
+    position: fixed;
     bottom: 0;
-    /* Ensures footer stays at the bottom */
-    margin-top: auto;
-    /* Pushes footer to the bottom regardless of the content length */
+    left: 0;
 }
-
 
 /* Responsive Design */
 @media (max-width: 1200px) {
@@ -197,9 +199,7 @@ footer {
 
 @media (max-width: 768px) {
     main {
-        width: 95%;
-        padding: 10px;
-        margin-top: 20px;
+        padding: 100px 10px 20px;
     }
 
     nav {
@@ -231,12 +231,6 @@ footer {
     }
 }
 
-/* Background Styling */
-body {
-    background-color: #f8f9fa;
-    /* Use the same background as the index page */
-}
-
 /* Adjust text for better readability */
 body,
 p,
@@ -244,4 +238,11 @@ h1,
 h2,
 h3 {
     color: #333;
+}
+
+/* Limit the height of the description box */
+#competency-description {
+    max-height: 300px;
+    /* Adjust the value as needed */
+    overflow-y: auto;
 }

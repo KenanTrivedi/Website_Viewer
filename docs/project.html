@@ -3,14 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Projekt</title>
+    <title>Projekt - Open Digi</title>
+    <!-- Link to styles.css for global styles -->
     <link rel="stylesheet" href="css/styles.css" />
+    <!-- Link to project.css for page-specific styles -->
     <link rel="stylesheet" href="css/project.css" />
   </head>
   <body>
-    <header style="background: white">
+    <!-- Header -->
+    <header>
       <a href="index.html">
-        <img src="images/logo.png" alt="Logo" style="height: 50px" />
+        <img src="images/logo.png" alt="Logo" class="logo" />
       </a>
       <nav>
         <a href="project.html">Projekt</a>
@@ -19,20 +22,14 @@
       </nav>
       <button
         id="letsGetStarted"
-        style="
-          background-color: #004a99;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          cursor: pointer;
-          border-radius: 5px;
-        "
+        class="get-started-button"
+        onclick="window.location.href='survey.html'"
       >
         Let's Get Started
       </button>
     </header>
 
-    <!-- Unique Page Content Here -->
+    <!-- Main Content -->
     <main>
       <h1>
         OPEN-DIGI: Optimierung der personalisierten Entwicklung digitaler
@@ -128,9 +125,12 @@
       </section>
     </main>
 
+    <!-- Footer -->
     <footer>
-      <p>&copy; 2024 Open-Digi. Alle Rechte vorbehalten.</p>
+      <p>© 2024 Open-Digi. Alle Rechte vorbehalten.</p>
     </footer>
+
+    <!-- Scripts -->
     <script src="js/script.js"></script>
   </body>
 </html>
