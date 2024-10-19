@@ -85,8 +85,8 @@ const competencies = [
   },
 ]
 
-function generateFlipCards() {
-  const container = document.getElementById('competency-cards')
+function generateAccordions() {
+  const container = document.getElementById('competency-accordions')
 
   competencies.forEach((category) => {
     // Create category heading
@@ -94,75 +94,58 @@ function generateFlipCards() {
     categoryHeading.textContent = category.category
     container.appendChild(categoryHeading)
 
-    // Create grid container
-    const grid = document.createElement('div')
-    grid.classList.add('card-grid')
+    // Create accordion container
+    const accordionContainer = document.createElement('div')
+    accordionContainer.classList.add('accordion')
 
-    category.items.forEach((item) => {
-      // Create card wrapper
-      const card = document.createElement('div')
-      card.classList.add('flip-card')
-      card.setAttribute('tabindex', '0')
-      card.setAttribute('role', 'button')
-      card.setAttribute('aria-label', `Mehr über ${item.title} erfahren`)
+    category.items.forEach((item, index) => {
+      // Accordion item
+      const accordionItem = document.createElement('div')
+      accordionItem.classList.add('accordion-item')
 
-      // Create inner card
-      const cardInner = document.createElement('div')
-      cardInner.classList.add('flip-card-inner')
+      // Accordion header
+      const header = document.createElement('button')
+      header.classList.add('accordion-header')
+      header.setAttribute('aria-expanded', 'false')
 
-      // Create front side
-      const cardFront = document.createElement('div')
-      cardFront.classList.add('flip-card-front')
+      // Icon
+      const icon = document.createElement('i')
+      icon.className = `${item.iconClass} accordion-icon`
 
-      // Add icon to front side
-      const frontIcon = document.createElement('i')
-      frontIcon.className = `${item.iconClass} card-icon`
+      // Title
+      const title = document.createElement('span')
+      title.textContent = item.title
 
-      // Add title to front side
-      const frontTitle = document.createElement('h3')
-      frontTitle.textContent = item.title
+      // Append icon and title to header
+      header.appendChild(icon)
+      header.appendChild(title)
 
-      cardFront.appendChild(frontIcon)
-      cardFront.appendChild(frontTitle)
+      // Accordion content
+      const content = document.createElement('div')
+      content.classList.add('accordion-content')
+      content.setAttribute('aria-hidden', 'true')
 
-      // Create back side
-      const cardBack = document.createElement('div')
-      cardBack.classList.add('flip-card-back')
+      const description = document.createElement('p')
+      description.textContent = item.description
 
-      // Add description to back side
-      const backContent = document.createElement('p')
-      backContent.textContent = item.description
+      content.appendChild(description)
 
-      cardBack.appendChild(backContent)
+      // Event listener for accordion toggle
+      header.addEventListener('click', () => {
+        const isExpanded = header.getAttribute('aria-expanded') === 'true'
+        header.setAttribute('aria-expanded', !isExpanded)
+        content.setAttribute('aria-hidden', isExpanded)
+        header.classList.toggle('active')
+      })
 
-      // Assemble card
-      cardInner.appendChild(cardFront)
-      cardInner.appendChild(cardBack)
-      card.appendChild(cardInner)
-      grid.appendChild(card)
+      // Assemble accordion item
+      accordionItem.appendChild(header)
+      accordionItem.appendChild(content)
+      accordionContainer.appendChild(accordionItem)
     })
 
-    container.appendChild(grid)
+    container.appendChild(accordionContainer)
   })
 }
 
-function addFlipCardEventListeners() {
-  const flipCards = document.querySelectorAll('.flip-card')
-
-  flipCards.forEach((card) => {
-    card.addEventListener('click', () => {
-      card.classList.toggle('flipped')
-    })
-
-    card.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        card.classList.toggle('flipped')
-      }
-    })
-  })
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  generateFlipCards()
-  addFlipCardEventListeners()
-})
+document.addEventListener('DOMContentLoaded', generateAccordions)
