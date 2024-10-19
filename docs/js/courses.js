@@ -1,7 +1,7 @@
 // courses.js
 
 const competencies = [
-  // Allgemeine digitale Kompetenzen
+  // General Competencies
   {
     title: 'Suchen, Verarbeiten und Aufbewahren',
     description:
@@ -44,7 +44,7 @@ const competencies = [
     iconClass: 'fas fa-chart-line',
     category: 'Allgemeine digitale Kompetenzen',
   },
-  // Berufsspezifische digitale Kompetenzen
+  // Professional Competencies
   {
     title: 'Organisation und Administration',
     description:
@@ -90,7 +90,8 @@ const competencies = [
 ]
 
 function generateCompetencyGrid() {
-  const gridContainer = document.getElementById('competency-grid')
+  const generalGrid = document.getElementById('general-grid')
+  const professionalGrid = document.getElementById('professional-grid')
 
   competencies.forEach((item) => {
     // Create competency card
@@ -118,7 +119,12 @@ function generateCompetencyGrid() {
       highlightSelectedCard(card)
     })
 
-    gridContainer.appendChild(card)
+    // Append card to the appropriate grid
+    if (item.category === 'Allgemeine digitale Kompetenzen') {
+      generalGrid.appendChild(card)
+    } else if (item.category === 'Berufsspezifische digitale Kompetenzen') {
+      professionalGrid.appendChild(card)
+    }
   })
 }
 

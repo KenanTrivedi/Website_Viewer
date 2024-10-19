@@ -3,21 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <title>Kurse - Open Digi</title>
-    <!-- Include Font Awesome -->
+    <!-- Include Font Awesome with correct integrity hash -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      integrity="sha512-6R2odCDAmOMCzLdo8VY5hzqF6qXCM1T4wj3S6RDrCOmHiJAgdJdsgbhW8e+eNqNkRUMzwE1cEmF6TEpnCFYAcA=="
+      integrity="sha512-s/aIjm5V0Ee8vT0UxDbI6B2JDmpHZV1bT2pyYZp/wO6BlyuQfMAYZYCZWYkXQa6qduOWFAcZvIcP3e1cXouaKw=="
       crossorigin="anonymous"
       referrerpolicy="no-referrer"
     />
-    <link rel="stylesheet" href="css/styles.css" />
+    <!-- Link to the new courses.css instead of styles.css -->
+    <link rel="stylesheet" href="css/courses.css" />
   </head>
   <body>
     <!-- Header -->
     <header>
       <a href="index.html">
-        <img src="images/logo.png" alt="Logo" style="height: 50px" />
+        <img src="images/logo.png" alt="Logo" class="logo" />
       </a>
       <nav>
         <a href="project.html">Projekt</a>
@@ -26,7 +27,7 @@
       </nav>
       <button
         id="letsGetStarted"
-        class="button"
+        class="get-started-button"
         onclick="window.location.href='survey.html'"
       >
         Let's Get Started
@@ -47,15 +48,26 @@
         </p>
       </section>
 
-      <!-- Competency Grid -->
+      <!-- Competency Section -->
       <section id="competency-section">
-        <div id="competency-grid">
-          <!-- Competency icons will be generated here -->
+        <div id="general-competencies" class="competency-column">
+          <h2>Allgemeine digitale Kompetenzen</h2>
+          <div id="general-grid" class="competency-grid">
+            <!-- General competencies will be generated here -->
+          </div>
         </div>
+
         <div id="competency-description">
           <!-- Competency description will be displayed here -->
           <h2>Kompetenzbereich auswählen</h2>
           <p>Klicke auf eine Kompetenz, um die Beschreibung anzuzeigen.</p>
+        </div>
+
+        <div id="professional-competencies" class="competency-column">
+          <h2>Berufsspezifische digitale Kompetenzen</h2>
+          <div id="professional-grid" class="competency-grid">
+            <!-- Professional competencies will be generated here -->
+          </div>
         </div>
       </section>
     </main>
