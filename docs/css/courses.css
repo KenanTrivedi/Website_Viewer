@@ -175,13 +175,18 @@ main {
 footer {
     text-align: center;
     padding: 10px;
-    background-color: #004a99;
+    background: #004A99;
     color: white;
     width: 100%;
+    /* Ensures footer stretches across the full width */
     position: relative;
+    /* Changed from 'absolute' to 'relative' */
+    bottom: 0;
+    /* Ensures footer stays at the bottom */
     margin-top: auto;
-    /* Remove box-shadow if not present on index page */
+    /* Pushes footer to the bottom regardless of the content length */
 }
+
 
 /* Responsive Design */
 @media (max-width: 1200px) {
