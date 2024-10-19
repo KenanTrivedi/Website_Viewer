@@ -13,22 +13,17 @@ body {
     min-height: 100vh;
 }
 
-/* Header Styling */
+/* Header Styling (Matching Index Page) */
 header {
-    background: white;
+    background-color: white;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 10px 20px;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Remove position fixed to match index page */
 }
 
-.logo {
+header img.logo {
     height: 50px;
     width: auto;
 }
@@ -77,12 +72,10 @@ nav a:focus {
 /* Main Content Styling */
 main {
     width: 90%;
-    margin: 120px auto 20px auto;
-    /* Adjusted top margin to account for fixed header */
+    margin: 20px auto;
     padding: 20px;
     background-color: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     flex: 1;
 }
 
@@ -178,7 +171,7 @@ main {
     line-height: 1.6;
 }
 
-/* Footer Styling */
+/* Footer Styling (Matching Index Page) */
 footer {
     text-align: center;
     padding: 10px;
@@ -186,8 +179,8 @@ footer {
     color: white;
     width: 100%;
     position: relative;
-    margin-top: 20px;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: auto;
+    /* Remove box-shadow if not present on index page */
 }
 
 /* Responsive Design */
@@ -201,7 +194,7 @@ footer {
     main {
         width: 95%;
         padding: 10px;
-        margin-top: 100px;
+        margin-top: 20px;
     }
 
     nav {
@@ -235,13 +228,11 @@ footer {
 
 /* Background Styling */
 body {
-    background-image: url('images/background.jpg');
-    /* Replace with the path to your background image */
-    background-size: cover;
-    background-attachment: fixed;
+    background-color: #f8f9fa;
+    /* Use the same background as the index page */
 }
 
-/* Adjust text for better readability on background */
+/* Adjust text for better readability */
 body,
 p,
 h1,
