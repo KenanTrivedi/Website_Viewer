@@ -9,8 +9,9 @@ main {
 }
 
 h1 {
-    color: #004A99;
+    color: var(--primary-color);
     margin-bottom: 20px;
+    font-size: 2em;
 }
 
 section {
@@ -18,8 +19,9 @@ section {
 }
 
 h2 {
-    color: #004A99;
+    color: var(--primary-color);
     margin-bottom: 15px;
+    font-size: 1.75em;
 }
 
 ol {
@@ -29,11 +31,12 @@ ol {
 
 ol li {
     margin-bottom: 10px;
+    line-height: 1.6;
 }
 
 .references-section {
     background-color: #f9f9f9;
-    border-left: 4px solid #004A99;
+    border-left: 4px solid var(--primary-color);
     padding: 20px;
     border-radius: 4px;
 }
@@ -48,6 +51,7 @@ ol li {
 
 .references-list li {
     margin-bottom: 10px;
+    line-height: 1.6;
 }
 
 /* Responsive Design */

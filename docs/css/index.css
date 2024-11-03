@@ -1,9 +1,79 @@
 /* index.css */
 
-/* Adjust main content margin-top if necessary */
+/* Adjust Main Content Margin */
 main {
     margin-top: 80px;
     /* To account for fixed header */
 }
 
-/* Additional styles specific to the index page can be added here */
+/* Banner Container */
+.banner-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    /* Ensure sections are the same height */
+    gap: 20px;
+}
+
+/* Banner Section Styles */
+.banner-section {
+    flex: 1;
+    background-color: var(--light-background);
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.banner-section .overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-grow: 1;
+    /* Allow overlay to grow and fill the section */
+}
+
+.banner-section img {
+    width: 150px;
+    /* Fixed width */
+    height: 150px;
+    /* Fixed height */
+    object-fit: contain;
+    /* Preserve aspect ratio */
+    margin-bottom: 20px;
+}
+
+.banner-section h2 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    font-size: 1.5em;
+}
+
+.banner-section p {
+    flex-grow: 1;
+    /* Allows the paragraph to take up available space */
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 1em;
+    color: var(--text-color);
+}
+
+.section-button {
+    margin-top: auto;
+    /* Pushes the button to the bottom */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .banner-container {
+        flex-direction: column;
+    }
+
+    .banner-section {
+        margin-bottom: 20px;
+    }
+}

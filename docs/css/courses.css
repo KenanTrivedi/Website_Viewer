@@ -4,7 +4,7 @@
 .intro-text {
     margin-top: 80px;
     /* To account for fixed header */
-    border: 2px solid #004A99;
+    border: 2px solid var(--primary-color);
     padding: 20px;
     background-color: #f0f4f8;
     border-radius: 8px;
@@ -23,7 +23,7 @@
 
 .competency-column h2 {
     text-align: center;
-    color: #004A99;
+    color: var(--primary-color);
     margin-bottom: 20px;
 }
 
@@ -34,8 +34,8 @@
 }
 
 .competency-card {
-    background-color: #e0f0ff;
-    border: 2px solid #004A99;
+    background-color: var(--light-background);
+    border: 2px solid var(--primary-color);
     border-radius: 8px;
     padding: 20px;
     text-align: center;
@@ -57,21 +57,21 @@
 
 .competency-icon {
     font-size: 40px;
-    color: #004A99;
+    color: var(--primary-color);
     margin-bottom: 10px;
 }
 
 .competency-card span {
     display: block;
     font-size: 14px;
-    color: #004A99;
+    color: var(--primary-color);
     font-weight: bold;
 }
 
 /* Competency Description */
 #competency-description {
     flex: 1.5;
-    border: 2px solid #004A99;
+    border: 2px solid var(--primary-color);
     border-radius: 8px;
     padding: 20px;
     background-color: #f9f9f9;
@@ -81,7 +81,7 @@
 }
 
 #competency-description h2 {
-    color: #004A99;
+    color: var(--primary-color);
     margin-top: 0;
 }
 
