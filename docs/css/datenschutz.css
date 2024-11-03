@@ -3,33 +3,35 @@
 /* Main Content Styling */
 main {
     max-width: 800px;
-    margin: 80px auto 20px;
-    /* Adjusted margins */
+    margin: 100px auto 60px;
     padding: 0 20px;
 }
 
 h3 {
     color: var(--primary-color);
-    margin-bottom: 20px;
-    font-size: 1.75em;
+    margin-bottom: 30px;
+    font-size: 2em;
+    font-weight: 600;
 }
 
 section {
-    margin-bottom: 20px;
+    margin-bottom: 40px;
 }
 
 h2 {
     color: var(--primary-color);
-    margin-bottom: 15px;
-    font-size: 1.5em;
+    margin-bottom: 20px;
+    font-size: 1.75em;
+    font-weight: 600;
 }
 
 p,
 li,
 address {
-    line-height: 1.6;
-    margin-bottom: 10px;
+    line-height: 1.8;
+    margin-bottom: 15px;
     color: var(--text-color);
+    font-size: 1em;
 }
 
 ol {
@@ -43,7 +45,7 @@ address {
 /* Responsive Design */
 @media (max-width: 768px) {
     main {
-        margin: 80px 10px 20px;
+        margin: 100px 10px 60px;
         padding: 0;
     }
 }

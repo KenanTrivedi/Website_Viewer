@@ -2,7 +2,7 @@
 
 /* Adjust Main Content Margin */
 main {
-    margin-top: 80px;
+    margin-top: 100px;
     /* To account for fixed header */
 }
 
@@ -11,7 +11,6 @@ main {
     display: flex;
     justify-content: space-between;
     align-items: stretch;
-    /* Ensure sections are the same height */
     gap: 20px;
 }
 
@@ -34,16 +33,12 @@ main {
     flex-direction: column;
     align-items: center;
     flex-grow: 1;
-    /* Allow overlay to grow and fill the section */
 }
 
 .banner-section img {
     width: 150px;
-    /* Fixed width */
     height: 150px;
-    /* Fixed height */
     object-fit: contain;
-    /* Preserve aspect ratio */
     margin-bottom: 20px;
 }
 
@@ -51,20 +46,20 @@ main {
     color: var(--primary-color);
     margin-bottom: 10px;
     font-size: 1.5em;
+    font-weight: 600;
 }
 
 .banner-section p {
     flex-grow: 1;
-    /* Allows the paragraph to take up available space */
     margin-bottom: 20px;
     text-align: center;
     font-size: 1em;
     color: var(--text-color);
+    line-height: 1.6;
 }
 
 .section-button {
     margin-top: auto;
-    /* Pushes the button to the bottom */
 }
 
 /* Responsive Design */

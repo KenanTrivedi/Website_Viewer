@@ -2,13 +2,15 @@
 
 /* Intro Text */
 .intro-text {
-    margin-top: 80px;
+    margin-top: 100px;
     /* To account for fixed header */
     border: 2px solid var(--primary-color);
-    padding: 20px;
+    padding: 30px;
     background-color: #f0f4f8;
     border-radius: 8px;
-    margin-bottom: 40px;
+    margin-bottom: 60px;
+    font-size: 1em;
+    line-height: 1.8;
 }
 
 /* Competency Section */
@@ -25,6 +27,7 @@
     text-align: center;
     color: var(--primary-color);
     margin-bottom: 20px;
+    font-weight: 600;
 }
 
 .competency-grid {
@@ -76,13 +79,14 @@
     padding: 20px;
     background-color: #f9f9f9;
     max-width: 100%;
-    max-height: 300px;
+    max-height: 400px;
     overflow-y: auto;
 }
 
 #competency-description h2 {
     color: var(--primary-color);
     margin-top: 0;
+    font-weight: 600;
 }
 
 #competency-description p {

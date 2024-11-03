@@ -5,7 +5,7 @@
     --primary-color: #004A99;
     --secondary-color: #003366;
     --light-background: #e0f0ff;
-    --font-family: 'Arial', sans-serif;
+    --font-family: 'Roboto', sans-serif;
     --text-color: #333;
     --background-color: #ffffff;
     --link-hover-color: #007bff;
@@ -30,6 +30,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    line-height: 1.6;
 }
 
 /* Header Styles */
@@ -38,7 +39,7 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 15px 20px;
     position: fixed;
     width: 100%;
     top: 0;
@@ -54,13 +55,14 @@ header .logo {
 nav {
     display: flex;
     gap: 20px;
+    align-items: center;
 }
 
 nav a {
     color: var(--primary-color);
     text-decoration: none;
-    font-weight: bold;
-    padding: 0 10px;
+    font-weight: 500;
+    padding: 10px;
     transition: color 0.3s;
 }
 
@@ -84,13 +86,15 @@ nav a:focus {
     border: none;
     padding: 12px 24px;
     font-size: 16px;
+    font-weight: 500;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color 0.3s, box-shadow 0.3s;
 }
 
 .get-started-button:hover {
     background-color: var(--secondary-color);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .get-started-button:focus {
@@ -101,16 +105,57 @@ nav a:focus {
 /* Main Content Area */
 main {
     flex: 1;
-    padding: 80px 20px 20px;
-    /* Adjusted padding to account for fixed header */
+    padding: 100px 20px 60px;
+    /* Increased padding for more space between content */
     max-width: 1200px;
     margin: 0 auto;
+}
+
+/* Section Spacing */
+section {
+    margin-bottom: 60px;
+}
+
+/* Typography */
+h1 {
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+h2 {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+h3 {
+    font-size: 1.75em;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+p {
+    font-size: 1em;
+    margin-bottom: 20px;
+    color: var(--text-color);
+    line-height: 1.8;
+}
+
+li {
+    font-size: 1em;
+    margin-bottom: 10px;
+    color: var(--text-color);
+    line-height: 1.6;
 }
 
 /* Footer Styles */
 footer {
     text-align: center;
-    padding: 10px;
+    padding: 20px;
     background: var(--primary-color);
     color: white;
     position: relative;
@@ -118,7 +163,9 @@ footer {
     bottom: 0;
     left: 0;
     margin-top: auto;
+    font-size: 16px;
 }
+
 
 /* Button Styles */
 button,
@@ -129,9 +176,10 @@ button,
     border: none;
     padding: 12px 24px;
     font-size: 16px;
+    font-weight: 500;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color 0.3s, box-shadow 0.3s;
     display: inline-block;
     white-space: nowrap;
 }
@@ -140,6 +188,7 @@ button:hover,
 .button:hover,
 .section-button:hover {
     background-color: var(--secondary-color);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 button:focus,
@@ -160,7 +209,7 @@ button:focus {
 nav a,
 button,
 .section-button {
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
 }
 
 /* Responsive Design */
@@ -187,30 +236,31 @@ button,
 .team-section {
     text-align: center;
     background: var(--light-background);
-    padding: 20px;
+    padding: 40px 20px;
 }
 
 .team-container {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 30px;
 }
 
 .team-member {
     flex-basis: 300px;
     background: white;
-    padding: 15px;
+    padding: 20px;
     border: 2px solid var(--secondary-color);
     border-radius: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: transform 0.3s ease-in-out;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s;
 }
 
 .team-member:hover {
     transform: translateY(-10px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
 }
 
 .team-photo {
@@ -224,20 +274,22 @@ button,
 
 .role {
     font-weight: bold;
-    color: #0056b3;
+    color: var(--secondary-color);
     margin-bottom: 5px;
 }
 
 .team-member h3 {
     margin-top: 0;
-    margin-bottom: 2px;
+    margin-bottom: 5px;
     color: var(--text-color);
+    font-size: 1.25em;
+    font-weight: 600;
 }
 
 .team-member p {
-    font-size: 14px;
+    font-size: 1em;
     color: #666;
-    line-height: 1.4;
+    line-height: 1.6;
     text-align: center;
 }
 
