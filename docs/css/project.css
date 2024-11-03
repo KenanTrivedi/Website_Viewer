@@ -1,147 +1,27 @@
 /* project.css */
 
-/* Base Styles */
-body {
-    font-family: Arial, sans-serif;
-    line-height: 1.5;
-    color: hsl(0, 0%, 20%);
-    background-color: white;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-/* Header Styling */
-header {
-    background: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    position: fixed;
-    /* Keeps header at the top */
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-}
-
-header img.logo {
-    height: 50px;
-    width: auto;
-}
-
-nav {
-    display: flex;
-    justify-content: center;
-}
-
-nav a {
-    color: #004A99;
-    text-decoration: none;
-    padding: 0 20px;
-    font-weight: bold;
-    transition: color 0.3s;
-}
-
-nav a:hover {
-    color: #007bff;
-}
-
-nav a:focus {
-    outline: 2px dashed #004a99;
-    outline-offset: 4px;
-}
-
-/* "Let's Get Started" Button Styling */
-.get-started-button {
-    background-color: #004A99;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.get-started-button:hover {
-    background-color: #003366;
-}
-
-.get-started-button:focus {
-    outline: 2px dashed #004a99;
-    outline-offset: 4px;
-}
-
 /* Main Content Styling */
 main {
-    flex: 1;
-    padding: 100px 20px 20px;
-    /* Adjusted padding to account for fixed header */
     max-width: 800px;
-    margin: 0 auto;
-    background-color: #ffffff;
+    margin: 80px auto 20px;
+    /* Adjusted margins */
+    padding: 0 20px;
 }
 
-/* Heading Styles */
 h1 {
-    color: #004a99;
+    color: #004A99;
     margin-bottom: 20px;
 }
 
-p {
+section {
     margin-bottom: 20px;
 }
 
-/* References Section Styling */
-.references-section {
-    background-color: #f9f9f9;
-    border-left: 4px solid #004a99;
-    padding: 20px;
-    margin: 20px 0;
-    border-radius: 4px;
-}
-
-.references-section h2 {
-    color: #004a99;
+h2 {
+    color: #004A99;
     margin-bottom: 15px;
-    font-size: 1.5em;
 }
 
-.references-list {
-    padding-left: 20px;
-    list-style-type: decimal;
-}
-
-.reference-item {
-    margin-bottom: 15px;
-    line-height: 1.6;
-}
-
-.reference-item em {
-    font-style: italic;
-}
-
-.reference-link {
-    color: #004a99;
-    text-decoration: none;
-    transition: color 0.3s ease, text-decoration 0.3s ease;
-}
-
-.reference-link:hover {
-    color: #003366;
-    text-decoration: underline;
-}
-
-.reference-link:focus {
-    outline: 2px dashed #004a99;
-    outline-offset: 4px;
-}
-
-/* Ordered List Styling */
 ol {
     padding-left: 20px;
     list-style-type: decimal;
@@ -149,38 +29,31 @@ ol {
 
 ol li {
     margin-bottom: 10px;
-    line-height: 1.6;
 }
 
-/* Footer Styling */
-footer {
-    text-align: center;
-    padding: 10px;
-    background-color: #004a99;
-    color: white;
-    width: 100%;
-    position: fixed;
-    /* Keeps footer at the bottom */
-    bottom: 0;
-    left: 0;
+.references-section {
+    background-color: #f9f9f9;
+    border-left: 4px solid #004A99;
+    padding: 20px;
+    border-radius: 4px;
+}
+
+.references-section h2 {
+    margin-top: 0;
+}
+
+.references-list {
+    padding-left: 20px;
+}
+
+.references-list li {
+    margin-bottom: 10px;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
     main {
-        padding: 100px 20px 20px;
-        max-width: 95%;
-    }
-
-    nav {
-        flex-direction: column;
-        gap: 10px;
-        width: 100%;
-    }
-
-    .get-started-button {
-        width: 100%;
-        text-align: center;
-        margin-top: 10px;
+        margin: 80px 10px 20px;
+        padding: 0;
     }
 }

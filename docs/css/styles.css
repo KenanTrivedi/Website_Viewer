@@ -1,3 +1,5 @@
+/* styles.css */
+
 /* Reset and base styles */
 html,
 body {
@@ -38,14 +40,20 @@ header {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 0;
+    z-index: 1000;
+    /* Ensure the header stays on top */
+}
+
+header .logo {
+    height: 50px;
+    width: auto;
 }
 
 /* Navigation styling */
 nav {
     display: flex;
     justify-content: center;
-    width: 100%;
+    align-items: center;
 }
 
 nav a {
@@ -61,24 +69,20 @@ nav a:hover {
     /* Lighter blue on hover */
 }
 
+nav a.active {
+    border-bottom: 2px solid #004A99;
+}
+
 /* Main content area */
 main {
-    display: flex;
-    background-color: #f0f4f8;
-    flex-direction: column;
     flex: 1;
     /* Allows main content to expand and take available space */
     padding: 20px;
-    margin-top: 70px;
+    margin-top: 80px;
     /* Adjusts for fixed header */
 }
 
 /* Generic button styles */
-.overlay button {
-    margin-top: 20px;
-    /* Adjust the value as needed */
-}
-
 button,
 .button {
     background-color: #004A99;
@@ -153,7 +157,6 @@ button:hover,
     /* Ensures text size is consistent */
     margin-bottom: 20px;
     /* Space below the paragraph */
-
 }
 
 .overlay h2,
@@ -185,11 +188,8 @@ footer {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 0%;
-    /* Adjust this value based on your content */
-    padding: 2em;
-    text-align: center;
     padding: 20px;
+    text-align: center;
     margin: auto;
     box-sizing: border-box;
 }
@@ -199,7 +199,7 @@ footer {
     /* Max width for consistency */
     width: 100%;
     /* Adjusts image width to fit the container */
-    height: 120px;
+    height: auto;
     /* Maintain aspect ratio */
     margin-bottom: 10px;
 }
@@ -222,7 +222,7 @@ footer {
     }
 }
 
-/*team webpage*/
+/* Team page styles */
 .team-photo {
     width: 200px;
     /* Set a specific width */
@@ -300,152 +300,12 @@ footer {
     text-align: center;
 }
 
-#chart2Tooltip {
-    position: absolute;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    pointer-events: auto;
-    z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    font-size: 14px;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    max-width: 300px;
-    width: 250px;
-    box-sizing: border-box;
-    word-wrap: break-word;
-    visibility: hidden;
-    opacity: 0;
-}
-
-#chart2Tooltip.visible {
-    visibility: visible;
-    opacity: 1;
-}
-
-#chart2Tooltip.top {
-    bottom: 100%;
-    top: auto;
-}
-
-#chart2Tooltip.bottom {
-    top: 100%;
-    bottom: auto;
-}
-
-#chart2Tooltip.left {
-    right: 0;
-}
-
-#chart2Tooltip.right {
-    left: 0;
-}
-
-#chart2Tooltip::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    /* Adjust based on the desired size of the triangle */
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 10px 10px 0;
-    border-style: solid;
-    border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
-}
-
-#chart2Tooltip h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 18px;
-}
-
-#chart2Tooltip .info-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-    font-size: 14px;
-    transition: background-color 0.3s;
-}
-
-#chart2Tooltip .info-button:hover {
-    background-color: #0056b3;
-}
-
-#chart2Tooltip .description {
-    margin-top: 15px;
-    line-height: 1.4;
-}
-
-#chart2Tooltip h3 {
-    margin-top: 0;
-    margin-bottom: 10px;
-    font-size: 18px;
-}
-
-#chart2Tooltip p {
-    margin: 5px 0;
-}
-
-#chart2Tooltip .info-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-top: 10px;
-    font-size: 14px;
-    transition: background-color 0.3s;
-}
-
-#chart2Tooltip .description {
-    margin-top: 10px;
-}
-
-#chart2Container {
-    position: relative;
-    height: 500px;
-    width: 100%;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-#competencyChart1,
-#chart2Container {
-    height: 500px;
-    width: 100%;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-
-}
-
-#descriptionBox1 {
-    margin-top: 20px;
-    margin-bottom: 20px;
-    min-height: 150px;
-    overflow: visible;
-    background-color: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 5px;
-    padding: 15px;
-}
-
-.chart-container .x-axis-label {
-    font-size: 12px;
-    white-space: normal;
-    max-width: 120px;
-    line-height: 1.2;
-}
-
+/* Responsive adjustments for team page */
 @media (max-width: 768px) {
-
-    #competencyChart1,
-    #chart2Container {
-        height: 400px;
+    .team-container {
+        flex-direction: column;
+        align-items: center;
     }
 }
+
+/* Additional styles for other pages can be added here */

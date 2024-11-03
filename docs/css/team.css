@@ -1,0 +1,9 @@
+/* team.css */
+
+/* Main Content Styling */
+main {
+    margin-top: 80px;
+    /* To account for fixed header */
+}
+
+/* The team styles are already included in styles.css */ 

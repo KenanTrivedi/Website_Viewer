@@ -1,16 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Open Digi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Link to the main CSS file -->
     <link rel="stylesheet" href="css/styles.css" />
-    <link rel="stylesheet" href="css/modal.css" />
+    <!-- Link to the page-specific CSS file -->
+    <link rel="stylesheet" href="css/index.css" />
   </head>
   <body>
-    <header style="background: white">
+    <!-- Header -->
+    <header>
       <a href="index.html">
-        <img src="images/logo.png" alt="Logo" style="height: 50px" />
+        <img src="images/logo.png" alt="Open Digi Logo" class="logo" />
       </a>
       <nav>
         <a href="project.html">Projekt</a>
@@ -19,20 +22,17 @@
       </nav>
       <button
         id="letsGetStarted"
-        style="
-          background-color: #004a99;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          cursor: pointer;
-          border-radius: 5px;
-        "
+        class="get-started-button"
+        onclick="window.location.href='survey.html'"
       >
         Let's Get Started
       </button>
     </header>
+
+    <!-- Main Content -->
     <main>
       <div class="banner-container">
+        <!-- Befragung Section -->
         <section id="befragung" class="banner-section">
           <div class="overlay">
             <img src="images/survey.svg" alt="BEFRAGUNG Illustration" />
@@ -41,15 +41,20 @@
               Hilf uns, deine Bedürfnisse besser zu verstehen, indem du an
               unserer Umfrage teilnimmst.
             </p>
-            <button id="startSurvey" class="section-button">
+            <button
+              id="startSurvey"
+              class="section-button"
+              onclick="window.location.href='survey.html'"
+            >
               Umfrage starten
             </button>
           </div>
         </section>
 
+        <!-- Kurse Section -->
         <section id="kurse" class="banner-section">
           <div class="overlay">
-            <img src="images/courses.svg" alt="BEFRAGUNG Illustration" />
+            <img src="images/courses.svg" alt="KURSE Illustration" />
             <h2>KURSE</h2>
             <p>
               Entdecke unsere detaillierten Kurse, die deine digitalen
@@ -61,7 +66,8 @@
           </div>
         </section>
 
-        <section id="survey" class="banner-section">
+        <!-- Team Section -->
+        <section id="team" class="banner-section">
           <div class="overlay">
             <img src="images/team.svg" alt="TEAM Illustration" />
             <h2>TEAM</h2>
@@ -76,9 +82,13 @@
         </section>
       </div>
     </main>
+
+    <!-- Footer -->
     <footer>
-      <p>Copyright © 2024 Open-Digi</p>
+      <p>© 2024 Open-Digi. Alle Rechte vorbehalten.</p>
     </footer>
+
+    <!-- Scripts -->
     <script src="js/script.js"></script>
   </body>
 </html>

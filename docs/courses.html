@@ -1,83 +1,85 @@
 <!DOCTYPE html>
 <html lang="de">
-<head>
-  <meta charset="UTF-8" />
-  <title>Kurse - Open Digi</title>
-  <!-- Include Font Awesome with correct integrity hash -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    integrity="sha512-s/aIjm5V0Ee8vT0UxDbI6B2JDmpHZV1bT2pyYZp/wO6BlyuQfMAYZYCZWYkXQa6qduOWFAcZvIcP3e1cXouaKw=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
-  <!-- Link to the new courses.css instead of styles.css -->
-  <link rel="stylesheet" href="css/courses.css" />
-</head>
-<body>
-  <!-- Header -->
-  <header>
-    <a href="index.html">
-      <img src="images/logo.png" alt="Logo" class="logo" />
-    </a>
-    <nav>
-      <a href="project.html">Projekt</a>
-      <a href="datenschutz.html">Datenschutz</a>
-      <a href="team.html">Team</a>
-    </nav>
-    <button
-      id="letsGetStarted"
-      class="get-started-button"
-      onclick="window.location.href='survey.html'"
-    >
-      Let's Get Started
-    </button>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kurse - Open Digi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Link to the main CSS file -->
+    <link rel="stylesheet" href="css/styles.css" />
+    <!-- Link to the page-specific CSS file -->
+    <link rel="stylesheet" href="css/courses.css" />
+    <!-- Include Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <a href="index.html">
+        <img src="images/logo.png" alt="Open Digi Logo" class="logo" />
+      </a>
+      <nav>
+        <a href="project.html">Projekt</a>
+        <a href="datenschutz.html">Datenschutz</a>
+        <a href="team.html">Team</a>
+      </nav>
+      <button
+        id="letsGetStarted"
+        class="get-started-button"
+        onclick="window.location.href='survey.html'"
+      >
+        Let's Get Started
+      </button>
+    </header>
 
-  <!-- Main Content -->
-  <main>
-    <section class="intro-text">
-      <p>
-        Wenn du mehr über digitale Kompetenzen und dessen Kompetenzbereiche
-        erfahren möchtest, bist du hier richtig. Wir haben Kurse anhand eines
-        Kompetenzrasters (siehe Abbildung 1) entwickelt, die deine digitalen
-        Kompetenzen fördern sollen (Law et al. 2018; Rubach, 2023; Rubach &
-        Lazarides, 2021; 2023; Vuorikari et al. 2016). Schaue dir hierfür die
-        Abbildung 1 an und finde anhand der interaktiven Mouseover-Funktion
-        heraus, was jeder einzelne Kompetenzbereich beinhaltet.
-      </p>
-    </section>
+    <!-- Main Content -->
+    <main>
+      <section class="intro-text">
+        <p>
+          Wenn du mehr über digitale Kompetenzen und dessen Kompetenzbereiche
+          erfahren möchtest, bist du hier richtig. Wir haben Kurse anhand eines
+          Kompetenzrasters entwickelt, die deine digitalen Kompetenzen fördern
+          sollen. Schaue dir hierfür die Abbildung an und finde anhand der
+          interaktiven Mouseover-Funktion heraus, was jeder einzelne
+          Kompetenzbereich beinhaltet.
+        </p>
+      </section>
 
-    <!-- Competency Section -->
-    <section id="competency-section">
-      <div id="general-competencies" class="competency-column">
-        <h2>Allgemeine digitale Kompetenzen</h2>
-        <div id="general-grid" class="competency-grid">
-          <!-- General competencies will be generated here -->
+      <!-- Competency Section -->
+      <section id="competency-section">
+        <div id="general-competencies" class="competency-column">
+          <h2>Allgemeine digitale Kompetenzen</h2>
+          <div id="general-grid" class="competency-grid">
+            <!-- General competencies will be generated here -->
+          </div>
         </div>
-      </div>
 
-      <div id="competency-description">
-        <!-- Competency description will be displayed here -->
-        <h2>Kompetenzbereich auswählen</h2>
-        <p>Klicke auf eine Kompetenz, um die Beschreibung anzuzeigen.</p>
-      </div>
-
-      <div id="professional-competencies" class="competency-column">
-        <h2>Berufsspezifische digitale Kompetenzen</h2>
-        <div id="professional-grid" class="competency-grid">
-          <!-- Professional competencies will be generated here -->
+        <div id="competency-description">
+          <!-- Competency description will be displayed here -->
+          <h2>Kompetenzbereich auswählen</h2>
+          <p>Klicke auf eine Kompetenz, um die Beschreibung anzuzeigen.</p>
         </div>
-      </div>
-    </section>
-  </main>
 
-  <!-- Footer -->
-  <footer>
-    <p>© 2024 Open-Digi. Alle Rechte vorbehalten.</p>
-  </footer>
+        <div id="professional-competencies" class="competency-column">
+          <h2>Berufsspezifische digitale Kompetenzen</h2>
+          <div id="professional-grid" class="competency-grid">
+            <!-- Professional competencies will be generated here -->
+          </div>
+        </div>
+      </section>
+    </main>
 
-  <!-- Scripts -->
-  <script src="js/courses.js"></script>
-</body>
+    <!-- Footer -->
+    <footer>
+      <p>© 2024 Open-Digi. Alle Rechte vorbehalten.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/courses.js"></script>
+  </body>
 </html>
+ 

@@ -1,0 +1,9 @@
+/* index.css */
+
+/* Adjust main content margin-top if necessary */
+main {
+    margin-top: 80px;
+    /* To account for fixed header */
+}
+
+/* Additional styles specific to the index page can be added here */

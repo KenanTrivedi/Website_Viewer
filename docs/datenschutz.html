@@ -1,34 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Datenschutz</title>
-    <link rel="stylesheet" href="css/styles.css" />
-<link rel="stylesheet" href="css/datenschutz.css"> 
-
-  </head>
-  <body class="datenschutz-page">
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Datenschutz - Open Digi</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Link to the main CSS file -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Link to the page-specific CSS file -->
+    <link rel="stylesheet" href="css/datenschutz.css">
+</head>
+<body>
+    <!-- Header -->
     <header>
-      <div
-        style="
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 100%;
-        "
-      >
         <a href="index.html">
-          <img src="images/logo.png" alt="Logo" style="height: 50px" />
+            <img src="images/logo.png" alt="Open Digi Logo" class="logo">
         </a>
         <nav>
-          <a href="project.html">Projekt</a>
-          <a href="datenschutz.html">Datenschutz</a>
-          <a href="team.html">Team</a>
+            <a href="project.html">Projekt</a>
+            <a href="datenschutz.html" class="active">Datenschutz</a>
+            <a href="team.html">Team</a>
         </nav>
-        <button id="letsGetStarted" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;"
-    onmouseover="this.style.backgroundColor='#003366'" onmouseout="this.style.backgroundColor='#004A99'">Let's Get Started</button>
-      </div>
+        <button
+            id="letsGetStarted"
+            class="get-started-button"
+            onclick="window.location.href='survey.html'">
+            Let's Get Started
+        </button>
     </header>
   <main>
     <section>
@@ -213,10 +210,12 @@
 
 
   </main>
-  <footer>
-    <p>Copyright © 2024 Open-Digi</p>
-  </footer>
-</body>
-    <script src="js/script.js"></script>
+  <!-- Footer -->
+    <footer>
+        <p>© 2024 Open-Digi. Alle Rechte vorbehalten.</p>
+    </footer>
 
+    <!-- Scripts -->
+    <script src="js/script.js"></script>
+</body>
 </html>

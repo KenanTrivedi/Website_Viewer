@@ -1,92 +1,9 @@
 /* courses.css */
 
-/* Base Styles for Courses Page */
-body {
-    font-family: Arial, sans-serif;
-    line-height: 1.5;
-    color: hsl(0, 0%, 20%);
-    background-color: white;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-/* Header Styling */
-header {
-    background: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px;
-    position: fixed;
-    /* Ensures the header is fixed at the top */
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-}
-
-header img.logo {
-    height: 50px;
-    width: auto;
-}
-
-nav {
-    display: flex;
-    justify-content: center;
-}
-
-nav a {
-    color: #004A99;
-    text-decoration: none;
-    padding: 0 20px;
-    font-weight: bold;
-    transition: color 0.3s;
-}
-
-nav a:hover {
-    color: #007bff;
-}
-
-nav a:focus {
-    outline: 2px dashed #004a99;
-    outline-offset: 4px;
-}
-
-/* "Let's Get Started" Button Styling */
-.get-started-button {
-    background-color: #004A99;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.get-started-button:hover {
-    background-color: #003366;
-}
-
-.get-started-button:focus {
-    outline: 2px dashed #004a99;
-    outline-offset: 4px;
-}
-
-/* Main Content Styling */
-main {
-    flex: 1;
-    padding: 80px 20px 20px;
-    /* Adjusted padding to account for fixed header */
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-/* Introductory Text */
+/* Intro Text */
 .intro-text {
+    margin-top: 80px;
+    /* To account for fixed header */
     border: 2px solid #004A99;
     padding: 20px;
     background-color: #f0f4f8;
@@ -106,7 +23,7 @@ main {
 
 .competency-column h2 {
     text-align: center;
-    color: #004a99;
+    color: #004A99;
     margin-bottom: 20px;
 }
 
@@ -154,40 +71,23 @@ main {
 /* Competency Description */
 #competency-description {
     flex: 1.5;
-    border: 2px solid #004a99;
+    border: 2px solid #004A99;
     border-radius: 8px;
     padding: 20px;
     background-color: #f9f9f9;
     max-width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
 }
 
 #competency-description h2 {
-    color: #004a99;
+    color: #004A99;
     margin-top: 0;
-}
-
-#competency-description h3 {
-    color: #666;
-    font-size: 18px;
-    margin-top: 5px;
 }
 
 #competency-description p {
     font-size: 16px;
     line-height: 1.6;
-}
-
-/* Footer Styling */
-footer {
-    text-align: center;
-    padding: 10px;
-    background: #004A99;
-    color: white;
-    width: 100%;
-    /* Position footer at the bottom */
-    position: fixed;
-    bottom: 0;
-    left: 0;
 }
 
 /* Responsive Design */
@@ -198,22 +98,6 @@ footer {
 }
 
 @media (max-width: 768px) {
-    main {
-        padding: 100px 10px 20px;
-    }
-
-    nav {
-        flex-direction: column;
-        gap: 10px;
-        width: 100%;
-    }
-
-    .get-started-button {
-        width: 100%;
-        text-align: center;
-        margin-top: 10px;
-    }
-
     #competency-section {
         flex-direction: column;
     }
@@ -229,20 +113,4 @@ footer {
     #competency-description {
         margin-top: 20px;
     }
-}
-
-/* Adjust text for better readability */
-body,
-p,
-h1,
-h2,
-h3 {
-    color: #333;
-}
-
-/* Limit the height of the description box */
-#competency-description {
-    max-height: 300px;
-    /* Adjust the value as needed */
-    overflow-y: auto;
 }
