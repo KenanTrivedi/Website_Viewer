@@ -67,7 +67,7 @@
 
 .competency-card:hover {
     background-color: #d0e8ff;
-    transform: translateY(-5px);
+    transform: translateY(-5px) scale(1.02);
     box-shadow: 0 4px 8px rgba(0, 74, 153, 0.2);
 }
 

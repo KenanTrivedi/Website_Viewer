@@ -135,6 +135,8 @@ function displayCompetencyDescription(item) {
     <h3>${item.category}</h3>
     <p>${item.description}</p>
   `
+  // Autoscroll to the description box
+  descriptionContainer.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function highlightSelectedCard(selectedCard) {
