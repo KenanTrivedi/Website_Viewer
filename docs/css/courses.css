@@ -105,46 +105,22 @@
     position: relative;
 }
 
-/* Tabs for Descriptions */
-.description-tabs {
-    display: flex;
-    border-bottom: 2px solid var(--primary-color);
-    margin-bottom: 20px;
-}
-
-.description-tab {
-    flex: 1;
-    text-align: center;
-    padding: 10px 0;
-    cursor: pointer;
-    font-weight: 500;
-    color: var(--primary-color);
-    transition: background-color 0.3s;
-}
-
-.description-tab:hover,
-.description-tab.active {
-    background-color: var(--light-background);
-}
-
-.description-content {
-    display: none;
-}
-
-.description-content.active {
-    display: block;
-}
-
-#description-title {
+#competency-description h2 {
     font-size: 1.5em;
     color: var(--primary-color);
     margin-bottom: 10px;
 }
 
-#description-category {
+#competency-description h3 {
     font-size: 1em;
     color: var(--secondary-color);
     margin-bottom: 20px;
+}
+
+#competency-description p {
+    font-size: 1em;
+    color: var(--text-color);
+    line-height: 1.6;
 }
 
 /* Responsive Design */

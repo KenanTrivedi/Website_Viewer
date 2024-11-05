@@ -154,8 +154,6 @@ li {
 
 /* Footer Styles */
 footer {
-    text-align: center;
-    padding: 15px 20px;
     background: var(--primary-color);
     color: white;
     /* Ensure text is white */
@@ -170,7 +168,18 @@ footer {
     /* Center vertically */
     justify-content: center;
     /* Center horizontally */
+    padding: 15px 20px;
 }
+
+footer p {
+    color: white;
+    /* Override the general p color */
+    margin: 0;
+    /* Remove default margin */
+    text-align: center;
+    /* Center the text */
+}
+
 
 
 
