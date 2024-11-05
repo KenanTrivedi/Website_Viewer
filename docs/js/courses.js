@@ -99,6 +99,8 @@ function generateCompetencyGrid() {
     card.classList.add('competency-card')
     card.setAttribute('data-title', item.title)
     card.setAttribute('data-description', item.description)
+    card.setAttribute('data-details', item.details)
+    card.setAttribute('data-resources', item.resources)
     card.setAttribute('data-category', item.category)
 
     // Icon
@@ -129,15 +131,27 @@ function generateCompetencyGrid() {
 }
 
 function displayCompetencyDescription(item) {
-  const descriptionContainer = document.getElementById('competency-description')
-  descriptionContainer.innerHTML = `
-    <h2>${item.title}</h2>
-    <h3>${item.category}</h3>
-    <p>${item.description}</p>
-  `
+  // Set the title
+  const titleElement = document.getElementById('description-title')
+  titleElement.textContent = item.title
 
-  // Scroll to the description box
-  descriptionContainer.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  // Set the category
+  const categoryElement = document.getElementById('description-category')
+  categoryElement.textContent = item.category
+
+  // Set the content for each tab
+  document.getElementById(
+    'overview-content'
+  ).innerHTML = `<p>${item.description}</p>`
+  document.getElementById(
+    'details-content'
+  ).innerHTML = `<p>${item.details}</p>`
+  document.getElementById(
+    'resources-content'
+  ).innerHTML = `<p>${item.resources}</p>`
+
+  // Activate the 'Überblick' tab by default
+  activateTab('overview')
 }
 
 function highlightSelectedCard(selectedCard) {
@@ -151,4 +165,31 @@ function highlightSelectedCard(selectedCard) {
   selectedCard.classList.add('selected')
 }
 
-document.addEventListener('DOMContentLoaded', generateCompetencyGrid)
+function activateTab(tabId) {
+  const tabs = document.querySelectorAll('.description-tab')
+  const contents = document.querySelectorAll('.description-content')
+
+  // Deactivate all tabs and contents
+  tabs.forEach((tab) => tab.classList.remove('active'))
+  contents.forEach((content) => content.classList.remove('active'))
+
+  // Activate the selected tab and content
+  document
+    .querySelector(`.description-tab[data-tab="${tabId}"]`)
+    .classList.add('active')
+  document.getElementById(`${tabId}-content`).classList.add('active')
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  generateCompetencyGrid()
+
+  // Tab functionality
+  const tabs = document.querySelectorAll('.description-tab')
+
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const tabId = tab.getAttribute('data-tab')
+      activateTab(tabId)
+    })
+  })
+})

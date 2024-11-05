@@ -2,8 +2,103 @@
 
 /* Main Content Styling */
 main {
-    margin-top: 80px;
+    margin-top: 100px;
     /* To account for fixed header */
 }
 
-/* The team styles are already included in styles.css */ 
+/* Team Section */
+.team-section {
+    text-align: center;
+    background: var(--light-background);
+    padding: 60px 20px;
+}
+
+/* Section Title */
+.team-section h2 {
+    font-size: 2em;
+    color: var(--primary-color);
+    margin-bottom: 40px;
+    position: relative;
+    display: inline-block;
+}
+
+/* Decorative Line Under Title */
+.team-section h2::after {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 4px;
+    background: var(--primary-color);
+    margin: 10px auto 0;
+}
+
+/* Team Container */
+.team-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 40px;
+}
+
+/* Team Member Card */
+.team-member {
+    flex-basis: calc(33.333% - 40px);
+    background: white;
+    padding: 30px 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s;
+}
+
+.team-member:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Team Photo */
+.team-photo {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--primary-color);
+    margin: 0 auto 20px;
+}
+
+/* Member Name */
+.team-member h3 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1.25em;
+    font-weight: 600;
+}
+
+/* Role */
+.role {
+    font-weight: 500;
+    color: var(--secondary-color);
+    margin-bottom: 15px;
+}
+
+/* Description */
+.team-member p {
+    font-size: 0.95em;
+    color: #666;
+    line-height: 1.6;
+    text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .team-member {
+        flex-basis: calc(50% - 40px);
+    }
+}
+
+@media (max-width: 768px) {
+    .team-member {
+        flex-basis: 100%;
+    }
+}

@@ -11,6 +11,19 @@
     margin-bottom: 60px;
     font-size: 1em;
     line-height: 1.8;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Decorative Line */
+.intro-text::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5px;
+    height: 100%;
+    background-color: var(--primary-color);
 }
 
 /* Competency Section */
@@ -19,6 +32,7 @@
     gap: 20px;
 }
 
+/* Competency Columns */
 .competency-column {
     flex: 1;
 }
@@ -30,12 +44,14 @@
     font-weight: 600;
 }
 
+/* Competency Grid */
 .competency-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 20px;
 }
 
+/* Competency Card */
 .competency-card {
     background-color: var(--light-background);
     border: 2px solid var(--primary-color);
@@ -44,6 +60,9 @@
     text-align: center;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .competency-card:hover {
@@ -58,15 +77,17 @@
     transform: translateY(-5px);
 }
 
+/* Competency Icon */
 .competency-icon {
     font-size: 40px;
     color: var(--primary-color);
     margin-bottom: 10px;
 }
 
+/* Competency Name */
 .competency-card span {
     display: block;
-    font-size: 14px;
+    font-size: 16px;
     color: var(--primary-color);
     font-weight: bold;
 }
@@ -76,22 +97,54 @@
     flex: 1.5;
     border: 2px solid var(--primary-color);
     border-radius: 8px;
-    padding: 20px;
+    padding: 30px;
     background-color: #f9f9f9;
     max-width: 100%;
-    max-height: 400px;
+    max-height: 500px;
     overflow-y: auto;
+    position: relative;
 }
 
-#competency-description h2 {
+/* Tabs for Descriptions */
+.description-tabs {
+    display: flex;
+    border-bottom: 2px solid var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.description-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 0;
+    cursor: pointer;
+    font-weight: 500;
     color: var(--primary-color);
-    margin-top: 0;
-    font-weight: 600;
+    transition: background-color 0.3s;
 }
 
-#competency-description p {
-    font-size: 16px;
-    line-height: 1.6;
+.description-tab:hover,
+.description-tab.active {
+    background-color: var(--light-background);
+}
+
+.description-content {
+    display: none;
+}
+
+.description-content.active {
+    display: block;
+}
+
+#description-title {
+    font-size: 1.5em;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+#description-category {
+    font-size: 1em;
+    color: var(--secondary-color);
+    margin-bottom: 20px;
 }
 
 /* Responsive Design */

@@ -18,7 +18,6 @@ main {
 .banner-section {
     flex: 1;
     background-color: var(--light-background);
-    border: 2px solid var(--primary-color);
     border-radius: 8px;
     overflow: hidden;
     display: flex;
@@ -26,8 +25,28 @@ main {
     align-items: center;
     padding: 20px;
     box-sizing: border-box;
+    position: relative;
+    transition: transform 0.3s, box-shadow 0.3s;
 }
 
+/* Hover Effect */
+.banner-section:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 74, 153, 0.1);
+}
+
+/* Decorative Elements */
+.banner-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background-color: var(--primary-color);
+}
+
+/* Overlay */
 .banner-section .overlay {
     display: flex;
     flex-direction: column;
@@ -35,13 +54,15 @@ main {
     flex-grow: 1;
 }
 
+/* Images */
 .banner-section img {
-    width: 150px;
-    height: 150px;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
     margin-bottom: 20px;
 }
 
+/* Titles */
 .banner-section h2 {
     color: var(--primary-color);
     margin-bottom: 10px;
@@ -49,6 +70,7 @@ main {
     font-weight: 600;
 }
 
+/* Descriptions */
 .banner-section p {
     flex-grow: 1;
     margin-bottom: 20px;
@@ -58,8 +80,22 @@ main {
     line-height: 1.6;
 }
 
+/* Buttons */
 .section-button {
     margin-top: auto;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.section-button:hover {
+    background-color: var(--secondary-color);
 }
 
 /* Responsive Design */
