@@ -1,6 +1,6 @@
 /* Root Variables */
 :root {
-    --primary-color: #004A99;
+    --primary-color: #004a99;
     --secondary-color: #003366;
     --light-background: #e0f0ff;
     --text-color: #333;
@@ -38,10 +38,6 @@ header {
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    position: fixed;
-    width: 100%;
-    top: 0;
-    z-index: 1000;
     border-bottom: 2px solid var(--primary-color);
 }
 
@@ -92,14 +88,14 @@ nav a.active {
 /* Main Content Area */
 main {
     flex: 1;
-    margin-top: 100px;
+    margin-top: 20px;
     padding: 0 20px 60px;
 }
 
 /* Intro Text */
 .intro-text {
     max-width: 800px;
-    margin: 0 auto 60px;
+    margin: 100px auto 60px;
     border: 2px solid var(--primary-color);
     padding: 30px;
     background-color: #f0f4f8;
@@ -168,10 +164,11 @@ main {
 #competency-section {
     display: flex;
     justify-content: space-between;
-    gap: 40px;
+    gap: 20px;
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+    align-items: flex-start;
 }
 
 .competency-column {
@@ -185,6 +182,56 @@ main {
     margin-bottom: 30px;
     font-weight: 600;
     font-size: 1.5em;
+}
+
+/* Competency Description */
+#competency-description {
+    flex: 1.5;
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 30px;
+    background-color: #f9f9f9;
+    margin: 0 20px;
+    max-width: 500px;
+    transition: all 0.3s ease;
+    scroll-margin-top: 100px;
+}
+
+#competency-description h2 {
+    font-size: 1.5em;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+#competency-description h3 {
+    font-size: 1.2em;
+    color: var(--secondary-color);
+    margin: 20px 0 10px;
+}
+
+.description-content {
+    margin-bottom: 20px;
+}
+
+.description-content p {
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.example-section {
+    background-color: var(--light-background);
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 20px;
+    border: 1px solid var(--primary-color);
+}
+
+.example-text {
+    font-style: italic;
+    line-height: 1.6;
+    color: var(--text-color);
 }
 
 /* Competency Grid */
@@ -230,56 +277,6 @@ main {
     font-weight: bold;
 }
 
-/* Competency Description */
-#competency-description {
-    flex: 1.5;
-    border: 2px solid var(--primary-color);
-    border-radius: 8px;
-    padding: 30px;
-    background-color: #f9f9f9;
-    margin: 40px auto;
-    max-width: 800px;
-    transition: all 0.3s ease;
-    scroll-margin-top: 100px;
-}
-
-#competency-description h2 {
-    font-size: 1.5em;
-    color: var(--primary-color);
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--primary-color);
-}
-
-#competency-description h3 {
-    font-size: 1.2em;
-    color: var(--secondary-color);
-    margin: 20px 0 10px;
-}
-
-.description-content {
-    margin-bottom: 20px;
-}
-
-.description-content p {
-    line-height: 1.6;
-    margin-bottom: 15px;
-}
-
-.example-section {
-    background-color: var(--light-background);
-    padding: 20px;
-    border-radius: 6px;
-    margin-top: 20px;
-    border: 1px solid var(--primary-color);
-}
-
-.example-text {
-    font-style: italic;
-    line-height: 1.6;
-    color: var(--text-color);
-}
-
 /* Footer */
 footer {
     background: var(--primary-color);
@@ -304,12 +301,18 @@ footer p {
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-    .competency-grid {
-        grid-template-columns: 1fr;
+    #competency-section {
+        flex-direction: column;
+        align-items: center;
     }
 
     #competency-description {
-        margin: 20px;
+        margin: 20px 0;
+        max-width: 800px;
+    }
+
+    .competency-column {
+        margin-bottom: 20px;
     }
 }
 
@@ -327,19 +330,6 @@ footer p {
 
     .get-started-button {
         margin-top: 10px;
-    }
-
-    #competency-section {
-        flex-direction: column;
-    }
-
-    .competency-column {
-        margin-bottom: 20px;
-    }
-
-    #competency-description {
-        margin: 20px 10px;
-        scroll-margin-top: 150px;
     }
 
     .arrows-svg {

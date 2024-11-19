@@ -2,16 +2,28 @@
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kurse - Open Digi</title>
-    <link rel="stylesheet" href="css/styles.css" />
-    <link rel="stylesheet" href="css/courses.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Include Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Include Font Awesome for icons -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      crossorigin="anonymous"
     />
+
+    <!-- Link to CSS -->
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/courses.css" />
   </head>
   <body>
+    <!-- Header -->
     <header>
       <a href="index.html">
         <img src="images/logo.png" alt="Open Digi Logo" class="logo" />
@@ -20,10 +32,17 @@
         <a href="project.html">Projekt</a>
         <a href="datenschutz.html">Datenschutz</a>
         <a href="team.html">Team</a>
-        <a href="login.html" class="get-started-button">Let's Get Started</a>
       </nav>
+      <button
+        id="letsGetStarted"
+        class="get-started-button"
+        onclick="window.location.href='login.html'"
+      >
+        Let's Get Started
+      </button>
     </header>
 
+    <!-- Main Content -->
     <main>
       <section class="intro-text">
         <p>
@@ -57,6 +76,7 @@
         </p>
       </section>
 
+      <!-- Central Container and Arrows -->
       <div class="central-container">
         <div class="central-title">Digitale<br />Kompetenzen</div>
         <svg
@@ -97,11 +117,24 @@
         </svg>
       </div>
 
+      <!-- Competency Sections -->
       <section id="competency-section">
         <div id="general-competencies" class="competency-column">
           <h2>Allgemeine digitale<br />Kompetenzen</h2>
           <div id="general-grid" class="competency-grid">
             <!-- Competency cards will be inserted here by JavaScript -->
+          </div>
+        </div>
+
+        <!-- Competency Description in the Middle -->
+        <div id="competency-description" tabindex="-1">
+          <h2>Kompetenzbereich auswählen</h2>
+          <div class="description-content">
+            <p>Klicke auf eine Kompetenz, um die Beschreibung anzuzeigen.</p>
+          </div>
+          <div class="example-section" style="display: none">
+            <h3>Beispiel:</h3>
+            <p class="example-text"></p>
           </div>
         </div>
 
@@ -112,25 +145,18 @@
           </div>
         </div>
       </section>
-
-      <div id="competency-description" tabindex="-1">
-        <h2>Kompetenzbereich auswählen</h2>
-        <div class="description-content">
-          <p>Klicke auf eine Kompetenz, um die Beschreibung anzuzeigen.</p>
-        </div>
-        <div class="example-section" style="display: none">
-          <h3>Beispiel:</h3>
-          <p class="example-text"></p>
-        </div>
-      </div>
     </main>
 
+    <!-- Footer -->
     <footer>
       <p>&copy; 2024 Open-Digi. Alle Rechte vorbehalten.</p>
     </footer>
 
     <!-- FontAwesome for icons -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"
+      crossorigin="anonymous"
+    ></script>
     <!-- Main JavaScript -->
     <script src="js/courses.js"></script>
   </body>
