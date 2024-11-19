@@ -22,6 +22,7 @@ body {
     font-family: var(--font-family);
     color: var(--text-color);
     background: var(--background-color);
+    scroll-behavior: smooth;
 }
 
 body {
@@ -131,9 +132,9 @@ main {
     position: relative;
     width: 100%;
     max-width: 1200px;
-    margin: 0 auto 80px;
+    margin: 0 auto 100px;
     text-align: center;
-    padding: 0 20px;
+    padding-bottom: 120px;
 }
 
 .central-title {
@@ -159,7 +160,7 @@ main {
     top: 80px;
     left: 0;
     width: 100%;
-    height: 100px;
+    height: 120px;
     pointer-events: none;
 }
 
@@ -183,6 +184,7 @@ main {
     color: var(--primary-color);
     margin-bottom: 30px;
     font-weight: 600;
+    font-size: 1.5em;
 }
 
 /* Competency Grid */
@@ -235,34 +237,47 @@ main {
     border-radius: 8px;
     padding: 30px;
     background-color: #f9f9f9;
-    max-width: 100%;
-    max-height: 500px;
-    overflow-y: auto;
-    position: relative;
-    margin-top: 40px;
+    margin: 40px auto;
+    max-width: 800px;
+    transition: all 0.3s ease;
+    scroll-margin-top: 100px;
 }
 
 #competency-description h2 {
     font-size: 1.5em;
     color: var(--primary-color);
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary-color);
 }
 
 #competency-description h3 {
-    font-size: 1em;
+    font-size: 1.2em;
     color: var(--secondary-color);
+    margin: 20px 0 10px;
+}
+
+.description-content {
     margin-bottom: 20px;
 }
 
-#competency-description p {
-    font-size: 1em;
-    color: var(--text-color);
+.description-content p {
     line-height: 1.6;
-    margin-bottom: 1em;
+    margin-bottom: 15px;
 }
 
-#competency-description p:last-child {
-    margin-bottom: 0;
+.example-section {
+    background-color: var(--light-background);
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 20px;
+    border: 1px solid var(--primary-color);
+}
+
+.example-text {
+    font-style: italic;
+    line-height: 1.6;
+    color: var(--text-color);
 }
 
 /* Footer */
@@ -292,6 +307,10 @@ footer p {
     .competency-grid {
         grid-template-columns: 1fr;
     }
+
+    #competency-description {
+        margin: 20px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -319,8 +338,8 @@ footer p {
     }
 
     #competency-description {
-        margin-top: 20px;
-        max-height: 400px;
+        margin: 20px 10px;
+        scroll-margin-top: 150px;
     }
 
     .arrows-svg {
