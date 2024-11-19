@@ -1,8 +1,9 @@
-// Define all competencies in a single array with both general and professional competencies
+// Define all competencies with shorter titles
 const competencies = [
   // General Competencies
   {
-    title: 'Suchen, Verarbeiten und Aufbewahren',
+    title: 'Suchen',
+    fullTitle: 'Suchen, Verarbeiten und Aufbewahren',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, gezielt nach digitalen Daten und Inhalten zu suchen, diese effektiv zu organisieren, zu speichern und abzurufen.',
     example:
@@ -11,7 +12,8 @@ const competencies = [
     category: 'Allgemeine digitale Kompetenzen',
   },
   {
-    title: 'Kommunikation und Kollaborieren',
+    title: 'Kommunizieren',
+    fullTitle: 'Kommunikation und Kollaborieren',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen.',
     example:
@@ -20,7 +22,8 @@ const competencies = [
     category: 'Allgemeine digitale Kompetenzen',
   },
   {
-    title: 'Produzieren und Präsentieren',
+    title: 'Produzieren',
+    fullTitle: 'Produzieren und Präsentieren',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Inhalte in verschiedenen Formaten zu erstellen, zu bearbeiten und zu integrieren.',
     example:
@@ -29,7 +32,8 @@ const competencies = [
     category: 'Allgemeine digitale Kompetenzen',
   },
   {
-    title: 'Schützen und sicher Agieren',
+    title: 'Schützen',
+    fullTitle: 'Schützen und sicher Agieren',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Geräte und Inhalte zu schützen, Gesundheits- und Umweltgefahren zu vermeiden.',
     example:
@@ -38,7 +42,8 @@ const competencies = [
     category: 'Allgemeine digitale Kompetenzen',
   },
   {
-    title: 'Problemlösen und Handeln',
+    title: 'Problemlösen',
+    fullTitle: 'Problemlösen und Handeln',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen.',
     example:
@@ -47,7 +52,8 @@ const competencies = [
     category: 'Allgemeine digitale Kompetenzen',
   },
   {
-    title: 'Analysieren und Reflektieren',
+    title: 'Analysieren',
+    fullTitle: 'Analysieren und Reflektieren',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, die Auswirkungen und Verbreitung digitaler Medien und Inhalte zu analysieren.',
     example:
@@ -57,7 +63,8 @@ const competencies = [
   },
   // Professional Competencies
   {
-    title: 'Organisation und Administration',
+    title: 'Organisieren',
+    fullTitle: 'Organisation und Administration',
     description:
       'Der Kompetenzbereich umfasst sowohl die Kompetenz, digitale Medien gezielt zu suchen, auszuwählen und anzupassen, um den Anforderungen des Unterrichts gerecht zu werden, als auch die Nutzung solcher Medien. Zudem beinhaltet dieser Bereich das effiziente Management, den Schutz und die gemeinsame Nutzung digitaler Daten.',
     example:
@@ -66,7 +73,8 @@ const competencies = [
     category: 'Berufsspezifische digitale Kompetenzen',
   },
   {
-    title: 'Berufliches Engagement außerhalb des Unterrichts',
+    title: 'Engagement',
+    fullTitle: 'Berufliches Engagement außerhalb des Unterrichts',
     description:
       'Der Kompetenzbereich umfasst die Nutzung von digitalen Medien zur Verbesserung der Kommunikation in Schule, z.B. zwischen Lehrenden und Eltern. Weiterhin wird die Nutzung digitaler Medien für das Schulmanagement und die Zusammenarbeit mit Kolleg*innen dazugezählt.',
     example:
@@ -75,7 +83,8 @@ const competencies = [
     category: 'Berufsspezifische digitale Kompetenzen',
   },
   {
-    title: 'Lehren und Lernen',
+    title: 'Lehren',
+    fullTitle: 'Lehren und Lernen',
     description:
       'Der Kompetenzbereich umfasst die Nutzung digitaler Medien zur Unterstützung von projektbasiertem, kollaborativen oder selbstregulierten Lernen, zur Unterrichtsdurchführung und Unterstützung der Lernenden.',
     example:
@@ -85,6 +94,7 @@ const competencies = [
   },
   {
     title: 'Lernende fördern',
+    fullTitle: 'Lernende fördern',
     description:
       'Der Kompetenzbereich umfasst die Gewährleistung von Barrierefreiheit und Inklusion, indem sichergestellt wird, dass alle Schüler*innen gleichberechtigten Zugang zu digitalen Medien und Lernressourcen haben.',
     example:
@@ -94,6 +104,7 @@ const competencies = [
   },
   {
     title: 'Bewertung',
+    fullTitle: 'Bewertung',
     description:
       'Der Kompetenzbereich umfasst die Anwendung von digitalen Medien zur Erfassung des Lernfortschrittes der Schüler*innen. Dabei wird Wert auf die kritische Analyse und Interpretation digitaler Informationen gelegt.',
     example:
@@ -102,7 +113,8 @@ const competencies = [
     category: 'Berufsspezifische digitale Kompetenzen',
   },
   {
-    title: 'Förderung digitaler Kompetenzen der Lernenden',
+    title: 'Förderung',
+    fullTitle: 'Förderung digitaler Kompetenzen der Lernenden',
     description:
       'Der Kompetenzbereich umfasst die Vermittlung von grundlegenden digitalen Kompetenzen im Unterricht.',
     example:
@@ -132,7 +144,7 @@ function generateCompetencyGrid() {
 function createCompetencyCard(item) {
   const card = document.createElement('div')
   card.classList.add('competency-card')
-  card.setAttribute('data-title', item.title)
+  card.setAttribute('data-title', item.fullTitle)
   card.setAttribute('data-description', item.description)
   card.setAttribute('data-category', item.category)
 
@@ -157,7 +169,7 @@ function createCompetencyCard(item) {
 function displayCompetencyDescription(item) {
   const descriptionContainer = document.getElementById('competency-description')
   descriptionContainer.innerHTML = `
-    <h2>${item.title}</h2>
+    <h2>${item.fullTitle}</h2>
     <h3>${item.category}</h3>
     <p>${item.description}</p>
     <p><strong>Beispiel:</strong><br>${item.example}</p>

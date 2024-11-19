@@ -20,14 +20,18 @@ header {
     justify-content: space-between;
     align-items: center;
     padding: 20px 40px;
-    background-color: var(--light-background);
+    background-color: #fff;
 }
 
 header nav a {
     margin-left: 20px;
     text-decoration: none;
-    color: var(--primary-color);
+    color: var(--text-color);
     font-weight: 500;
+}
+
+.logo {
+    height: 50px;
 }
 
 .get-started-button {
@@ -77,46 +81,49 @@ header nav a {
     font-weight: 600;
     color: var(--primary-color);
     font-size: 1.1em;
-    z-index: 1;
+    text-align: center;
+    padding: 10px;
 }
 
 .central-container .arrow {
     position: absolute;
-    top: 50%;
-    width: 20%;
+    width: 200px;
     height: 2px;
     background-color: var(--primary-color);
 }
 
 .arrow-left {
-    left: calc(50% - 80px);
-    transform-origin: left;
-    transform: translate(-100%, -50%) rotate(-15deg);
+    left: 50%;
+    transform-origin: top right;
+    transform: translateX(-50%) rotate(-45deg);
+    top: 100%;
+    margin-top: -10px;
 }
 
 .arrow-right {
-    right: calc(50% - 80px);
-    transform-origin: right;
-    transform: translate(100%, -50%) rotate(15deg);
+    right: 50%;
+    transform-origin: top left;
+    transform: translateX(50%) rotate(45deg);
+    top: 100%;
+    margin-top: -10px;
 }
 
-.arrow::before {
+.arrow::after {
     content: '';
     position: absolute;
-    top: -5px;
-    right: -5px;
     width: 10px;
     height: 10px;
-    border-top: 2px solid var(--primary-color);
-    border-right: 2px solid var(--primary-color);
+    background-color: var(--primary-color);
     transform: rotate(45deg);
+    top: -5px;
+    right: -5px;
 }
 
 /* Competency Section */
 #competency-section {
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
+    align-items: flex-start;
     max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
@@ -125,6 +132,12 @@ header nav a {
 .competency-column {
     flex: 1;
     min-width: 300px;
+    margin: 20px;
+}
+
+#competency-description {
+    flex: 1;
+    max-width: 500px;
     margin: 20px;
 }
 
@@ -177,13 +190,10 @@ header nav a {
 
 /* Competency Description */
 #competency-description {
-    flex-basis: 100%;
-    max-width: 800px;
-    margin: 40px auto;
-    padding: 30px;
     background-color: #f9f9f9;
     border: 2px solid var(--primary-color);
     border-radius: 8px;
+    padding: 30px;
 }
 
 #competency-description h2 {
@@ -208,9 +218,8 @@ header nav a {
 footer {
     text-align: center;
     padding: 20px;
-    background-color: var(--light-background);
-    color: var(--primary-color);
-    margin-top: 40px;
+    background-color: #fff;
+    color: var(--text-color);
 }
 
 /* Responsive Design */
@@ -225,6 +234,10 @@ footer {
     }
 
     .competency-column {
+        margin: 20px 0;
+    }
+
+    #competency-description {
         margin: 20px 0;
     }
 }
