@@ -98,8 +98,9 @@ header nav a {
 .arrow-svg {
     position: absolute;
     top: 160px;
-    left: 0;
-    width: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 1000px;
     height: 200px;
     overflow: visible;
 }
