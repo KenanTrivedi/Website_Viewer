@@ -1,77 +1,131 @@
-/* Base styles */
+/* Base Styles */
 :root {
-    --primary-color: #004A99;
+    --primary-color: #004a99;
     --secondary-color: #003366;
     --light-background: #e0f0ff;
     --text-color: #333333;
+    --font-family: 'Roboto', sans-serif;
+}
+
+body {
+    font-family: var(--font-family);
+    margin: 0;
+    background-color: #fff;
+    color: var(--text-color);
+}
+
+/* Header */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background-color: var(--light-background);
+}
+
+header nav a {
+    margin-left: 20px;
+    text-decoration: none;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.get-started-button {
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.get-started-button:hover {
+    background-color: var(--secondary-color);
 }
 
 /* Intro Text */
 .intro-text {
-    margin-top: 100px;
-    margin-bottom: 120px;
-    /* Increased margin to make space for the circle */
-    border: 2px solid var(--primary-color);
+    max-width: 800px;
+    margin: 80px auto;
     padding: 30px;
     background-color: #f0f4f8;
-    border-radius: 8px;
-    font-size: 1em;
-    line-height: 1.8;
-    position: relative;
+    border-left: 5px solid var(--primary-color);
 }
 
 .intro-text p {
     margin-bottom: 1em;
 }
 
-.intro-text p:last-child {
-    margin-bottom: 0;
+/* Central Container */
+.central-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 60px;
 }
 
-/* Decorative Line */
-.intro-text::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 5px;
-    height: 100%;
-    background-color: var(--primary-color);
-}
-
-/* Central Title Circle */
 .central-title {
     position: relative;
     width: 160px;
     height: 160px;
-    margin: 0 auto 100px;
-    /* Adjusted margin to position lower */
     background-color: var(--light-background);
     border: 2px solid var(--primary-color);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    padding: 20px;
     font-weight: 600;
     color: var(--primary-color);
-    z-index: 2;
+    font-size: 1.1em;
+    z-index: 1;
+}
+
+.central-container .arrow {
+    position: absolute;
+    top: 50%;
+    width: 20%;
+    height: 2px;
+    background-color: var(--primary-color);
+}
+
+.arrow-left {
+    left: calc(50% - 80px);
+    transform-origin: left;
+    transform: translate(-100%, -50%) rotate(-15deg);
+}
+
+.arrow-right {
+    right: calc(50% - 80px);
+    transform-origin: right;
+    transform: translate(100%, -50%) rotate(15deg);
+}
+
+.arrow::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 10px;
+    height: 10px;
+    border-top: 2px solid var(--primary-color);
+    border-right: 2px solid var(--primary-color);
+    transform: rotate(45deg);
 }
 
 /* Competency Section */
 #competency-section {
     display: flex;
-    gap: 40px;
-    margin-top: 60px;
-    /* Increased spacing after arrows */
     justify-content: space-between;
-    padding: 0 40px;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
-/* Competency Columns */
 .competency-column {
     flex: 1;
+    min-width: 300px;
+    margin: 20px;
 }
 
 .competency-column h2 {
@@ -96,60 +150,41 @@
     padding: 20px;
     text-align: center;
     cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .competency-card:hover {
-    background-color: #d0e8ff;
     transform: translateY(-5px);
-    box-shadow: 0 4px 8px rgba(0, 74, 153, 0.2);
+    box-shadow: 0 10px 15px rgba(0, 74, 153, 0.1);
 }
 
 .competency-card.selected {
     background-color: #c0d8ff;
-    box-shadow: 0 4px 8px rgba(0, 74, 153, 0.4);
-    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 74, 153, 0.2);
 }
 
-/* Competency Icon */
 .competency-icon {
     font-size: 40px;
     color: var(--primary-color);
     margin-bottom: 10px;
 }
 
-/* Competency Name */
 .competency-card span {
     font-size: 16px;
     color: var(--primary-color);
     font-weight: bold;
 }
 
-.competency-card:hover .competency-example {
-    display: block;
-}
-
 /* Competency Description */
 #competency-description {
-    flex: 1.5;
-    border: 2px solid var(--primary-color);
-    border-radius: 8px;
+    flex-basis: 100%;
+    max-width: 800px;
+    margin: 40px auto;
     padding: 30px;
     background-color: #f9f9f9;
-    max-width: 100%;
-    max-height: 500px;
-    overflow-y: auto;
-    position: relative;
-    margin-top: 40px;
-    /* Add space above description box */
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
 }
-
 
 #competency-description h2 {
     font-size: 1.5em;
@@ -169,80 +204,27 @@
     line-height: 1.6;
 }
 
-/* Responsive Design */
-@media (max-width: 1200px) {
-    .competency-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .central-title {
-        width: 140px;
-        height: 140px;
-        margin: -70px auto 50px;
-        font-size: 0.9em;
-    }
+/* Footer */
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: var(--light-background);
+    color: var(--primary-color);
+    margin-top: 40px;
 }
 
+/* Responsive Design */
 @media (max-width: 768px) {
+    .central-container .arrow {
+        display: none;
+    }
+
     #competency-section {
         flex-direction: column;
+        align-items: center;
     }
 
     .competency-column {
-        margin-bottom: 20px;
+        margin: 20px 0;
     }
-
-    #competency-description {
-        margin-top: 20px;
-        max-height: 400px;
-    }
-
-    .central-title {
-        width: 120px;
-        height: 120px;
-        margin: -60px auto 40px;
-        font-size: 0.8em;
-    }
-}
-
-/* Add arrow styling */
-.arrow-container {
-    position: relative;
-    width: 100%;
-    height: 0;
-    margin-top: -80px;
-    /* Position arrows relative to circle */
-    margin-bottom: 80px;
-    /* Space before competency sections */
-}
-
-.arrow {
-    position: absolute;
-    width: 120px;
-    background-color: var(--primary-color);
-    height: 2px;
-}
-
-.arrow::after {
-    content: '';
-    position: absolute;
-    right: -6px;
-    top: -4px;
-    width: 10px;
-    height: 10px;
-    border-top: 2px solid var(--primary-color);
-    border-right: 2px solid var(--primary-color);
-    transform: rotate(45deg);
-}
-
-.arrow-left {
-    transform: rotate(-45deg);
-    left: calc(50% - 160px);
-    top: 50px;
-}
-
-.arrow-right {
-    transform: rotate(45deg);
-    right: calc(50% - 160px);
-    top: 50px;
 }
