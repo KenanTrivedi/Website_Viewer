@@ -142,13 +142,8 @@ function createCompetencyCard(item) {
   const title = document.createElement('span')
   title.textContent = item.title
 
-  const example = document.createElement('p')
-  example.classList.add('competency-example')
-  example.textContent = item.example
-
   card.appendChild(icon)
   card.appendChild(title)
-  card.appendChild(example)
 
   card.addEventListener('click', () => {
     displayCompetencyDescription(item)
@@ -178,41 +173,9 @@ function highlightSelectedCard(selectedCard) {
   selectedCard.classList.add('selected')
 }
 
-// Initialize extra functionality
-function initializeExtraFunctionality() {
-  const cards = document.querySelectorAll('.competency-card')
-
-  cards.forEach((card) => {
-    // Add hover effects for examples
-    card.addEventListener('mouseenter', () => {
-      const example = card.querySelector('.competency-example')
-      if (example) {
-        example.style.display = 'block'
-      }
-    })
-
-    card.addEventListener('mouseleave', () => {
-      const example = card.querySelector('.competency-example')
-      if (example) {
-        example.style.display = 'none'
-      }
-    })
-
-    // Add keyboard navigation
-    card.setAttribute('tabindex', '0')
-    card.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        card.click()
-      }
-    })
-  })
-}
-
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   generateCompetencyGrid()
-  initializeExtraFunctionality()
 
   // Show initial description
   const defaultDescription = document.getElementById('competency-description')

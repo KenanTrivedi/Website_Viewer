@@ -42,9 +42,10 @@
 /* Central Title Circle */
 .central-title {
     position: relative;
-    width: 160px;
-    height: 160px;
-    margin: -80px auto 60px;
+    width: 180px;
+    /* Slightly larger to accommodate German text */
+    height: 180px;
+    margin: -90px auto 60px;
     background-color: var(--light-background);
     border: 2px solid var(--primary-color);
     border-radius: 50%;
@@ -125,15 +126,6 @@
     font-weight: bold;
 }
 
-/* Example Text */
-.competency-example {
-    margin-top: 10px;
-    font-size: 0.9em;
-    color: var(--text-color);
-    display: none;
-    text-align: left;
-}
-
 .competency-card:hover .competency-example {
     display: block;
 }
@@ -203,4 +195,42 @@
         margin: -60px auto 40px;
         font-size: 0.8em;
     }
+}
+
+/* Add arrow styling */
+.arrow-container {
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    left: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.arrow {
+    position: absolute;
+    width: 100px;
+    height: 2px;
+    background-color: var(--primary-color);
+}
+
+.arrow::after {
+    content: '';
+    position: absolute;
+    right: -10px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-top: 2px solid var(--primary-color);
+    border-right: 2px solid var(--primary-color);
+    transform: rotate(45deg);
+}
+
+.arrow-left {
+    right: 60%;
+    transform: rotate(180deg);
+}
+
+.arrow-right {
+    left: 60%;
 }
