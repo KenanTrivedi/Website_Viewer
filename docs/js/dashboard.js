@@ -201,16 +201,18 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
   ]
 
   thead.innerHTML = `
-  <th><input type="checkbox" id="selectAll"></th>
-  <th>User Code</th>
-  <th>Geschlecht</th>
-  <th class="sortable" data-field="birthYear">Geburtsjahr <span class="sort-icon">↕️</span></th>
-  <th>Lehramt</th>
-  <th>Fächer</th>
-  <th>Kurse</th>
-  <th>Feedback zu Kursen</th>
-  <th class="sortable" data-field="firstSubmission">Erste Abgabe <span class="sort-icon">↕️</span></th>
-  <th class="sortable" data-field="latestSubmission">Letzte Abgabe <span class="sort-icon">↕️</span></th>
+    <th><input type="checkbox" id="selectAll"></th>
+    <th>User Code</th>
+    <th>Geschlecht</th>
+    <th class="sortable" data-field="birthYear">Geburtsjahr <span class="sort-icon">↕️</span></th>
+    <th>Lehramt</th>
+    <th>Fächer</th>
+    <th>Kurse</th>
+    <th>Feedback zu Kursen</th>
+    <th>Strategie bei der Auswahl</th>
+    <th>Veränderung der Kompetenzüberzeugungen</th>
+    <th class="sortable" data-field="firstSubmission">Erste Abgabe <span class="sort-icon">↕️</span></th>
+    <th class="sortable" data-field="latestSubmission">Letzte Abgabe <span class="sort-icon">↕️</span></th>
     ${sortableColumns
       .filter((col) => col.startsWith('q'))
       .map(
@@ -248,12 +250,17 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
     tr.appendChild(createCell(user.userCode || ''))
     tr.appendChild(createCell(user.gender || ''))
     tr.appendChild(createCell(user.birthYear || ''))
-    tr.appendChild(createCell(user.data?.responses?.q0_2 || ''))
-    tr.appendChild(createCell(user.data?.responses?.q0_3 || ''))
-    tr.appendChild(createCell(user.courses.join(', ') || ''))
+    tr.appendChild(createCell(user.data?.responses?.q0_2 || '')) // Lehramt
+    tr.appendChild(createCell(user.data?.responses?.q0_3 || '')) // Fächer
+    tr.appendChild(createCell(user.courses.join(', ') || '')) // Kurse
+
     tr.appendChild(
-      createCell(user.openEndedResponses?.attempt2_course_feedback || '')
+      createCell(user.openEndedResponses?.t2_course_feedback || '')
     )
+
+    tr.appendChild(createCell(user.openEndedResponses?.t1_strategy || '')) // Strategie bei der Auswahl
+    tr.appendChild(createCell(user.openEndedResponses?.t2_reflection || '')) // Veränderung der Kompetenzüberzeugungen
+
     tr.appendChild(
       createCell(
         user.firstSubmissionTime
@@ -523,17 +530,19 @@ function exportToExcel(data) {
   const worksheet = XLSX.utils.json_to_sheet(
     data.map((user) => ({
       'User Code': user.userCode,
-      Gender: user.gender,
-      'Birth Year': user.birthYear,
+      Geschlecht: user.gender,
+      Geburtsjahr: user.birthYear,
       Lehramt: user.data?.responses?.q0_2 || '',
       Fächer: user.data?.responses?.q0_3 || '',
       Kurse: user.courses.join(', ') || '',
-      'Feedback zu Kursen':
-        user.openEndedResponses?.attempt2_course_feedback || '',
-      'First Submission': user.firstSubmissionTime
+      'Feedback zu Kursen': user.openEndedResponses?.t2_course_feedback || '',
+      'Strategie bei der Auswahl': user.openEndedResponses?.t1_strategy || '',
+      'Veränderung der Kompetenzüberzeugungen':
+        user.openEndedResponses?.t2_reflection || '',
+      'Erste Abgabe': user.firstSubmissionTime
         ? new Date(user.firstSubmissionTime).toLocaleString()
         : '',
-      'Latest Submission': user.latestSubmissionTime
+      'Letzte Abgabe': user.latestSubmissionTime
         ? new Date(user.latestSubmissionTime).toLocaleString()
         : '',
       ...questionIds.reduce((acc, questionId) => {

@@ -924,7 +924,9 @@ async function showResults() {
 // Assign showResults to window after its definition
 window.showResults = showResults
 
-// Function to handle T1 open-ended response submission
+/**
+ * Function to handle T1 open-ended response submission
+ */
 function submitT1OpenEndedResponse(event) {
   event.preventDefault()
   const openEndedResponse = document
@@ -936,15 +938,13 @@ function submitT1OpenEndedResponse(event) {
   }
 
   const userId = sessionStorage.getItem('userId')
-  const attemptNumber =
-    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
   fetch('/api/save-open-ended-response', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       userId: userId,
-      attemptNumber: attemptNumber,
+      key: 't1_strategy',
       response: openEndedResponse,
     }),
   })
@@ -966,7 +966,9 @@ function submitT1OpenEndedResponse(event) {
     })
 }
 
-// Function to handle T2 open-ended response submission
+/**
+ * Function to handle T2 open-ended response submission
+ */
 function submitT2OpenEndedResponse(event) {
   event.preventDefault()
   const openEndedResponse = document
@@ -978,15 +980,13 @@ function submitT2OpenEndedResponse(event) {
   }
 
   const userId = sessionStorage.getItem('userId')
-  const attemptNumber =
-    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
   fetch('/api/save-open-ended-response', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       userId: userId,
-      attemptNumber: attemptNumber,
+      key: 't2_reflection',
       response: openEndedResponse,
     }),
   })

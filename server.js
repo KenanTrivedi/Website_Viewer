@@ -587,15 +587,15 @@ app.listen(PORT, () => {
 
 /**
  * @route   POST /api/save-open-ended-response
- * @desc    Save user's open-ended responses
+ * @desc    Save user's open-ended responses with specific keys
  * @access  Public
  */
 app.post("/api/save-open-ended-response", async (req, res) => {
-  const { userId, attemptNumber, response } = req.body;
+  const { userId, key, response } = req.body;
 
-  if (!userId || !response || !attemptNumber) {
+  if (!userId || !response || !key) {
     return res.status(400).json({
-      message: "Missing userId, response, or attemptNumber in request body.",
+      message: "Missing userId, response, or key in request body.",
     });
   }
 
@@ -609,7 +609,7 @@ app.post("/api/save-open-ended-response", async (req, res) => {
       userData.openEndedResponses = {};
     }
 
-    userData.openEndedResponses[`attempt${attemptNumber}`] = response;
+    userData.openEndedResponses[key] = response;
     await userData.save();
 
     res
