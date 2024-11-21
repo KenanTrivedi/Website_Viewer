@@ -255,7 +255,7 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
     tr.appendChild(createCell(user.courses.join(', ') || '')) // Kurse
 
     tr.appendChild(
-      createCell(user.openEndedResponses?.t2_course_feedback || '')
+      createCell(user.openEndedResponses?.['attempt2_course_feedback'] || '')
     )
 
     tr.appendChild(createCell(user.openEndedResponses?.t1_strategy || '')) // Strategie bei der Auswahl

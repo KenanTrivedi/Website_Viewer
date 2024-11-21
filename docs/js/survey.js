@@ -522,7 +522,7 @@ function renderDatenschutzSection() {
             <span>Ich stimme der Datenschutzerklärung zu.</span>
           </label>
         </div>
-        <button id="submitFinal" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Hier gelangst du zu deiner individuellen Diagnostik</button>
+        <button id="submitFinal" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 15px 30px; cursor: pointer; border-radius: 5px; font-size: 18px; display: block; margin: 20px auto;">Hier gelangst du zu deiner individuellen Diagnostik</button>
       </div>
     </div>
   `
@@ -764,16 +764,26 @@ function createCompetencyChart1(initialScores, updatedScores) {
             )
           }
         } else {
-          currentHoveredIndex = -1
-          descriptionBox.innerHTML = ''
-          descriptionBox.style.backgroundColor = ''
-          descriptionBox.style.border = ''
+          // Do not clear the description box when not hovering
         }
       },
     },
   })
 
   chart1Instance.update()
+
+  // Initialize the description box with the first competency
+  if (fullLabels.length > 0) {
+    const firstCompetency = fullLabels[0]
+    updateDescriptionBox(
+      descriptionBox,
+      firstCompetency,
+      competencyDescriptions[firstCompetency]
+    )
+  }
+
+  // Fix the size of the description box
+  descriptionBox.style.minHeight = '150px' // Adjust as needed
 }
 
 /**
@@ -854,9 +864,11 @@ async function showResults() {
         <canvas id="competencyChart1"></canvas>
       </div>
       <div id="descriptionBox1"></div>
-      <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px;">Diagramm herunterladen</button>
-      <hr>
-    `
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
+    <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 15px 30px; cursor: pointer; border-radius: 5px; font-size: 18px;">Diagramm herunterladen</button>
+  </div>
+  <hr>
+`
 
     if (attemptNumber === 1) {
       // T1 specific content
