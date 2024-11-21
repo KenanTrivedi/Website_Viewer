@@ -1,3 +1,5 @@
+// survey-data.js
+
 const surveyData = [
   {
     title: 'Persönliche Angaben',

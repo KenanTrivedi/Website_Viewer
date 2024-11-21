@@ -256,19 +256,28 @@ function previousSection() {
   }
 }
 
-function loadUserData(isNewAttempt = false) {
+async function loadUserData(isNewAttempt = false) {
   const userId = sessionStorage.getItem('userId')
   if (userId) {
-    fetch(`/api/user-data/${userId}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('User data not found')
-        }
-        return response.json()
-      })
-      .then((data) => {
+    try {
+      const response = await fetch(`/api/user-data/${userId}`)
+      if (response.status === 404) {
+        // User data not found, initialize userData
+        console.log('User data not found, initializing new user data.')
+        userData = {}
+        currentSection = 0
+        initialScores = {}
+        updatedScores = {}
+        // No need to renderSection here because we'll do it after the try/catch
+      } else if (!response.ok) {
+        throw new Error('Error fetching user data')
+      } else {
+        const data = await response.json()
         console.log('Loaded user data:', data)
+
+        // Store attemptNumber in sessionStorage
         sessionStorage.setItem('attemptNumber', data.attemptNumber || '1')
+
         if (data.data) {
           if (isNewAttempt) {
             // Keep only personal information for new attempts
@@ -289,21 +298,21 @@ function loadUserData(isNewAttempt = false) {
           initialScores = data.initialScores || {}
           console.log('Processed user data:', userData)
         } else {
-          // No data found, start from the first section
+          // No data found in the response, initialize userData
           userData = {}
           currentSection = 0
         }
-        renderSection(currentSection)
-        updateProgressBar()
-        // Clear 'startNewAttempt' after handling
-        sessionStorage.removeItem('startNewAttempt')
-      })
-      .catch((error) => {
-        console.error('Error loading user data:', error)
-        resetUserData()
-        renderSection(currentSection)
-        updateProgressBar()
-      })
+      }
+      renderSection(currentSection)
+      updateProgressBar()
+      // Clear 'startNewAttempt' after handling
+      sessionStorage.removeItem('startNewAttempt')
+    } catch (error) {
+      console.error('Error loading user data:', error)
+      resetUserData()
+      renderSection(currentSection)
+      updateProgressBar()
+    }
   } else {
     resetUserData()
     renderSection(currentSection)

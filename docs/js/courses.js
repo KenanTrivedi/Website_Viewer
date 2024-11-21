@@ -1,3 +1,5 @@
+// courses.js
+
 // Define competencies array
 const competencies = [
   // General Competencies

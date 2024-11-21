@@ -1,3 +1,5 @@
+// dashboard.js
+
 // Global variables
 let users = []
 let questionIds = [
@@ -199,14 +201,15 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
   ]
 
   thead.innerHTML = `
-    <th><input type="checkbox" id="selectAll"></th>
-    <th>User Code</th>
-    <th>Gender</th>
-    <th class="sortable" data-field="birthYear">Birth Year <span class="sort-icon">↕️</span></th>
-    <th>Lehramt</th>
-    <th>Fächer</th>
-    <th class="sortable" data-field="firstSubmission">First Submission <span class="sort-icon">↕️</span></th>
-    <th class="sortable" data-field="latestSubmission">Latest Submission <span class="sort-icon">↕️</span></th>
+  <th><input type="checkbox" id="selectAll"></th>
+  <th>User Code</th>
+  <th>Geschlecht</th>
+  <th class="sortable" data-field="birthYear">Geburtsjahr <span class="sort-icon">↕️</span></th>
+  <th>Lehramt</th>
+  <th>Fächer</th>
+  <th>Kurse</th>
+  <th class="sortable" data-field="firstSubmission">Erste Abgabe <span class="sort-icon">↕️</span></th>
+  <th class="sortable" data-field="latestSubmission">Letzte Abgabe <span class="sort-icon">↕️</span></th>
     ${sortableColumns
       .filter((col) => col.startsWith('q'))
       .map(
@@ -246,6 +249,7 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
     tr.appendChild(createCell(user.birthYear || ''))
     tr.appendChild(createCell(user.data?.responses?.q0_2 || ''))
     tr.appendChild(createCell(user.data?.responses?.q0_3 || ''))
+    tr.appendChild(createCell(user.courses.join(', ') || ''))
     tr.appendChild(
       createCell(
         user.firstSubmissionTime
