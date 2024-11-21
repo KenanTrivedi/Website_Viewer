@@ -443,6 +443,7 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
           updatedResponses: user.updatedResponses || {},
           datenschutzConsent: user.datenschutzConsent, // Include Consent
           unterschrift: user.unterschrift || "", // Include Signature
+          openEndedResponses: user.openEndedResponses || {},
         };
       })
     );
@@ -593,11 +594,9 @@ app.post("/api/save-open-ended-response", async (req, res) => {
   const { userId, attemptNumber, response } = req.body;
 
   if (!userId || !response || !attemptNumber) {
-    return res
-      .status(400)
-      .json({
-        message: "Missing userId, response, or attemptNumber in request body.",
-      });
+    return res.status(400).json({
+      message: "Missing userId, response, or attemptNumber in request body.",
+    });
   }
 
   try {
@@ -618,11 +617,9 @@ app.post("/api/save-open-ended-response", async (req, res) => {
       .json({ message: "Open-ended response saved successfully." });
   } catch (err) {
     console.error("Error saving open-ended response:", err);
-    res
-      .status(500)
-      .json({
-        message: "Error saving open-ended response",
-        details: err.message,
-      });
+    res.status(500).json({
+      message: "Error saving open-ended response",
+      details: err.message,
+    });
   }
 });

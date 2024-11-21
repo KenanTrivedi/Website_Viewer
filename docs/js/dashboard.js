@@ -208,6 +208,7 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
   <th>Lehramt</th>
   <th>Fächer</th>
   <th>Kurse</th>
+  <th>Feedback zu Kursen</th>
   <th class="sortable" data-field="firstSubmission">Erste Abgabe <span class="sort-icon">↕️</span></th>
   <th class="sortable" data-field="latestSubmission">Letzte Abgabe <span class="sort-icon">↕️</span></th>
     ${sortableColumns
@@ -250,6 +251,9 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
     tr.appendChild(createCell(user.data?.responses?.q0_2 || ''))
     tr.appendChild(createCell(user.data?.responses?.q0_3 || ''))
     tr.appendChild(createCell(user.courses.join(', ') || ''))
+    tr.appendChild(
+      createCell(user.openEndedResponses?.attempt2_course_feedback || '')
+    )
     tr.appendChild(
       createCell(
         user.firstSubmissionTime
@@ -523,6 +527,9 @@ function exportToExcel(data) {
       'Birth Year': user.birthYear,
       Lehramt: user.data?.responses?.q0_2 || '',
       Fächer: user.data?.responses?.q0_3 || '',
+      Kurse: user.courses.join(', ') || '',
+      'Feedback zu Kursen':
+        user.openEndedResponses?.attempt2_course_feedback || '',
       'First Submission': user.firstSubmissionTime
         ? new Date(user.firstSubmissionTime).toLocaleString()
         : '',
