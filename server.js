@@ -246,6 +246,8 @@ app.post("/api/save-user-data", async (req, res) => {
     datenschutzConsent,
     unterschrift,
     openEndedResponses,
+    initialScores,
+    updatedScores,
   } = req.body;
 
   if (!userId || !data) {
@@ -287,8 +289,8 @@ app.post("/api/save-user-data", async (req, res) => {
     userData.latestSubmissionTime = currentTime;
     userData.isComplete = isComplete;
 
-    // Update responses
-    if (isComplete) {
+    // Update scores and responses
+    if (isComplete || currentSection === surveyData.length) {
       if (
         !userData.initialScores ||
         Object.keys(userData.initialScores).length === 0
@@ -303,6 +305,15 @@ app.post("/api/save-user-data", async (req, res) => {
       }
     }
 
+    // Handle explicit score updates
+    if (initialScores) {
+      userData.initialScores = initialScores;
+    }
+    if (updatedScores) {
+      userData.updatedScores = updatedScores;
+    }
+
+    // Update consent and signature
     if (datenschutzConsent !== undefined) {
       userData.datenschutzConsent = datenschutzConsent;
     }
@@ -310,10 +321,8 @@ app.post("/api/save-user-data", async (req, res) => {
       userData.unterschrift = unterschrift;
     }
 
+    // Update open-ended responses
     if (openEndedResponses) {
-      if (!userData.openEndedResponses) {
-        userData.openEndedResponses = {};
-      }
       userData.openEndedResponses = {
         ...userData.openEndedResponses,
         ...openEndedResponses,
@@ -327,6 +336,7 @@ app.post("/api/save-user-data", async (req, res) => {
       initialScores: userData.initialScores,
       updatedScores: userData.updatedScores,
       isComplete: userData.isComplete,
+      openEndedResponses: userData.openEndedResponses,
     });
   } catch (err) {
     console.error("Error saving user data:", err);
@@ -444,6 +454,8 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
           datenschutzConsent: user.datenschutzConsent, // Include Consent
           unterschrift: user.unterschrift || "", // Include Signature
           openEndedResponses: user.openEndedResponses || {},
+          strategieAuswahl: user.openEndedResponses?.t1_strategy || "",
+          veraenderungKompetenz: user.openEndedResponses?.t2_reflection || "",
         };
       })
     );
@@ -600,7 +612,7 @@ app.post("/api/save-open-ended-response", async (req, res) => {
   }
 
   try {
-    const objectId = mongoose.Types.ObjectId(userId);
+    const objectId = new mongoose.Types.ObjectId(userId);
     let userData = await UserData.findOne({ userId: objectId });
     if (!userData) {
       return res.status(404).json({ message: "User data not found." });

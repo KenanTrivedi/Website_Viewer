@@ -187,11 +187,39 @@ function saveSectionData(isComplete = false) {
       dataToSend.unterschrift = unterschriftElement.value.trim()
     }
 
-    // Include open-ended responses
+    // Handle all open-ended responses
+    const openEndedResponses = {}
+
+    // T1 strategy response
+    const t1StrategyElement = document.getElementById('t1OpenEndedResponse')
+    if (t1StrategyElement && t1StrategyElement.value.trim()) {
+      openEndedResponses.t1_strategy = t1StrategyElement.value.trim()
+    }
+
+    // T2 course feedback
     if (attemptNumber > 1 && userData['t2_course_feedback']) {
-      dataToSend.openEndedResponses = {
-        [`attempt${attemptNumber}_course_feedback`]:
-          userData['t2_course_feedback'],
+      openEndedResponses[`attempt${attemptNumber}_course_feedback`] =
+        userData['t2_course_feedback']
+    }
+
+    // T2 reflection response
+    const t2ReflectionElement = document.getElementById('t2OpenEndedResponse')
+    if (t2ReflectionElement && t2ReflectionElement.value.trim()) {
+      openEndedResponses.t2_reflection = t2ReflectionElement.value.trim()
+    }
+
+    // Only include openEndedResponses if there are any
+    if (Object.keys(openEndedResponses).length > 0) {
+      dataToSend.openEndedResponses = openEndedResponses
+    }
+
+    // Make sure scores are saved for both attempts
+    if (isComplete || currentSection === surveyData.length) {
+      if (!sessionStorage.getItem('hasInitialScores')) {
+        dataToSend.initialScores = categoryScores
+        sessionStorage.setItem('hasInitialScores', 'true')
+      } else {
+        dataToSend.updatedScores = categoryScores
       }
     }
 
@@ -210,11 +238,22 @@ function saveSectionData(isComplete = false) {
       })
       .then((result) => {
         console.log('Data saved successfully:', result)
-        sessionStorage.setItem(
-          'updatedScores',
-          JSON.stringify(result.updatedScores)
-        )
-        updatedScores = result.updatedScores
+
+        // Store both initial and updated scores
+        if (result.initialScores) {
+          sessionStorage.setItem(
+            'initialScores',
+            JSON.stringify(result.initialScores)
+          )
+          initialScores = result.initialScores
+        }
+        if (result.updatedScores) {
+          sessionStorage.setItem(
+            'updatedScores',
+            JSON.stringify(result.updatedScores)
+          )
+          updatedScores = result.updatedScores
+        }
 
         if (isComplete) {
           showResults()
