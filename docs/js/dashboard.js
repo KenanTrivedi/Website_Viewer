@@ -71,6 +71,24 @@ const colorMap = {
   'Problemlösen und Handeln': '#E884C4', // Pink
   'Analysieren und Reflektieren': '#FFD473', // Yellow
 }
+function getInitialResponse(user, questionId) {
+  return user.initialResponses?.[questionId] || ''
+}
+
+function getLatestResponse(user, questionId) {
+  return user.updatedResponses?.[questionId] || ''
+}
+
+function escapeHtml(unsafe) {
+  if (unsafe === null || unsafe === undefined) return ''
+  return unsafe
+    .toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
 
 function getLighterColor(hexColor) {
   if (!hexColor || hexColor.length !== 7 || hexColor[0] !== '#') {
@@ -200,6 +218,7 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
     ),
   ]
 
+  // Generate table header
   thead.innerHTML = `
     <th><input type="checkbox" id="selectAll"></th>
     <th>User Code</th>
@@ -213,23 +232,36 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
     <th>Veränderung der Kompetenzüberzeugungen</th>
     <th class="sortable" data-field="firstSubmission">Erste Abgabe <span class="sort-icon">↕️</span></th>
     <th class="sortable" data-field="latestSubmission">Letzte Abgabe <span class="sort-icon">↕️</span></th>
-    ${sortableColumns
-      .filter((col) => col.startsWith('q'))
+    ${questionIds
+      .filter(
+        (id) =>
+          id.startsWith('q') &&
+          id !== 'q0_0' &&
+          id !== 'q0_1' &&
+          id !== 'q0_2' &&
+          id !== 'q0_3'
+      )
       .map(
-        (col) =>
-          `<th class="sortable" data-field="${col}">${col} <span class="sort-icon">↕️</span></th>`
+        (id) => `
+        <th class="sortable" data-field="${id}_t1">${id}_t1 <span class="sort-icon">↕️</span></th>
+        <th class="sortable" data-field="${id}_t2">${id}_t2 <span class="sort-icon">↕️</span></th>
+      `
       )
       .join('')}
   `
 
   updateSortIcons()
 
+  // Clear and prepare tbody
   tbody.innerHTML = ''
   const fragment = document.createDocumentFragment()
+
+  // Generate rows for each user
   usersToRender.forEach((user) => {
     const tr = document.createElement('tr')
 
-    const createCell = (content, isCheckbox = false, isChanged = false) => {
+    // Helper function to create cells with proper escaping
+    const createCell = (content, isCheckbox = false) => {
       const td = document.createElement('td')
       if (isCheckbox) {
         const checkbox = document.createElement('input')
@@ -239,28 +271,27 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
         td.appendChild(checkbox)
       } else {
         td.textContent = content
-        if (isChanged) {
-          td.classList.add('score-changed')
-        }
       }
       return td
     }
 
+    // Add basic user info cells
     tr.appendChild(createCell('', true)) // Checkbox
     tr.appendChild(createCell(user.userCode || ''))
     tr.appendChild(createCell(user.gender || ''))
     tr.appendChild(createCell(user.birthYear || ''))
     tr.appendChild(createCell(user.data?.responses?.q0_2 || '')) // Lehramt
     tr.appendChild(createCell(user.data?.responses?.q0_3 || '')) // Fächer
-    tr.appendChild(createCell(user.courses.join(', ') || '')) // Kurse
+    tr.appendChild(createCell(user.courses?.join(', ') || ''))
 
+    // Add feedback and responses
     tr.appendChild(
       createCell(user.openEndedResponses?.['attempt2_course_feedback'] || '')
     )
+    tr.appendChild(createCell(user.openEndedResponses?.t1_strategy || ''))
+    tr.appendChild(createCell(user.openEndedResponses?.t2_reflection || ''))
 
-    tr.appendChild(createCell(user.openEndedResponses?.t1_strategy || '')) // Strategie bei der Auswahl
-    tr.appendChild(createCell(user.openEndedResponses?.t2_reflection || '')) // Veränderung der Kompetenzüberzeugungen
-
+    // Add submission times
     tr.appendChild(
       createCell(
         user.firstSubmissionTime
@@ -276,40 +307,37 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
       )
     )
 
-    sortableColumns
-      .filter((col) => col.startsWith('q'))
-      .forEach((col) => {
-        const initialResponse = user.initialResponses?.[col]
-        const updatedResponse = user.updatedResponses?.[col]
+    // Add question responses (t1 and t2 for each question)
+    questionIds
+      .filter(
+        (id) =>
+          id.startsWith('q') &&
+          id !== 'q0_0' &&
+          id !== 'q0_1' &&
+          id !== 'q0_2' &&
+          id !== 'q0_3'
+      )
+      .forEach((id) => {
+        // Add t1 (initial) response
+        const initialResponse = user.initialResponses?.[id]
+        tr.appendChild(createCell(initialResponse || ''))
 
-        let cellContent = ''
-
-        if (initialResponse !== undefined && updatedResponse !== undefined) {
-          if (initialResponse === updatedResponse) {
-            cellContent = initialResponse
-          } else {
-            cellContent = `${initialResponse} → ${updatedResponse}`
-          }
-        } else if (updatedResponse !== undefined) {
-          cellContent = updatedResponse
-        } else {
-          cellContent = ''
-        }
-
-        let isChanged = initialResponse !== updatedResponse
-        tr.appendChild(createCell(cellContent, false, isChanged))
+        // Add t2 (updated) response
+        const updatedResponse = user.updatedResponses?.[id]
+        tr.appendChild(createCell(updatedResponse || ''))
       })
 
     fragment.appendChild(tr)
   })
+
   tbody.appendChild(fragment)
 
-  // Attach event listeners after rendering
+  // Add event listeners
   document.querySelectorAll('.user-select').forEach((checkbox) => {
     checkbox.addEventListener('change', function () {
       const userId = this.dataset.id
       const user = users.find((u) => u.userId === userId)
-      if (this.checked) {
+      if (this.checked && user) {
         showUserDetails(user)
       }
     })
@@ -317,8 +345,7 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
 
   document
     .getElementById('selectAll')
-    .addEventListener('change', toggleSelectAll)
-
+    ?.addEventListener('change', toggleSelectAll)
   setupSortingListeners()
 }
 
@@ -510,73 +537,139 @@ function toggleSelectAll(event) {
   checkboxes.forEach((checkbox) => (checkbox.checked = event.target.checked))
 }
 
+function exportToExcel(data) {
+  try {
+    // Create headers first
+    const headers = {
+      // Basic information columns
+      'User Code': 'userCode',
+      Geschlecht: 'gender',
+      Geburtsjahr: 'birthYear',
+      Lehramt: 'lehramt',
+      Fächer: 'faecher',
+      Kurse: 'courses',
+      'Feedback zu Kursen': 'courseFeedback',
+      'Strategie bei der Auswahl': 'strategy',
+      'Veränderung der Kompetenzüberzeugungen': 'reflection',
+      'Erste Abgabe': 'firstSubmission',
+      'Letzte Abgabe': 'lastSubmission',
+    }
+
+    // Add question headers (t1 and t2 for each question)
+    questionIds
+      .filter(
+        (id) =>
+          id.startsWith('q') &&
+          id !== 'q0_0' &&
+          id !== 'q0_1' &&
+          id !== 'q0_2' &&
+          id !== 'q0_3'
+      )
+      .forEach((id) => {
+        headers[`${id}_t1`] = `${id}_t1`
+        headers[`${id}_t2`] = `${id}_t2`
+      })
+
+    // Transform data for export
+    const exportData = data.map((user) => {
+      // Start with basic user information
+      const rowData = {
+        'User Code': user.userCode || '',
+        Geschlecht: user.gender || '',
+        Geburtsjahr: user.birthYear || '',
+        Lehramt: user.data?.responses?.q0_2 || '',
+        Fächer: user.data?.responses?.q0_3 || '',
+        Kurse: user.courses?.join(', ') || '',
+        'Feedback zu Kursen':
+          user.openEndedResponses?.attempt2_course_feedback || '',
+        'Strategie bei der Auswahl': user.openEndedResponses?.t1_strategy || '',
+        'Veränderung der Kompetenzüberzeugungen':
+          user.openEndedResponses?.t2_reflection || '',
+        'Erste Abgabe': user.firstSubmissionTime
+          ? new Date(user.firstSubmissionTime).toLocaleString()
+          : '',
+        'Letzte Abgabe': user.latestSubmissionTime
+          ? new Date(user.latestSubmissionTime).toLocaleString()
+          : '',
+      }
+
+      // Add question responses (t1 and t2)
+      questionIds
+        .filter(
+          (id) =>
+            id.startsWith('q') &&
+            id !== 'q0_0' &&
+            id !== 'q0_1' &&
+            id !== 'q0_2' &&
+            id !== 'q0_3'
+        )
+        .forEach((id) => {
+          // Add initial (t1) response
+          rowData[`${id}_t1`] = user.initialResponses?.[id] || ''
+
+          // Add updated (t2) response
+          rowData[`${id}_t2`] = user.updatedResponses?.[id] || ''
+        })
+
+      return rowData
+    })
+
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(exportData)
+
+    // Auto-size columns
+    const colWidths = Object.keys(headers).map((key) => ({
+      wch: Math.max(
+        key.length,
+        ...exportData.map((row) => String(row[key] || '').length),
+        20 // minimum width
+      ),
+    }))
+    worksheet['!cols'] = colWidths
+
+    // Add some styling
+    const range = XLSX.utils.decode_range(worksheet['!ref'])
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const address = XLSX.utils.encode_col(C) + '1'
+      if (!worksheet[address]) continue
+      worksheet[address].s = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: 'CCCCCC' } },
+      }
+    }
+
+    // Create workbook and append worksheet
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Survey Data')
+
+    // Generate filename with current date
+    const currentDate = new Date().toISOString().split('T')[0]
+    const filename = `survey_data_${currentDate}.xlsx`
+
+    // Write file
+    XLSX.writeFile(workbook, filename)
+
+    console.log('Excel export completed successfully')
+  } catch (error) {
+    console.error('Error during Excel export:', error)
+    alert('Fehler beim Exportieren der Daten. Bitte versuchen Sie es erneut.')
+  }
+}
+
+// Helper functions for export
 function exportSelected() {
   const selectedUsers = users.filter(
     (user) =>
       document.querySelector(`.user-select[data-id="${user.userId}"]`)?.checked
   )
 
-  let dataToExport = selectedUsers.filter(filterByDateRange)
-
+  const dataToExport = selectedUsers.filter(filterByDateRange)
   exportToExcel(dataToExport)
 }
 
 function exportAll() {
-  let dataToExport = users.filter(filterByDateRange)
+  const dataToExport = users.filter(filterByDateRange)
   exportToExcel(dataToExport)
-}
-
-function exportToExcel(data) {
-  const worksheet = XLSX.utils.json_to_sheet(
-    data.map((user) => ({
-      'User Code': user.userCode,
-      Geschlecht: user.gender,
-      Geburtsjahr: user.birthYear,
-      Lehramt: user.data?.responses?.q0_2 || '',
-      Fächer: user.data?.responses?.q0_3 || '',
-      Kurse: user.courses.join(', ') || '',
-      'Feedback zu Kursen': user.openEndedResponses?.t2_course_feedback || '',
-      'Strategie bei der Auswahl': user.openEndedResponses?.t1_strategy || '',
-      'Veränderung der Kompetenzüberzeugungen':
-        user.openEndedResponses?.t2_reflection || '',
-      'Erste Abgabe': user.firstSubmissionTime
-        ? new Date(user.firstSubmissionTime).toLocaleString()
-        : '',
-      'Letzte Abgabe': user.latestSubmissionTime
-        ? new Date(user.latestSubmissionTime).toLocaleString()
-        : '',
-      ...questionIds.reduce((acc, questionId) => {
-        if (
-          questionId !== 'q0_0' &&
-          questionId !== 'q0_1' &&
-          questionId !== 'q0_2' &&
-          questionId !== 'q0_3'
-        ) {
-          const initialResponse = user.initialResponses?.[questionId]
-          const updatedResponse = user.updatedResponses?.[questionId]
-          let cellContent = ''
-
-          if (initialResponse !== undefined && updatedResponse !== undefined) {
-            if (initialResponse === updatedResponse) {
-              cellContent = initialResponse
-            } else {
-              cellContent = `${initialResponse} → ${updatedResponse}`
-            }
-          } else if (updatedResponse !== undefined) {
-            cellContent = updatedResponse
-          } else {
-            cellContent = ''
-          }
-
-          acc[questionId] = cellContent
-        }
-        return acc
-      }, {}),
-    }))
-  )
-  const workbook = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Users')
-  XLSX.writeFile(workbook, 'survey_data.xlsx')
 }
 
 function toggleVisualizationSidebar() {
