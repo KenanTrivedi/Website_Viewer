@@ -600,7 +600,8 @@ app.post("/api/save-open-ended-response", async (req, res) => {
   }
 
   try {
-    let userData = await UserData.findOne({ userId });
+    const objectId = mongoose.Types.ObjectId(userId);
+    let userData = await UserData.findOne({ userId: objectId });
     if (!userData) {
       return res.status(404).json({ message: "User data not found." });
     }
