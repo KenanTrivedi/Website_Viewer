@@ -157,115 +157,135 @@ function saveSectionData(isComplete = false) {
 
   const formData = new FormData(document.getElementById('surveyForm'))
   for (let [key, value] of formData.entries()) {
-    userData[key] = value // Update userData object
+    userData[key] = value
   }
 
   const userId = sessionStorage.getItem('userId')
-  if (userId) {
-    const categoryScores = calculateCategoryScores(userData)
-    const attemptNumber =
-      parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
+  if (!userId) {
+    console.error('No userId found in sessionStorage')
+    alert('Bitte melden Sie sich erneut an.')
+    window.location.href = 'login.html'
+    return
+  }
 
-    const dataToSend = {
-      userId: userId,
-      data: userData,
-      isComplete: isComplete,
-      categoryScores: categoryScores,
-      currentSection: currentSection,
+  const attemptNumber =
+    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
+  const categoryScores = calculateCategoryScores(userData)
+
+  const dataToSend = {
+    userId: userId,
+    data: userData,
+    isComplete: isComplete,
+    categoryScores: categoryScores,
+    currentSection: currentSection,
+    isPersonalInfo: currentSection === 0,
+  }
+
+  // Handle personal info section specially
+  if (currentSection === 0) {
+    dataToSend.personalInfo = {
+      q0_0: userData.q0_0,
+      q0_1: userData.q0_1,
+      q0_2: userData.q0_2,
+      q0_3: userData.q0_3,
     }
+  }
 
-    // Include datenschutzConsent and unterschrift if they exist
-    const datenschutzConsentElement =
-      document.getElementById('datenschutzConsent')
-    const unterschriftElement = document.getElementById('unterschrift')
+  // Handle datenschutz and signature
+  const datenschutzConsentElement =
+    document.getElementById('datenschutzConsent')
+  const unterschriftElement = document.getElementById('unterschrift')
 
-    if (datenschutzConsentElement) {
-      dataToSend.datenschutzConsent = datenschutzConsentElement.checked
+  if (datenschutzConsentElement) {
+    dataToSend.datenschutzConsent = datenschutzConsentElement.checked
+  }
+
+  if (unterschriftElement) {
+    dataToSend.unterschrift = unterschriftElement.value.trim()
+  }
+
+  // Handle all open-ended responses
+  const openEndedResponses = {}
+
+  // T1 strategy response
+  const t1StrategyElement = document.getElementById('t1OpenEndedResponse')
+  if (t1StrategyElement && t1StrategyElement.value.trim()) {
+    openEndedResponses.t1_strategy = t1StrategyElement.value.trim()
+  }
+
+  // T2 course feedback
+  if (attemptNumber > 1 && userData['t2_course_feedback']) {
+    openEndedResponses[`attempt${attemptNumber}_course_feedback`] =
+      userData['t2_course_feedback']
+  }
+
+  // T2 reflection response
+  const t2ReflectionElement = document.getElementById('t2OpenEndedResponse')
+  if (t2ReflectionElement && t2ReflectionElement.value.trim()) {
+    openEndedResponses.t2_reflection = t2ReflectionElement.value.trim()
+  }
+
+  if (Object.keys(openEndedResponses).length > 0) {
+    dataToSend.openEndedResponses = openEndedResponses
+  }
+
+  // Handle scores
+  if (isComplete || currentSection === surveyData.length) {
+    if (!sessionStorage.getItem('hasInitialScores')) {
+      dataToSend.initialScores = categoryScores
+      sessionStorage.setItem('hasInitialScores', 'true')
+    } else {
+      dataToSend.updatedScores = categoryScores
     }
+  }
 
-    if (unterschriftElement) {
-      dataToSend.unterschrift = unterschriftElement.value.trim()
-    }
-
-    // Handle all open-ended responses
-    const openEndedResponses = {}
-
-    // T1 strategy response
-    const t1StrategyElement = document.getElementById('t1OpenEndedResponse')
-    if (t1StrategyElement && t1StrategyElement.value.trim()) {
-      openEndedResponses.t1_strategy = t1StrategyElement.value.trim()
-    }
-
-    // T2 course feedback
-    if (attemptNumber > 1 && userData['t2_course_feedback']) {
-      openEndedResponses[`attempt${attemptNumber}_course_feedback`] =
-        userData['t2_course_feedback']
-    }
-
-    // T2 reflection response
-    const t2ReflectionElement = document.getElementById('t2OpenEndedResponse')
-    if (t2ReflectionElement && t2ReflectionElement.value.trim()) {
-      openEndedResponses.t2_reflection = t2ReflectionElement.value.trim()
-    }
-
-    // Only include openEndedResponses if there are any
-    if (Object.keys(openEndedResponses).length > 0) {
-      dataToSend.openEndedResponses = openEndedResponses
-    }
-
-    // Make sure scores are saved for both attempts
-    if (isComplete || currentSection === surveyData.length) {
-      if (!sessionStorage.getItem('hasInitialScores')) {
-        dataToSend.initialScores = categoryScores
-        sessionStorage.setItem('hasInitialScores', 'true')
-      } else {
-        dataToSend.updatedScores = categoryScores
+  fetch('/api/save-user-data', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(dataToSend),
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(
+          errorData.message || `Server responded with status ${response.status}`
+        )
       }
-    }
-
-    fetch('/api/save-user-data', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(dataToSend),
+      return response.json()
     })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Server responded with status ${response.status}`)
-        }
-        return response.json()
-      })
-      .then((result) => {
-        console.log('Data saved successfully:', result)
+    .then((result) => {
+      console.log('Data saved successfully:', result)
 
-        // Store both initial and updated scores
-        if (result.initialScores) {
-          sessionStorage.setItem(
-            'initialScores',
-            JSON.stringify(result.initialScores)
-          )
-          initialScores = result.initialScores
-        }
-        if (result.updatedScores) {
-          sessionStorage.setItem(
-            'updatedScores',
-            JSON.stringify(result.updatedScores)
-          )
-          updatedScores = result.updatedScores
-        }
+      if (result.initialScores) {
+        sessionStorage.setItem(
+          'initialScores',
+          JSON.stringify(result.initialScores)
+        )
+        initialScores = result.initialScores
+      }
+      if (result.updatedScores) {
+        sessionStorage.setItem(
+          'updatedScores',
+          JSON.stringify(result.updatedScores)
+        )
+        updatedScores = result.updatedScores
+      }
 
-        if (isComplete) {
-          showResults()
-        }
-      })
-      .catch((error) => {
-        console.error('Error saving data:', error)
+      if (isComplete) {
+        showResults()
+      }
+    })
+    .catch((error) => {
+      console.error('Error saving data:', error)
+      // Don't show error alert for initial save of personal info section
+      if (currentSection !== 0 || isComplete) {
         alert(
           'Es gab einen Fehler beim Speichern Ihrer Daten. Bitte versuchen Sie es erneut.'
         )
-      })
-  }
+      }
+    })
 }
 
 function nextSection() {

@@ -248,12 +248,15 @@ app.post("/api/save-user-data", async (req, res) => {
     openEndedResponses,
     initialScores,
     updatedScores,
+    personalInfo,
+    isPersonalInfo,
   } = req.body;
 
-  if (!userId || !data) {
-    return res
-      .status(400)
-      .json({ message: "Missing userId or data in request body." });
+  if (!userId) {
+    return res.status(400).json({
+      message: "Missing userId in request body.",
+      success: false,
+    });
   }
 
   try {
@@ -263,8 +266,8 @@ app.post("/api/save-user-data", async (req, res) => {
     if (!userData) {
       userData = new UserData({
         userId,
-        data: {},
-        courses: data.courses ? [data.courses] : [],
+        data: isPersonalInfo ? personalInfo : {},
+        courses: [],
         isComplete: false,
         firstSubmissionTime: currentTime,
         latestSubmissionTime: currentTime,
@@ -272,7 +275,7 @@ app.post("/api/save-user-data", async (req, res) => {
         updatedScores: {},
         initialResponses: {},
         updatedResponses: {},
-        currentSection: currentSection || 0,
+        currentSection: 0,
         datenschutzConsent: false,
         unterschrift: "",
         attemptNumber: 1,
@@ -280,26 +283,36 @@ app.post("/api/save-user-data", async (req, res) => {
       });
     }
 
-    // Update data
-    userData.data = { ...userData.data, ...data };
+    // Handle data updates based on section
+    if (isPersonalInfo && personalInfo) {
+      // For personal info section, only update specific fields
+      userData.data = {
+        ...userData.data,
+        ...personalInfo,
+      };
+    } else if (data) {
+      // For other sections, update all data
+      userData.data = {
+        ...userData.data,
+        ...data,
+      };
+    }
+
+    // Update metadata
     userData.currentSection =
-      currentSection !== undefined
-        ? currentSection
-        : userData.currentSection || 0;
+      currentSection !== undefined ? currentSection : userData.currentSection;
     userData.latestSubmissionTime = currentTime;
     userData.isComplete = isComplete;
 
-    // Update scores and responses
+    // Handle scores and responses
     if (isComplete || currentSection === surveyData.length) {
       if (
         !userData.initialScores ||
         Object.keys(userData.initialScores).length === 0
       ) {
-        // First complete survey attempt
         userData.initialScores = categoryScores;
         userData.initialResponses = data;
       } else {
-        // Subsequent complete survey attempts
         userData.updatedScores = categoryScores;
         userData.updatedResponses = data;
       }
@@ -333,6 +346,7 @@ app.post("/api/save-user-data", async (req, res) => {
 
     res.status(200).json({
       message: "User data saved successfully.",
+      success: true,
       initialScores: userData.initialScores,
       updatedScores: userData.updatedScores,
       isComplete: userData.isComplete,
@@ -340,9 +354,11 @@ app.post("/api/save-user-data", async (req, res) => {
     });
   } catch (err) {
     console.error("Error saving user data:", err);
-    res
-      .status(500)
-      .json({ message: "Error saving user data", details: err.message });
+    res.status(500).json({
+      message: "Error saving user data",
+      details: err.message,
+      success: false,
+    });
   }
 });
 
