@@ -218,6 +218,11 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
     ),
   ]
 
+  // Calculate max attempt number across all users
+  const maxAttemptNumber = Math.max(
+    ...usersToRender.map((u) => u.attemptNumber || 1)
+  )
+
   // Generate table header
   thead.innerHTML = `
     <th><input type="checkbox" id="selectAll"></th>
@@ -230,6 +235,7 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
     <th>Feedback zu Kursen</th>
     <th>Strategie bei der Auswahl</th>
     <th>Veränderung der Kompetenzüberzeugungen</th>
+    <th>Attempt Number</th>
     <th class="sortable" data-field="firstSubmission">Erste Abgabe <span class="sort-icon">↕️</span></th>
     <th class="sortable" data-field="latestSubmission">Letzte Abgabe <span class="sort-icon">↕️</span></th>
     ${questionIds
@@ -243,8 +249,8 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
       )
       .map(
         (id) => `
-        <th class="sortable" data-field="${id}_t1">${id}_t1 <span class="sort-icon">↕️</span></th>
-        <th class="sortable" data-field="${id}_t2">${id}_t2 <span class="sort-icon">↕️</span></th>
+        <th class="sortable" data-field="${id}_t1">${id} (T1) <span class="sort-icon">↕️</span></th>
+        <th class="sortable" data-field="${id}_latest">${id} (T${maxAttemptNumber}) <span class="sort-icon">↕️</span></th>
       `
       )
       .join('')}
@@ -291,6 +297,9 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
     tr.appendChild(createCell(user.openEndedResponses?.t1_strategy || ''))
     tr.appendChild(createCell(user.openEndedResponses?.t2_reflection || ''))
 
+    // Add attempt number
+    tr.appendChild(createCell(user.attemptNumber || 1))
+
     // Add submission times
     tr.appendChild(
       createCell(
@@ -307,7 +316,7 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
       )
     )
 
-    // Add question responses (t1 and t2 for each question)
+    // Add question responses (T1 and current attempt)
     questionIds
       .filter(
         (id) =>
@@ -318,13 +327,17 @@ function renderTable(usersToRender = getUsersForCurrentPage()) {
           id !== 'q0_3'
       )
       .forEach((id) => {
-        // Add t1 (initial) response
+        // Add T1 (initial) response
         const initialResponse = user.initialResponses?.[id]
-        tr.appendChild(createCell(initialResponse || ''))
+        const initialCell = createCell(initialResponse || '')
+        initialCell.title = 'T1'
+        tr.appendChild(initialCell)
 
-        // Add t2 (updated) response
-        const updatedResponse = user.updatedResponses?.[id]
-        tr.appendChild(createCell(updatedResponse || ''))
+        // Add current attempt response
+        const latestResponse = user.updatedResponses?.[id]
+        const latestCell = createCell(latestResponse || '')
+        latestCell.title = `T${user.attemptNumber || 1}`
+        tr.appendChild(latestCell)
       })
 
     fragment.appendChild(tr)
@@ -389,36 +402,50 @@ function sortUsers() {
   if (currentSort.field) {
     users.sort((a, b) => {
       let valueA, valueB
-      switch (currentSort.field) {
-        case 'birthYear':
-          valueA = parseInt(a.birthYear) || 0
-          valueB = parseInt(b.birthYear) || 0
-          break
-        case 'firstSubmission':
-          valueA = a.firstSubmissionTime
-            ? new Date(a.firstSubmissionTime).getTime()
-            : 0
-          valueB = b.firstSubmissionTime
-            ? new Date(b.firstSubmissionTime).getTime()
-            : 0
-          break
-        case 'latestSubmission':
-          valueA = a.latestSubmissionTime
-            ? new Date(a.latestSubmissionTime).getTime()
-            : 0
-          valueB = b.latestSubmissionTime
-            ? new Date(b.latestSubmissionTime).getTime()
-            : 0
-          break
-        default:
-          // For question columns, sort based on updated responses
-          valueA = parseFloat(a.updatedResponses?.[currentSort.field]) || 0
-          valueB = parseFloat(b.updatedResponses?.[currentSort.field]) || 0
+
+      // Check if this is a t1/latest field
+      if (currentSort.field.endsWith('_t1')) {
+        const baseField = currentSort.field.replace('_t1', '')
+        valueA = parseFloat(a.initialResponses?.[baseField]) || 0
+        valueB = parseFloat(b.initialResponses?.[baseField]) || 0
+      } else if (currentSort.field.endsWith('_latest')) {
+        const baseField = currentSort.field.replace('_latest', '')
+        valueA = parseFloat(a.updatedResponses?.[baseField]) || 0
+        valueB = parseFloat(b.updatedResponses?.[baseField]) || 0
+      } else {
+        // Handle other fields as before
+        switch (currentSort.field) {
+          case 'birthYear':
+            valueA = parseInt(a.birthYear) || 0
+            valueB = parseInt(b.birthYear) || 0
+            break
+          case 'firstSubmission':
+            valueA = a.firstSubmissionTime
+              ? new Date(a.firstSubmissionTime).getTime()
+              : 0
+            valueB = b.firstSubmissionTime
+              ? new Date(b.firstSubmissionTime).getTime()
+              : 0
+            break
+          case 'latestSubmission':
+            valueA = a.latestSubmissionTime
+              ? new Date(a.latestSubmissionTime).getTime()
+              : 0
+            valueB = b.latestSubmissionTime
+              ? new Date(b.latestSubmissionTime).getTime()
+              : 0
+            break
+          default:
+            valueA = 0
+            valueB = 0
+        }
       }
+
       if (valueA < valueB) return currentSort.ascending ? -1 : 1
       if (valueA > valueB) return currentSort.ascending ? 1 : -1
       return 0
     })
+
     currentPage = 1
     renderTable()
     updatePagination()
@@ -449,13 +476,11 @@ function updateVisualization() {
   }
 
   const canvas = document.getElementById('userChart')
-
   if (chart) {
     chart.destroy()
   }
 
   const ctx = canvas.getContext('2d')
-
   const fullLabels = Object.keys(currentUser.initialScores)
   const labels = fullLabels.map((key) => labelMap[key] || key)
   const initialData = fullLabels.map(
@@ -471,7 +496,7 @@ function updateVisualization() {
       labels: labels,
       datasets: [
         {
-          label: 'Initial Score',
+          label: 'T1 Score',
           data: initialData,
           backgroundColor: fullLabels.map((label) =>
             getLighterColor(colorMap[label] || '#999999')
@@ -480,7 +505,7 @@ function updateVisualization() {
           borderWidth: 1,
         },
         {
-          label: 'Updated Score',
+          label: `T${currentUser.attemptNumber || 1} Score`,
           data: updatedData,
           backgroundColor: fullLabels.map(
             (label) => colorMap[label] || '#999999'
@@ -514,7 +539,9 @@ function updateVisualization() {
         legend: { display: true },
         title: {
           display: true,
-          text: `Scores for User: ${currentUser.userCode}`,
+          text: `Scores for User: ${currentUser.userCode} (Attempt ${
+            currentUser.attemptNumber || 1
+          })`,
         },
         tooltip: {
           enabled: true,
@@ -539,10 +566,12 @@ function toggleSelectAll(event) {
 
 function exportToExcel(data) {
   try {
-    // Create headers first
+    const maxAttemptNumber = Math.max(...data.map((u) => u.attemptNumber || 1))
+
+    // Create base headers
     const headers = {
-      // Basic information columns
       'User Code': 'userCode',
+      'Attempt Number': 'attemptNumber',
       Geschlecht: 'gender',
       Geburtsjahr: 'birthYear',
       Lehramt: 'lehramt',
@@ -555,33 +584,19 @@ function exportToExcel(data) {
       'Letzte Abgabe': 'lastSubmission',
     }
 
-    // Add question headers (t1 and t2 for each question)
-    questionIds
-      .filter(
-        (id) =>
-          id.startsWith('q') &&
-          id !== 'q0_0' &&
-          id !== 'q0_1' &&
-          id !== 'q0_2' &&
-          id !== 'q0_3'
-      )
-      .forEach((id) => {
-        headers[`${id}_t1`] = `${id}_t1`
-        headers[`${id}_t2`] = `${id}_t2`
-      })
-
     // Transform data for export
     const exportData = data.map((user) => {
-      // Start with basic user information
+      // Create base row data
       const rowData = {
         'User Code': user.userCode || '',
+        'Attempt Number': user.attemptNumber || 1,
         Geschlecht: user.gender || '',
         Geburtsjahr: user.birthYear || '',
         Lehramt: user.data?.responses?.q0_2 || '',
         Fächer: user.data?.responses?.q0_3 || '',
         Kurse: user.courses?.join(', ') || '',
         'Feedback zu Kursen':
-          user.openEndedResponses?.attempt2_course_feedback || '',
+          user.openEndedResponses?.['attempt2_course_feedback'] || '',
         'Strategie bei der Auswahl': user.openEndedResponses?.t1_strategy || '',
         'Veränderung der Kompetenzüberzeugungen':
           user.openEndedResponses?.t2_reflection || '',
@@ -593,7 +608,7 @@ function exportToExcel(data) {
           : '',
       }
 
-      // Add question responses (t1 and t2)
+      // Add question responses with dynamic headers based on each user's attempt number
       questionIds
         .filter(
           (id) =>
@@ -604,11 +619,19 @@ function exportToExcel(data) {
             id !== 'q0_3'
         )
         .forEach((id) => {
-          // Add initial (t1) response
-          rowData[`${id}_t1`] = user.initialResponses?.[id] || ''
+          // Add T1 column header and response if it doesn't exist
+          const t1Header = `${id} (T1)`
+          if (!headers[t1Header]) {
+            headers[t1Header] = `${id}_t1`
+          }
+          rowData[t1Header] = user.initialResponses?.[id] || ''
 
-          // Add updated (t2) response
-          rowData[`${id}_t2`] = user.updatedResponses?.[id] || ''
+          // Add latest attempt column header and response
+          const attemptHeader = `${id} (T${user.attemptNumber})`
+          if (!headers[attemptHeader]) {
+            headers[attemptHeader] = `${id}_latest`
+          }
+          rowData[attemptHeader] = user.updatedResponses?.[id] || ''
         })
 
       return rowData
@@ -627,7 +650,7 @@ function exportToExcel(data) {
     }))
     worksheet['!cols'] = colWidths
 
-    // Add some styling
+    // Add styling
     const range = XLSX.utils.decode_range(worksheet['!ref'])
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const address = XLSX.utils.encode_col(C) + '1'

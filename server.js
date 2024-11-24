@@ -447,7 +447,7 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
         const codeDoc = await Code.findOne({ _id: user.userId });
         const responses = user.data || {};
 
-        // Format question responses for both T1 and T2
+        // Format question responses for initial (T1) and latest attempt
         const formattedResponses = {};
         questionIds
           .filter(
@@ -460,7 +460,8 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
           )
           .forEach((id) => {
             formattedResponses[`${id}_t1`] = user.initialResponses?.[id] || "";
-            formattedResponses[`${id}_t2`] = user.updatedResponses?.[id] || "";
+            formattedResponses[`${id}_t${user.attemptNumber || 1}`] =
+              user.updatedResponses?.[id] || "";
           });
 
         return {
@@ -476,7 +477,7 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
             : "",
           data: {
             responses: responses,
-            formattedResponses: formattedResponses, // Add formatted responses
+            formattedResponses: formattedResponses,
           },
           isComplete: user.isComplete || false,
           courses: user.courses || [],
@@ -490,20 +491,19 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
           strategieAuswahl: user.openEndedResponses?.t1_strategy || "",
           veraenderungKompetenz: user.openEndedResponses?.t2_reflection || "",
           attemptNumber: user.attemptNumber || 1,
-          // Add question-specific response fields
           questionResponses: {
             t1: user.initialResponses || {},
-            t2: user.updatedResponses || {},
+            [`t${user.attemptNumber || 1}`]: user.updatedResponses || {},
           },
         };
       })
     );
 
-    // Add metadata about the response format
+    // Update response metadata to include attempt information
     const responseMetadata = {
       format: {
         t1: "Initial responses from first attempt",
-        t2: "Latest responses from subsequent attempts",
+        latest: "Responses from latest attempt (T2, T3, etc.)",
       },
       questionCount: questionIds.filter(
         (id) =>
@@ -539,14 +539,6 @@ app.get("*", (req, res) => {
 });
 
 // Helper Functions
-
-/**
- * @function calculateCategoryScores
- * @desc    Calculate category scores based on survey responses
- * @param   {Object} responses - User responses
- * @param   {Array} surveyData - Survey data structure
- * @returns {Object} - Category scores as percentages
- */
 /**
  * @function calculateCategoryScores
  * @desc    Calculate category scores based on survey responses for both T1 and T2
@@ -554,32 +546,30 @@ app.get("*", (req, res) => {
  * @param   {Array} surveyData - Survey data structure
  * @returns {Object} - Category scores as percentages for both T1 and T2
  */
+// Modified calculateCategoryScores function in server.js
 function calculateCategoryScores(responses, surveyData) {
+  // Create an object to store all attempts
   const categoryScores = {
-    t1: {}, // Scores for initial responses
-    t2: {}, // Scores for updated responses
+    t1: {}, // Initial responses
+    latest: {}, // Latest responses (t2, t3, etc.)
   };
 
   surveyData.forEach((section, sectionIndex) => {
-    // Skip personal information and conclusion sections
     if (
       section.title !== "Persönliche Angaben" &&
       section.title !== "Abschluss"
     ) {
-      // Initialize score tracking for this section
       let t1TotalScore = 0;
-      let t2TotalScore = 0;
+      let latestTotalScore = 0;
       let questionCount = 0;
 
-      // Process each question in the section
       section.questions.forEach((question, questionIndex) => {
         const questionId = `q${sectionIndex}_${questionIndex}`;
 
-        // Only process scale-type questions
         if (question.type === "scale") {
           questionCount++;
 
-          // Calculate T1 score
+          // Calculate T1 score (never changes)
           if (responses.initialResponses?.[questionId]) {
             const t1Score = parseInt(
               responses.initialResponses[questionId],
@@ -590,36 +580,31 @@ function calculateCategoryScores(responses, surveyData) {
             }
           }
 
-          // Calculate T2 score if it exists
+          // Calculate latest score
           if (responses.updatedResponses?.[questionId]) {
-            const t2Score = parseInt(
+            const latestScore = parseInt(
               responses.updatedResponses[questionId],
               10
             );
-            if (!isNaN(t2Score)) {
-              t2TotalScore += t2Score;
+            if (!isNaN(latestScore)) {
+              latestTotalScore += latestScore;
             }
           }
         }
       });
 
-      // Calculate percentages for this section
       if (questionCount > 0) {
-        const maxPossibleScore = questionCount * 6; // 6 is the maximum score per question
+        const maxPossibleScore = questionCount * 6;
 
-        // Calculate T1 percentage
+        // Calculate T1 percentage (never changes)
         categoryScores.t1[section.title] = Math.round(
           (t1TotalScore / maxPossibleScore) * 100
         );
 
-        // Calculate T2 percentage if there are updated responses
-        categoryScores.t2[section.title] = Math.round(
-          (t2TotalScore / maxPossibleScore) * 100
+        // Calculate latest percentage
+        categoryScores.latest[section.title] = Math.round(
+          (latestTotalScore / maxPossibleScore) * 100
         );
-      } else {
-        // Set default scores if no valid questions found
-        categoryScores.t1[section.title] = 0;
-        categoryScores.t2[section.title] = 0;
       }
     }
   });
@@ -633,14 +618,14 @@ function calculateCategoryScores(responses, surveyData) {
   };
 
   categoryScores.t1.overall = calculateOverallScore(categoryScores.t1);
-  categoryScores.t2.overall = calculateOverallScore(categoryScores.t2);
+  categoryScores.latest.overall = calculateOverallScore(categoryScores.latest);
 
-  // Add metadata
+  // Add metadata about current attempt number
   categoryScores.metadata = {
     maxScorePerQuestion: 6,
     scoreType: "percentage",
     t1Label: "Initial Assessment",
-    t2Label: "Follow-up Assessment",
+    latestLabel: `Attempt ${responses.attemptNumber || 1}`,
     categories: Object.keys(categoryScores.t1).filter(
       (key) => key !== "overall"
     ),
@@ -656,7 +641,7 @@ function calculateCategoryScores(responses, surveyData) {
 async function updateCSV() {
   const allUserData = await UserData.find().lean();
 
-  // Create headers for both T1 and T2 for each question
+  // Create headers including attempt number
   const csvWriter = createCsvWriter({
     path: "survey_data.csv",
     header: [
@@ -670,29 +655,23 @@ async function updateCSV() {
       { id: "courseFeedback", title: "Feedback zu Kursen" },
       { id: "strategy", title: "Strategie bei der Auswahl" },
       { id: "reflection", title: "Veränderung der Kompetenzüberzeugungen" },
-      // Create t1 and t2 columns for each question
+      { id: "attemptNumber", title: "Attempt Number" },
+      // Create t1 and latest attempt columns for each question
       ...surveyData
         .flatMap((section, sectionIndex) =>
           section.questions.flatMap((q, questionIndex) => {
-            // Skip personal info questions
-            if (sectionIndex === 0) return [];
+            if (sectionIndex === 0) return []; // Skip personal info questions
             const qId = `q${sectionIndex}_${questionIndex}`;
             return [
+              { id: `${qId}_t1`, title: `${qId} (T1)` },
               {
-                id: `${qId}_t1`,
-                title: `${qId} (T1)`,
-              },
-              {
-                id: `${qId}_t2`,
-                title: `${qId} (T2)`,
+                id: `${qId}_latest`,
+                title: `${qId} (T${allUserData.attemptNumber || 2})`,
               },
             ];
           })
         )
-        .filter((header) => header), // Remove empty entries
-      { id: "datum", title: "Datum" },
-      { id: "unterschrift", title: "Unterschrift" },
-      { id: "attemptNumber", title: "Attempt Number" },
+        .filter((header) => header),
     ],
   });
 
@@ -700,7 +679,6 @@ async function updateCSV() {
     allUserData.map(async (user) => {
       const codeDoc = await Code.findOne({ _id: user.userId });
 
-      // Create base record with user info
       const baseRecord = {
         userId: user.userId,
         userCode: codeDoc ? codeDoc.code : "Unknown",
@@ -716,25 +694,21 @@ async function updateCSV() {
         courseFeedback: user.openEndedResponses?.attempt2_course_feedback || "",
         strategy: user.openEndedResponses?.t1_strategy || "",
         reflection: user.openEndedResponses?.t2_reflection || "",
-        datum: user.datenschutzConsent
-          ? new Date().toISOString().split("T")[0]
-          : "",
-        unterschrift: user.unterschrift || "",
         attemptNumber: user.attemptNumber || 1,
       };
 
-      // Add question responses for both T1 and T2
+      // Add question responses for both T1 and latest attempt
       surveyData.forEach((section, sectionIndex) => {
         if (sectionIndex === 0) return; // Skip personal info section
 
         section.questions.forEach((question, questionIndex) => {
           const qId = `q${sectionIndex}_${questionIndex}`;
 
-          // Get T1 response from initialResponses
+          // Get T1 response from initialResponses (never changes)
           baseRecord[`${qId}_t1`] = user.initialResponses?.[qId] || "";
 
-          // Get T2 response from updatedResponses if it exists
-          baseRecord[`${qId}_t2`] = user.updatedResponses?.[qId] || "";
+          // Get latest response from updatedResponses
+          baseRecord[`${qId}_latest`] = user.updatedResponses?.[qId] || "";
         });
       });
 
@@ -745,13 +719,6 @@ async function updateCSV() {
   try {
     await csvWriter.writeRecords(records);
     console.log(`CSV file updated successfully with ${records.length} records`);
-
-    // Log some validation info
-    const questionCount = records[0]
-      ? Object.keys(records[0]).filter((key) => key.includes("_t")).length / 2
-      : 0;
-    console.log(`Total number of questions (T1+T2 pairs): ${questionCount}`);
-    console.log(`File saved to: ${process.cwd()}/survey_data.csv`);
   } catch (error) {
     console.error("Error updating CSV file:", error);
     throw new Error(`Failed to write CSV file: ${error.message}`);
