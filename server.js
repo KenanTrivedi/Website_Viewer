@@ -236,6 +236,8 @@ app.post("/login", async (req, res) => {
  * @desc    Save or update user survey data, including consent and signature
  * @access  Public
  */
+// In server.js, modify the /api/save-user-data endpoint
+
 app.post("/api/save-user-data", async (req, res) => {
   const {
     userId,
@@ -246,8 +248,6 @@ app.post("/api/save-user-data", async (req, res) => {
     datenschutzConsent,
     unterschrift,
     openEndedResponses,
-    initialScores,
-    updatedScores,
     personalInfo,
     isPersonalInfo,
   } = req.body;
@@ -304,26 +304,49 @@ app.post("/api/save-user-data", async (req, res) => {
     userData.latestSubmissionTime = currentTime;
     userData.isComplete = isComplete;
 
-    // Handle scores and responses
-    if (isComplete || currentSection === surveyData.length) {
+    // Handle scores and responses for completion
+    if (isComplete) {
       if (
         !userData.initialScores ||
         Object.keys(userData.initialScores).length === 0
       ) {
-        userData.initialScores = categoryScores;
-        userData.initialResponses = data;
-      } else {
-        userData.updatedScores = categoryScores;
-        userData.updatedResponses = data;
-      }
-    }
+        console.log("Setting initial scores and responses");
+        // First attempt (T1)
+        const calculatedScores = calculateCategoryScores(
+          {
+            initialResponses: data,
+            attemptNumber: 1,
+          },
+          surveyData
+        );
 
-    // Handle explicit score updates
-    if (initialScores) {
-      userData.initialScores = initialScores;
-    }
-    if (updatedScores) {
-      userData.updatedScores = updatedScores;
+        userData.initialScores = calculatedScores.t1;
+        userData.initialResponses = { ...data }; // Create a new copy
+        userData.updatedScores = {};
+        userData.updatedResponses = {};
+      } else {
+        console.log(
+          "Setting updated scores and responses",
+          userData.attemptNumber
+        );
+        // Subsequent attempts (T2, T3, etc.)
+        const calculatedScores = calculateCategoryScores(
+          {
+            initialResponses: userData.initialResponses,
+            updatedResponses: data,
+            attemptNumber: userData.attemptNumber,
+          },
+          surveyData
+        );
+
+        // Keep initial scores unchanged
+        userData.updatedScores = calculatedScores.latest;
+        userData.updatedResponses = { ...data }; // Create a new copy
+      }
+
+      console.log("Initial Scores:", userData.initialScores);
+      console.log("Updated Scores:", userData.updatedScores);
+      console.log("Attempt Number:", userData.attemptNumber);
     }
 
     // Update consent and signature
@@ -351,6 +374,7 @@ app.post("/api/save-user-data", async (req, res) => {
       updatedScores: userData.updatedScores,
       isComplete: userData.isComplete,
       openEndedResponses: userData.openEndedResponses,
+      attemptNumber: userData.attemptNumber,
     });
   } catch (err) {
     console.error("Error saving user data:", err);
@@ -436,6 +460,51 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
   try {
     const users = await UserData.find().lean();
 
+    // Define questionIds here
+    const questionIds = [
+      "q0_0",
+      "q0_1",
+      "q1_0",
+      "q1_1",
+      "q1_2",
+      "q1_3",
+      "q1_4",
+      "q1_5",
+      "q2_0",
+      "q2_1",
+      "q2_2",
+      "q2_3",
+      "q2_4",
+      "q2_5",
+      "q2_6",
+      "q3_0",
+      "q3_1",
+      "q3_2",
+      "q3_3",
+      "q3_4",
+      "q3_5",
+      "q3_6",
+      "q4_0",
+      "q4_1",
+      "q4_2",
+      "q4_3",
+      "q4_4",
+      "q4_5",
+      "q5_0",
+      "q5_1",
+      "q5_2",
+      "q5_3",
+      "q5_4",
+      "q5_5",
+      "q5_6",
+      "q6_0",
+      "q6_1",
+      "q6_2",
+      "q6_3",
+      "q6_4",
+      "q6_5",
+    ];
+
     const sections = surveyData
       .map((section) => section.title)
       .filter(
@@ -519,6 +588,7 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
       users: formattedUsers,
       sections,
       metadata: responseMetadata,
+      questionIds,
     });
   } catch (error) {
     console.error("Error fetching dashboard data:", error);

@@ -181,6 +181,9 @@ async function fetchData() {
     const data = await response.json()
     console.log('Received data from server:', data)
 
+    // Update questionIds from server
+    questionIds = data.questionIds
+
     users = data.users.map((user) => ({
       ...user,
       userCode: user.userCode || user.userId,
