@@ -1,5 +1,3 @@
-// dashboard.js
-
 // Global variables
 let users = []
 let questionIds = [
@@ -46,7 +44,6 @@ let questionIds = [
   'q6_5',
 ]
 let currentUser = null
-let currentSort = { field: null, ascending: true }
 let chart = null
 let currentPage = 1
 let startDate = null
@@ -71,6 +68,7 @@ const colorMap = {
   'Problemlösen und Handeln': '#E884C4', // Pink
   'Analysieren und Reflektieren': '#FFD473', // Yellow
 }
+
 function getInitialResponse(user, questionId) {
   return user.initialResponses?.[questionId] || ''
 }
@@ -149,13 +147,36 @@ document.addEventListener('DOMContentLoaded', function () {
 })
 
 function applyDateFilter() {
-  if (startDate && endDate) {
-    currentPage = 1
-    renderTable()
-    updatePagination()
-  } else {
-    alert('Please select both start and end dates.')
+  const errorMessage = document.getElementById('errorMessage');
+  errorMessage.style.display = 'none';
+  
+  if (!startDate || !endDate) {
+    showError('Please select both start and end dates.');
+    return;
   }
+
+  if (startDate > endDate) {
+    showError('Start date must be before end date.');
+    return;
+  }
+
+  if (startDate > new Date() || endDate > new Date()) {
+    showError('Dates cannot be in the future.');
+    return;
+  }
+
+  currentPage = 1;
+  renderTable();
+  updatePagination();
+}
+
+function showError(message) {
+  const errorMessage = document.getElementById('errorMessage');
+  errorMessage.textContent = message;
+  errorMessage.style.display = 'block';
+  setTimeout(() => {
+    errorMessage.style.display = 'none';
+  }, 3000);
 }
 
 function clearDateFilter() {
@@ -168,22 +189,40 @@ function clearDateFilter() {
 }
 
 async function fetchData() {
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  const errorMessage = document.getElementById('errorMessage');
+  
   try {
+    loadingIndicator.style.display = 'block';
+    errorMessage.style.display = 'none';
+    
+    const token = getAuthToken();
+    if (!token) {
+      window.location.href = '/dashboard-login';
+      return;
+    }
+
     const response = await fetch('/api/dashboard-data', {
       headers: {
-        Authorization: `Bearer ${getAuthToken()}`,
+        Authorization: `Bearer ${token}`,
       },
-    })
+    });
+
     if (response.status === 401) {
-      window.location.href = '/dashboard-login'
-      return
+      window.location.href = '/dashboard-login';
+      return;
     }
-    const data = await response.json()
-    console.log('Received data from server:', data)
 
-    // Update questionIds from server
-    questionIds = data.questionIds
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
+    const data = await response.json();
+    if (!Array.isArray(data.users) || !Array.isArray(data.questionIds)) {
+      throw new Error('Invalid data structure received from server');
+    }
+
+    questionIds = data.questionIds;
     users = data.users.map((user) => ({
       ...user,
       userCode: user.userCode || user.userId,
@@ -197,262 +236,90 @@ async function fetchData() {
     renderTable()
     updatePagination()
   } catch (error) {
-    console.error('Error fetching data:', error)
-    document.getElementById('userTable').innerHTML =
-      '<tr><td colspan="4">Error loading data. Please try again later.</td></tr>'
+    console.error('Error fetching data:', error);
+    errorMessage.textContent = 'Failed to load dashboard data. Please try refreshing the page.';
+    errorMessage.style.display = 'block';
+  } finally {
+    loadingIndicator.style.display = 'none';
   }
 }
 
-function renderTable(usersToRender = getUsersForCurrentPage()) {
-  const thead = document.querySelector('#userTable thead tr')
-  const tbody = document.querySelector('#userTable tbody')
+function displayUserData(userData) {
+  const tableBody = document.getElementById('userTableBody')
+  if (!tableBody) return
 
-  const sortableColumns = [
-    'birthYear',
-    'firstSubmission',
-    'latestSubmission',
-    ...questionIds.filter(
-      (id) =>
-        id.startsWith('q') &&
-        id !== 'q0_0' &&
-        id !== 'q0_1' &&
-        id !== 'q0_2' &&
-        id !== 'q0_3'
-    ),
-  ]
-
-  // Calculate max attempt number across all users
-  const maxAttemptNumber = Math.max(
-    ...usersToRender.map((u) => u.attemptNumber || 1)
-  )
-
-  // Generate table header
-  thead.innerHTML = `
-    <th><input type="checkbox" id="selectAll"></th>
-    <th>User Code</th>
-    <th>Geschlecht</th>
-    <th class="sortable" data-field="birthYear">Geburtsjahr <span class="sort-icon">↕️</span></th>
-    <th>Lehramt</th>
-    <th>Fächer</th>
-    <th>Kurse</th>
-    <th>Feedback zu Kursen</th>
-    <th>Strategie bei der Auswahl</th>
-    <th>Veränderung der Kompetenzüberzeugungen</th>
-    <th>Attempt Number</th>
-    <th class="sortable" data-field="firstSubmission">Erste Abgabe <span class="sort-icon">↕️</span></th>
-    <th class="sortable" data-field="latestSubmission">Letzte Abgabe <span class="sort-icon">↕️</span></th>
-    ${questionIds
-      .filter(
-        (id) =>
-          id.startsWith('q') &&
-          id !== 'q0_0' &&
-          id !== 'q0_1' &&
-          id !== 'q0_2' &&
-          id !== 'q0_3'
-      )
-      .map(
-        (id) => `
-        <th class="sortable" data-field="${id}_t1">${id} (T1) <span class="sort-icon">↕️</span></th>
-        <th class="sortable" data-field="${id}_latest">${id} (T${maxAttemptNumber}) <span class="sort-icon">↕️</span></th>
-      `
-      )
-      .join('')}
-  `
-
-  updateSortIcons()
-
-  // Clear and prepare tbody
-  tbody.innerHTML = ''
-  const fragment = document.createDocumentFragment()
-
-  // Generate rows for each user
-  usersToRender.forEach((user) => {
-    const tr = document.createElement('tr')
-
-    // Helper function to create cells with proper escaping
-    const createCell = (content, isCheckbox = false) => {
-      const td = document.createElement('td')
-      if (isCheckbox) {
-        const checkbox = document.createElement('input')
-        checkbox.type = 'checkbox'
-        checkbox.className = 'user-select'
-        checkbox.dataset.id = user.userId
-        td.appendChild(checkbox)
-      } else {
-        td.textContent = content
-      }
-      return td
-    }
-
-    // Add basic user info cells
-    tr.appendChild(createCell('', true)) // Checkbox
-    tr.appendChild(createCell(user.userCode || ''))
-    tr.appendChild(createCell(user.gender || ''))
-    tr.appendChild(createCell(user.birthYear || ''))
-    tr.appendChild(createCell(user.data?.responses?.q0_2 || '')) // Lehramt
-    tr.appendChild(createCell(user.data?.responses?.q0_3 || '')) // Fächer
-    tr.appendChild(createCell(user.courses?.join(', ') || ''))
-
-    // Add feedback and responses
-    tr.appendChild(
-      createCell(user.openEndedResponses?.['attempt2_course_feedback'] || '')
-    )
-    tr.appendChild(createCell(user.openEndedResponses?.t1_strategy || ''))
-    tr.appendChild(createCell(user.openEndedResponses?.t2_reflection || ''))
-
-    // Add attempt number
-    tr.appendChild(createCell(user.attemptNumber || 1))
-
-    // Add submission times
-    tr.appendChild(
-      createCell(
-        user.firstSubmissionTime
-          ? new Date(user.firstSubmissionTime).toLocaleString()
-          : ''
-      )
-    )
-    tr.appendChild(
-      createCell(
-        user.latestSubmissionTime
-          ? new Date(user.latestSubmissionTime).toLocaleString()
-          : ''
-      )
-    )
-
-    // Add question responses (T1 and current attempt)
-    questionIds
-      .filter(
-        (id) =>
-          id.startsWith('q') &&
-          id !== 'q0_0' &&
-          id !== 'q0_1' &&
-          id !== 'q0_2' &&
-          id !== 'q0_3'
-      )
-      .forEach((id) => {
-        // Add T1 (initial) response
-        const initialResponse = user.initialResponses?.[id]
-        const initialCell = createCell(initialResponse || '')
-        initialCell.title = 'T1'
-        tr.appendChild(initialCell)
-
-        // Add current attempt response
-        const latestResponse = user.updatedResponses?.[id]
-        const latestCell = createCell(latestResponse || '')
-        latestCell.title = `T${user.attemptNumber || 1}`
-        tr.appendChild(latestCell)
-      })
-
-    fragment.appendChild(tr)
+  tableBody.innerHTML = ''
+  userData.forEach(user => {
+    const row = document.createElement('tr')
+    row.innerHTML = `
+      <td>${user.userCode}</td>
+      <td>${user.gender}</td>
+      <td>${user.birthYear}</td>
+      <td>${user.data?.responses?.q0_2 || ''}</td>
+      <td>${user.data?.responses?.q0_3 || ''}</td>
+      <td>${user.courses?.join(', ') || ''}</td>
+      <td>${user.openEndedResponses?.['attempt2_course_feedback'] || ''}</td>
+      <td>${user.openEndedResponses?.t1_strategy || ''}</td>
+      <td>${user.openEndedResponses?.t2_reflection || ''}</td>
+      <td>${user.attemptNumber || 1}</td>
+      <td>${user.firstSubmissionTime ? new Date(user.firstSubmissionTime).toLocaleString() : ''}</td>
+      <td>${user.latestSubmissionTime ? new Date(user.latestSubmissionTime).toLocaleString() : ''}</td>
+      ${questionIds
+        .filter(
+          (id) =>
+            id.startsWith('q') &&
+            id !== 'q0_0' &&
+            id !== 'q0_1' &&
+            id !== 'q0_2' &&
+            id !== 'q0_3'
+        )
+        .map(
+          (id) => `
+          <td>${user.initialResponses?.[id] || ''}</td>
+          <td>${user.updatedResponses?.[id] || ''}</td>
+        `
+        )
+        .join('')}
+    `
+    tableBody.appendChild(row)
   })
-
-  tbody.appendChild(fragment)
-
-  // Add event listeners
-  document.querySelectorAll('.user-select').forEach((checkbox) => {
-    checkbox.addEventListener('change', function () {
-      const userId = this.dataset.id
-      const user = users.find((u) => u.userId === userId)
-      if (this.checked && user) {
-        showUserDetails(user)
-      }
-    })
-  })
-
-  document
-    .getElementById('selectAll')
-    ?.addEventListener('change', toggleSelectAll)
-  setupSortingListeners()
-}
-
-function getUsersForCurrentPage() {
-  const startIndex = (currentPage - 1) * usersPerPage
-  const endIndex = startIndex + usersPerPage
-  return filterUsers().slice(startIndex, endIndex)
 }
 
 function filterUsers() {
-  return users.filter((user) => {
-    const matchesSearch = searchUser(user)
-    const matchesDateRange = filterByDateRange(user)
-    return matchesSearch && matchesDateRange
-  })
+  const searchInput = document.getElementById('userSearch');
+  const filterValue = searchInput.value.toLowerCase();
+  
+  const filteredUsers = users.filter(user => 
+    user.userCode.toLowerCase().includes(filterValue) ||
+    user.gender.toLowerCase().includes(filterValue) ||
+    user.birthYear.toString().includes(filterValue)
+  )
+  
+  return filteredUsers
 }
 
-function getSortIcon(field) {
-  if (currentSort.field !== field) return '↕️'
-  return currentSort.ascending ? '↑' : '↓'
+function updatePagination(totalUsers) {
+  const totalPages = Math.ceil(totalUsers / usersPerPage)
+  document.getElementById('currentPage').textContent = `${currentPage} / ${totalPages}`
 }
 
-function setupSortingListeners() {
-  const thead = document.querySelector('#userTable thead')
-  thead.addEventListener('click', function (e) {
-    const target = e.target.closest('.sortable')
-    if (target) {
-      const field = target.dataset.field
-      if (currentSort.field === field) {
-        currentSort.ascending = !currentSort.ascending
-      } else {
-        currentSort = { field, ascending: true }
-      }
-      sortUsers()
-      updateSortIcons()
-    }
-  })
+function changePage(direction) {
+  const totalPages = Math.ceil(users.length / usersPerPage)
+  currentPage = Math.min(Math.max(1, currentPage + direction), totalPages)
+  
+  const start = (currentPage - 1) * usersPerPage
+  const paginatedUsers = users.slice(start, start + usersPerPage)
+  
+  displayUserData(paginatedUsers)
+  updatePagination(users.length)
 }
 
-function sortUsers() {
-  if (currentSort.field) {
-    users.sort((a, b) => {
-      let valueA, valueB
-
-      // Check if this is a t1/latest field
-      if (currentSort.field.endsWith('_t1')) {
-        const baseField = currentSort.field.replace('_t1', '')
-        valueA = parseFloat(a.initialResponses?.[baseField]) || 0
-        valueB = parseFloat(b.initialResponses?.[baseField]) || 0
-      } else if (currentSort.field.endsWith('_latest')) {
-        const baseField = currentSort.field.replace('_latest', '')
-        valueA = parseFloat(a.updatedResponses?.[baseField]) || 0
-        valueB = parseFloat(b.updatedResponses?.[baseField]) || 0
-      } else {
-        // Handle other fields as before
-        switch (currentSort.field) {
-          case 'birthYear':
-            valueA = parseInt(a.birthYear) || 0
-            valueB = parseInt(b.birthYear) || 0
-            break
-          case 'firstSubmission':
-            valueA = a.firstSubmissionTime
-              ? new Date(a.firstSubmissionTime).getTime()
-              : 0
-            valueB = b.firstSubmissionTime
-              ? new Date(b.firstSubmissionTime).getTime()
-              : 0
-            break
-          case 'latestSubmission':
-            valueA = a.latestSubmissionTime
-              ? new Date(a.latestSubmissionTime).getTime()
-              : 0
-            valueB = b.latestSubmissionTime
-              ? new Date(b.latestSubmissionTime).getTime()
-              : 0
-            break
-          default:
-            valueA = 0
-            valueB = 0
-        }
-      }
-
-      if (valueA < valueB) return currentSort.ascending ? -1 : 1
-      if (valueA > valueB) return currentSort.ascending ? 1 : -1
-      return 0
-    })
-
-    currentPage = 1
-    renderTable()
-    updatePagination()
-  }
+function renderTable() {
+  const filteredUsers = filterUsers()
+  const start = (currentPage - 1) * usersPerPage
+  const paginatedUsers = filteredUsers.slice(start, start + usersPerPage)
+  displayUserData(paginatedUsers)
+  updatePagination(filteredUsers.length)
 }
 
 function showUserDetails(user) {
@@ -469,97 +336,140 @@ function showUserDetails(user) {
 }
 
 function updateVisualization() {
-  if (
-    !currentUser ||
-    !currentUser.initialScores ||
-    !currentUser.updatedScores
-  ) {
-    console.error('User data or category scores not available')
-    return
-  }
+  if (!currentUser) return;
+  
+  const ctx = document.getElementById('userChart').getContext('2d');
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  
+  try {
+    loadingIndicator.style.display = 'block';
+    
+    if (chart) {
+      chart.destroy();
+    }
 
-  const canvas = document.getElementById('userChart')
-  if (chart) {
-    chart.destroy()
-  }
-
-  const ctx = canvas.getContext('2d')
-  const fullLabels = Object.keys(currentUser.initialScores)
-  const labels = fullLabels.map((key) => labelMap[key] || key)
-  const initialData = fullLabels.map(
-    (label) => currentUser.initialScores[label] || 0
-  )
-  const updatedData = fullLabels.map(
-    (label) => currentUser.updatedScores[label] || 0
-  )
-
-  chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
+    const categories = Object.keys(labelMap);
+    const initialData = categories.map(cat => currentUser.initialScores?.[cat] || 0);
+    const updatedData = categories.map(cat => currentUser.updatedScores?.[cat] || 0);
+    
+    const chartData = {
+      labels: categories.map(cat => labelMap[cat]),
       datasets: [
         {
-          label: 'T1 Score',
+          label: 'Initial Assessment',
           data: initialData,
-          backgroundColor: fullLabels.map((label) =>
-            getLighterColor(colorMap[label] || '#999999')
-          ),
-          borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-          borderWidth: 1,
+          backgroundColor: categories.map(cat => getLighterColor(colorMap[cat])),
+          borderColor: categories.map(cat => colorMap[cat]),
+          borderWidth: 2
         },
         {
-          label: `T${currentUser.attemptNumber || 1} Score`,
+          label: 'Latest Assessment',
           data: updatedData,
-          backgroundColor: fullLabels.map(
-            (label) => colorMap[label] || '#999999'
-          ),
-          borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-          borderWidth: 1,
+          backgroundColor: categories.map(cat => colorMap[cat]),
+          borderColor: categories.map(cat => colorMap[cat]),
+          borderWidth: 2
+        }
+      ]
+    };
+
+    chart = new Chart(ctx, {
+      type: 'radar',
+      data: chartData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            beginAtZero: true,
+            max: 6,
+            ticks: {
+              stepSize: 1
+            }
+          }
         },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          },
           title: {
             display: true,
-            text: 'Score (%)',
-          },
-        },
-        x: {
-          ticks: {
-            autoSkip: false,
-            maxRotation: 45,
-            minRotation: 45,
-          },
-        },
-      },
-      plugins: {
-        legend: { display: true },
-        title: {
-          display: true,
-          text: `Scores for User: ${currentUser.userCode} (Attempt ${
-            currentUser.attemptNumber || 1
-          })`,
-        },
-        tooltip: {
-          enabled: true,
-          callbacks: {
-            title: (tooltipItems) => {
-              const fullLabel = fullLabels[tooltipItems[0].dataIndex]
-              return fullLabel || tooltipItems[0].label
-            },
-            label: (context) =>
-              `${context.dataset.label}: ${context.parsed.y}%`,
-          },
-        },
-      },
-    },
-  })
+            text: `Competency Profile - ${currentUser.userCode}`,
+            font: {
+              size: 16
+            }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error updating visualization:', error);
+    showError('Failed to update visualization');
+  } finally {
+    loadingIndicator.style.display = 'none';
+  }
+}
+
+async function exportToExcel(data) {
+  const loadingIndicator = document.getElementById('loadingIndicator');
+  
+  try {
+    loadingIndicator.style.display = 'block';
+    
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      throw new Error('No data to export');
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Survey Data');
+
+    // Add headers
+    const headers = [
+      'User Code',
+      'Gender',
+      'Birth Year',
+      'First Submission',
+      'Latest Submission',
+      ...questionIds,
+      ...Object.keys(labelMap).map(cat => `${labelMap[cat]} Score`)
+    ];
+    worksheet.addRow(headers);
+
+    // Add data rows
+    data.forEach(user => {
+      const row = [
+        user.userCode,
+        user.gender,
+        user.birthYear,
+        user.firstSubmissionTime ? new Date(user.firstSubmissionTime).toLocaleString() : '',
+        user.latestSubmissionTime ? new Date(user.latestSubmissionTime).toLocaleString() : '',
+        ...questionIds.map(qId => user.updatedResponses?.[qId] || user.initialResponses?.[qId] || ''),
+        ...Object.keys(labelMap).map(cat => user.updatedScores?.[cat] || user.initialScores?.[cat] || 0)
+      ];
+      worksheet.addRow(row);
+    });
+
+    // Style the worksheet
+    worksheet.getRow(1).font = { bold: true };
+    worksheet.columns.forEach(column => {
+      column.width = Math.max(
+        ...worksheet.getColumn(column.id).values.map(v => v ? v.toString().length : 0)
+      ) + 2;
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `survey_data_${new Date().toISOString().split('T')[0]}.xlsx`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error exporting data:', error);
+    showError('Failed to export data');
+  } finally {
+    loadingIndicator.style.display = 'none';
+  }
 }
 
 function toggleSelectAll(event) {
@@ -567,122 +477,6 @@ function toggleSelectAll(event) {
   checkboxes.forEach((checkbox) => (checkbox.checked = event.target.checked))
 }
 
-function exportToExcel(data) {
-  try {
-    const maxAttemptNumber = Math.max(...data.map((u) => u.attemptNumber || 1))
-
-    // Create base headers
-    const headers = {
-      'User Code': 'userCode',
-      'Attempt Number': 'attemptNumber',
-      Geschlecht: 'gender',
-      Geburtsjahr: 'birthYear',
-      Lehramt: 'lehramt',
-      Fächer: 'faecher',
-      Kurse: 'courses',
-      'Feedback zu Kursen': 'courseFeedback',
-      'Strategie bei der Auswahl': 'strategy',
-      'Veränderung der Kompetenzüberzeugungen': 'reflection',
-      'Erste Abgabe': 'firstSubmission',
-      'Letzte Abgabe': 'lastSubmission',
-    }
-
-    // Transform data for export
-    const exportData = data.map((user) => {
-      // Create base row data
-      const rowData = {
-        'User Code': user.userCode || '',
-        'Attempt Number': user.attemptNumber || 1,
-        Geschlecht: user.gender || '',
-        Geburtsjahr: user.birthYear || '',
-        Lehramt: user.data?.responses?.q0_2 || '',
-        Fächer: user.data?.responses?.q0_3 || '',
-        Kurse: user.courses?.join(', ') || '',
-        'Feedback zu Kursen':
-          user.openEndedResponses?.['attempt2_course_feedback'] || '',
-        'Strategie bei der Auswahl': user.openEndedResponses?.t1_strategy || '',
-        'Veränderung der Kompetenzüberzeugungen':
-          user.openEndedResponses?.t2_reflection || '',
-        'Erste Abgabe': user.firstSubmissionTime
-          ? new Date(user.firstSubmissionTime).toLocaleString()
-          : '',
-        'Letzte Abgabe': user.latestSubmissionTime
-          ? new Date(user.latestSubmissionTime).toLocaleString()
-          : '',
-      }
-
-      // Add question responses with dynamic headers based on each user's attempt number
-      questionIds
-        .filter(
-          (id) =>
-            id.startsWith('q') &&
-            id !== 'q0_0' &&
-            id !== 'q0_1' &&
-            id !== 'q0_2' &&
-            id !== 'q0_3'
-        )
-        .forEach((id) => {
-          // Add T1 column header and response if it doesn't exist
-          const t1Header = `${id} (T1)`
-          if (!headers[t1Header]) {
-            headers[t1Header] = `${id}_t1`
-          }
-          rowData[t1Header] = user.initialResponses?.[id] || ''
-
-          // Add latest attempt column header and response
-          const attemptHeader = `${id} (T${user.attemptNumber})`
-          if (!headers[attemptHeader]) {
-            headers[attemptHeader] = `${id}_latest`
-          }
-          rowData[attemptHeader] = user.updatedResponses?.[id] || ''
-        })
-
-      return rowData
-    })
-
-    // Create worksheet
-    const worksheet = XLSX.utils.json_to_sheet(exportData)
-
-    // Auto-size columns
-    const colWidths = Object.keys(headers).map((key) => ({
-      wch: Math.max(
-        key.length,
-        ...exportData.map((row) => String(row[key] || '').length),
-        20 // minimum width
-      ),
-    }))
-    worksheet['!cols'] = colWidths
-
-    // Add styling
-    const range = XLSX.utils.decode_range(worksheet['!ref'])
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-      const address = XLSX.utils.encode_col(C) + '1'
-      if (!worksheet[address]) continue
-      worksheet[address].s = {
-        font: { bold: true },
-        fill: { fgColor: { rgb: 'CCCCCC' } },
-      }
-    }
-
-    // Create workbook and append worksheet
-    const workbook = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Survey Data')
-
-    // Generate filename with current date
-    const currentDate = new Date().toISOString().split('T')[0]
-    const filename = `survey_data_${currentDate}.xlsx`
-
-    // Write file
-    XLSX.writeFile(workbook, filename)
-
-    console.log('Excel export completed successfully')
-  } catch (error) {
-    console.error('Error during Excel export:', error)
-    alert('Fehler beim Exportieren der Daten. Bitte versuchen Sie es erneut.')
-  }
-}
-
-// Helper functions for export
 function exportSelected() {
   const selectedUsers = users.filter(
     (user) =>
@@ -760,76 +554,29 @@ function filterByDateRange(user) {
 }
 
 function searchUsers() {
-  currentPage = 1
-  renderTable()
-  updatePagination()
-}
-
-function searchUser(user) {
-  const searchTerm = document
-    .getElementById('userSearch')
-    .value.toLowerCase()
-    .trim()
-  if (!searchTerm) return true
-  return (
-    (user.userCode && user.userCode.toLowerCase().includes(searchTerm)) ||
-    (user.gender && user.gender.toLowerCase().includes(searchTerm)) ||
-    (user.birthYear && user.birthYear.toString().includes(searchTerm)) ||
-    (user.data?.responses?.q0_2 &&
-      user.data.responses.q0_2.toLowerCase().includes(searchTerm)) ||
-    (user.data?.responses?.q0_3 &&
-      user.data.responses.q0_3.toLowerCase().includes(searchTerm)) ||
-    (user.firstSubmissionTime &&
-      new Date(user.firstSubmissionTime)
-        .toLocaleString()
-        .toLowerCase()
-        .includes(searchTerm)) ||
-    (user.latestSubmissionTime &&
-      new Date(user.latestSubmissionTime)
-        .toLocaleString()
-        .toLowerCase()
-        .includes(searchTerm))
-  )
-}
-
-function updateSortIcons() {
-  document.querySelectorAll('.sortable').forEach((th) => {
-    const icon = th.querySelector('.sort-icon')
-    if (th.dataset.field === currentSort.field) {
-      icon.textContent = currentSort.ascending ? '↑' : '↓'
-    } else {
-      icon.textContent = '↕️'
-    }
-  })
+  const searchInput = document.getElementById('userSearch');
+  const errorMessage = document.getElementById('errorMessage');
+  const searchTerm = searchInput.value.trim();
+  
+  errorMessage.style.display = 'none';
+  
+  if (searchTerm.length < 2 && searchTerm.length > 0) {
+    showError('Please enter at least 2 characters to search');
+    return;
+  }
+  
+  currentPage = 1;
+  renderTable();
+  updatePagination();
 }
 
 function changePage(direction) {
-  const totalPages = Math.ceil(filterUsers().length / usersPerPage)
-  currentPage += direction
-  if (currentPage < 1) currentPage = 1
-  if (currentPage > totalPages) currentPage = totalPages
-  renderTable()
-  updatePagination()
-}
-
-function updatePagination() {
-  const filteredUsers = filterUsers()
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage)
-  const paginationElement = document.getElementById('pagination')
-  paginationElement.innerHTML = `
-    <button id="prevPage" ${
-      currentPage === 1 ? 'disabled' : ''
-    }>Previous</button>
-    <span>Page ${currentPage} of ${totalPages}</span>
-    <button id="nextPage" ${
-      currentPage === totalPages ? 'disabled' : ''
-    }>Next</button>
-  `
-  // Attach event listeners to pagination buttons
-  document
-    .getElementById('prevPage')
-    .addEventListener('click', () => changePage(-1))
-  document
-    .getElementById('nextPage')
-    .addEventListener('click', () => changePage(1))
+  const totalPages = Math.ceil(users.length / usersPerPage)
+  currentPage = Math.min(Math.max(1, currentPage + direction), totalPages)
+  
+  const start = (currentPage - 1) * usersPerPage
+  const paginatedUsers = users.slice(start, start + usersPerPage)
+  
+  displayUserData(paginatedUsers)
+  updatePagination(users.length)
 }
