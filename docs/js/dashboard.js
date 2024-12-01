@@ -134,6 +134,20 @@ document.addEventListener('DOMContentLoaded', async function () {
       })
     }
 
+    // Setup event listeners for checkboxes
+    const tbody = document.querySelector('#userTable tbody')
+    tbody.addEventListener('change', function (event) {
+      if (event.target.classList.contains('user-select')) {
+        updateVisualization()
+      }
+    })
+
+    // Setup event listener for export button
+    const exportSelectedButton = document.getElementById('exportSelected')
+    if (exportSelectedButton) {
+      exportSelectedButton.addEventListener('click', exportSelectedData)
+    }
+
     // Fetch initial data
     await fetchData()
   } catch (error) {
@@ -342,4 +356,26 @@ function showError(message) {
   } else {
     console.error(message)
   }
+}
+
+function updateVisualization() {
+  const selectedUsers = []
+  document.querySelectorAll('.user-select:checked').forEach((checkbox) => {
+    const row = checkbox.closest('tr')
+    const userCode = row.querySelector('td:nth-child(2)').textContent
+    selectedUsers.push(userCode)
+  })
+  console.log('Selected users for visualization:', selectedUsers)
+  // Add visualization logic here
+}
+
+function exportSelectedData() {
+  const selectedUsers = []
+  document.querySelectorAll('.user-select:checked').forEach((checkbox) => {
+    const row = checkbox.closest('tr')
+    const userCode = row.querySelector('td:nth-child(2)').textContent
+    selectedUsers.push(userCode)
+  })
+  console.log('Exporting selected users:', selectedUsers)
+  // Add export logic here
 }
