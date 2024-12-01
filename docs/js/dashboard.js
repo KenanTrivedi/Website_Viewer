@@ -195,6 +195,7 @@ function renderTable() {
 
     // Generate table header
     thead.innerHTML = `
+      <th>Select</th>
       <th>User Code</th>
       <th>Gender</th>
       <th>Birth Year</th>
@@ -226,6 +227,7 @@ function renderTable() {
       const tr = document.createElement('tr')
 
       tr.innerHTML = `
+        <td><input type="checkbox" class="user-select" /></td>
         <td>${user.userCode || ''}</td>
         <td>${user.gender || ''}</td>
         <td>${user.birthYear || ''}</td>
