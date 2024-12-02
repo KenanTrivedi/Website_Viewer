@@ -126,80 +126,75 @@ const competencies = [
   },
 ]
 
-// Function to generate competency cards
-function generateCompetencyCards() {
-  const generalGrid = document.getElementById('general-grid')
-  const professionalGrid = document.getElementById('professional-grid')
+document.addEventListener('DOMContentLoaded', function() {
+    const generalGrid = document.querySelector('#general-competencies .competency-grid');
+    const professionalGrid = document.querySelector('#professional-competencies .competency-grid');
+    const descriptionBox = document.querySelector('#competency-description');
+    const descriptionContent = document.querySelector('.description-content');
+    const exampleSection = document.querySelector('.example-section');
+    const exampleText = document.querySelector('.example-text');
 
-  competencies.forEach((competency) => {
-    const card = document.createElement('div')
-    card.classList.add('competency-card')
+    // Function to create a competency card
+    function createCompetencyCard(competency) {
+        const card = document.createElement('div');
+        card.className = 'competency-card';
+        card.setAttribute('data-competency', competency.title.toLowerCase().replace(/\s+/g, '-'));
 
-    // Create icon element
-    const icon = document.createElement('i')
-    icon.className = `${competency.iconClass} competency-icon`
-    card.appendChild(icon)
+        // Create background div for SVG
+        const bgDiv = document.createElement('div');
+        bgDiv.className = 'card-background';
 
-    // Create title element
-    const title = document.createElement('span')
-    title.textContent = competency.title
-    card.appendChild(title)
+        // Create content div
+        const content = document.createElement('div');
+        content.className = 'competency-content';
+        
+        const title = document.createElement('h3');
+        title.className = 'competency-title';
+        title.textContent = competency.title;
 
-    // Add event listener to the card
-    card.addEventListener('click', () => {
-      displayCompetencyDescription(competency)
-      highlightSelectedCard(card)
-    })
+        const description = document.createElement('p');
+        description.className = 'competency-description';
+        description.textContent = competency.description;
 
-    // Append card to the appropriate grid
-    if (competency.category === 'Allgemeine digitale Kompetenzen') {
-      generalGrid.appendChild(card)
-    } else if (
-      competency.category === 'Berufsspezifische digitale Kompetenzen'
-    ) {
-      professionalGrid.appendChild(card)
+        content.appendChild(title);
+        content.appendChild(description);
+        
+        card.appendChild(bgDiv);
+        card.appendChild(content);
+
+        // Add click event listener
+        card.addEventListener('click', () => {
+            // Remove selected class from all cards
+            document.querySelectorAll('.competency-card').forEach(c => c.classList.remove('selected'));
+            
+            // Add selected class to clicked card
+            card.classList.add('selected');
+            
+            // Update description box
+            descriptionContent.innerHTML = `<h3>${competency.fullTitle}</h3><p>${competency.description}</p>`;
+            
+            // Show example if it exists
+            if (competency.example) {
+                exampleText.textContent = competency.example;
+                exampleSection.style.display = 'block';
+            } else {
+                exampleSection.style.display = 'none';
+            }
+        });
+
+        return card;
     }
-  })
-}
 
-// Function to display competency description
-function displayCompetencyDescription(competency) {
-  const descriptionContainer = document.getElementById('competency-description')
-
-  // Update the heading
-  const heading = descriptionContainer.querySelector('h2')
-  heading.textContent = competency.fullTitle
-
-  // Update the description content
-  const descriptionContent = descriptionContainer.querySelector(
-    '.description-content'
-  )
-  descriptionContent.innerHTML = `<p>${competency.description}</p>`
-
-  // Update the example section
-  const exampleSection = descriptionContainer.querySelector('.example-section')
-  const exampleText = descriptionContainer.querySelector('.example-text')
-  if (competency.example) {
-    exampleSection.style.display = 'block'
-    exampleText.textContent = competency.example
-  } else {
-    exampleSection.style.display = 'none'
-  }
-
-  // Scroll to the description
-  descriptionContainer.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
-
-// Function to highlight the selected card
-function highlightSelectedCard(selectedCard) {
-  const allCards = document.querySelectorAll('.competency-card')
-  allCards.forEach((card) => {
-    card.classList.remove('selected')
-  })
-  selectedCard.classList.add('selected')
-}
-
-// Initialize the page
-document.addEventListener('DOMContentLoaded', () => {
-  generateCompetencyCards()
-})
+    // Render competency cards
+    competencies.forEach(competency => {
+        if (competency.category === 'Allgemeine digitale Kompetenzen') {
+            if (generalGrid) {
+                generalGrid.appendChild(createCompetencyCard(competency));
+            }
+        } else if (competency.category === 'Berufsspezifische digitale Kompetenzen') {
+            if (professionalGrid) {
+                professionalGrid.appendChild(createCompetencyCard(competency));
+            }
+        }
+    });
+});
