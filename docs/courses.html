@@ -1,213 +1,181 @@
-<!-- courses.html -->
 <!DOCTYPE html>
 <html lang="de">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8">
     <title>Kurse - Open Digi</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!-- Include Google Fonts -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-
-    <!-- Include Font Awesome for icons -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-      crossorigin="anonymous"
-    />
-
-    <!-- Link to CSS -->
-    <link rel="stylesheet" href="css/styles.css" />
-    <link rel="stylesheet" href="css/courses.css" />
-  </head>
-  <body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/courses.css">
+</head>
+<body>
     <!-- Header -->
     <header>
-      <a href="index.html">
-        <img src="images/logo.png" alt="Open Digi Logo" class="logo" />
-      </a>
-      <nav>
-        <a href="project.html">Projekt</a>
-        <a href="datenschutz.html">Datenschutz</a>
-        <a href="team.html">Team</a>
-      </nav>
-      <button
-        id="letsGetStarted"
-        class="get-started-button"
-        onclick="window.location.href='login.html'"
-      >
-        Let's Get Started
-      </button>
+        <a href="index.html">
+            <img src="images/logo.png" alt="Open Digi Logo" class="logo">
+        </a>
+        <nav>
+            <a href="project.html">Projekt</a>
+            <a href="datenschutz.html">Datenschutz</a>
+            <a href="team.html">Team</a>
+        </nav>
+        <button id="letsGetStarted" class="get-started-button" onclick="window.location.href='login.html'">
+            Let's Get Started
+        </button>
     </header>
 
     <!-- Main Content -->
     <main>
-      <section class="intro-text">
-        <p>
-          Wenn du mehr über digitale Kompetenzen und deren Kompetenzbereiche
-          erfahren möchtest, bist du hier richtig. Es gibt mehrere Rahmenmodelle, die digitale Kompetenzen definieren
-          (Ferrari, 2013; Redecker & Punie, 2017; Rubach & Lazarides, 2023). Insgesamt gibt es zwei
-          Teile digitaler Kompetenz: die grundlegenden digitalen Kompetenzen und die
-          berufsspezifischen digitalen Kompetenzen (ebd.).
-        </p>
-        <p>
-          Grundlegende digitale Kompetenzen sind bei allen Bürger*innen notwendig, um an der
-          Gesellschaft zu partizipieren. Berufsspezifische digitale Kompetenzen unterscheiden sich
-          zwischen Bürger*innen in Abhängigkeit ihres Berufes.
-        </p>
-        <p>
-          Wir haben anhand des Kompetenzrasters von Rubach & Lazarides (2023) entwickelt, die deine
-          grundlegenden digitalen Kompetenzen fördern sollen.
-        </p>
-      </section>
-
-      <section id="competency-section">
-        <div class="competency-columns">
-          <!-- General Competencies -->
-          <div class="competency-column">
-            <h2>Allgemeine digitale<br>Kompetenzen</h2>
-            <div class="competency-grid">
-              <div class="competency-card">
-                <div class="icon-container">
-                  <img src="images/icons/search.svg" alt="Suchen Icon">
-                </div>
-                <div class="competency-content">
-                  <h3 class="competency-title">Suchen, Verarbeiten und Aufbewahren</h3>
-                </div>
-              </div>
-              
-              <div class="competency-card">
-                <div class="icon-container">
-                  <img src="images/icons/communication.svg" alt="Kommunikation Icon">
-                </div>
-                <div class="competency-content">
-                  <h3 class="competency-title">Kommunikation und Zusammenarbeit</h3>
-                </div>
-              </div>
-
-              <div class="competency-card">
-                <div class="icon-container">
-                  <img src="images/produzieren.svg" alt="Produzieren Icon">
-                </div>
-                <div class="competency-content">
-                  <h3 class="competency-title">Produzieren und Präsentieren</h3>
-                </div>
-              </div>
-
-              <div class="competency-card">
-                <div class="icon-container">
-                  <img src="images/schützen.svg" alt="Schützen Icon">
-                </div>
-                <div class="competency-content">
-                  <h3 class="competency-title">Schützen und sicher Agieren</h3>
-                </div>
-              </div>
-
-              <div class="competency-card">
-                <div class="icon-container">
-                  <img src="images/problemlösen.svg" alt="Problemlösen Icon">
-                </div>
-                <div class="competency-content">
-                  <h3 class="competency-title">Problemlösen und Handeln</h3>
-                </div>
-              </div>
-
-              <div class="competency-card">
-                <div class="icon-container">
-                  <img src="images/analysieren.svg" alt="Analysieren Icon">
-                </div>
-                <div class="competency-content">
-                  <h3 class="competency-title">Analysieren und Reflektieren</h3>
-                </div>
-              </div>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 id="selection-title" class="animate-title">Digitale Kompetenzen</h1>
+                <p class="hero-description">Entdecke die verschiedenen Kompetenzbereiche und ihre Bedeutung für die digitale Bildung</p>
             </div>
-          </div>
-
-          <!-- Professional Competencies -->
-          <div class="competency-column">
-            <h2>Berufsspezifische digitale<br>Kompetenzen</h2>
-            <div class="competency-grid">
-              <div class="competency-card">
-                <div class="icon-container">
-                  <img src="images/organisation.svg" alt="Organisation Icon">
-                </div>
-                <div class="competency-content">
-                  <h3 class="competency-title">Organisation und Administration</h3>
-                </div>
-              </div>
-
-              <div class="competency-card">
-                <div class="icon-container">
-                  <img src="images/lehren.svg" alt="Lehren Icon">
-                </div>
-                <div class="competency-content">
-                  <h3 class="competency-title">Lehren und Lernen</h3>
-                </div>
-              </div>
-
-              <div class="competency-card">
-                <div class="icon-container">
-                  <img src="images/lernende.svg" alt="Lernende Icon">
-                </div>
-                <div class="competency-content">
-                  <h3 class="competency-title">Lernende fördern</h3>
-                </div>
-              </div>
-
-              <div class="competency-card">
-                <div class="icon-container">
-                  <img src="images/berufliches.svg" alt="Berufliches Engagement Icon">
-                </div>
-                <div class="competency-content">
-                  <h3 class="competency-title">Berufliches Engagement außerhalb des Unterrichts</h3>
-                </div>
-              </div>
-
-              <div class="competency-card">
-                <div class="icon-container">
-                  <img src="images/bewertung.svg" alt="Bewertung Icon">
-                </div>
-                <div class="competency-content">
-                  <h3 class="competency-title">Bewertung</h3>
-                </div>
-              </div>
-
-              <div class="competency-card">
-                <div class="icon-container">
-                  <img src="images/förderung.svg" alt="Förderung Icon">
-                </div>
-                <div class="competency-content">
-                  <h3 class="competency-title">Förderung digitaler Kompetenzen der Lernenden</h3>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Description Section -->
-        <div class="description-section">
-          <div class="description-content">
-            <p class="competency-description"></p>
-            <p class="competency-example"></p>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <!-- Footer -->
-    <footer>
-      <p>&copy; 2024 Open-Digi. Alle Rechte vorbehalten.</p>
-    </footer>
-
-    <!-- FontAwesome for icons -->
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"
-      crossorigin="anonymous"
-    ></script>
-    <!-- Main JavaScript -->
-    <script src="js/courses.js"></script>
-  </body>
-</html>
+        </section>
+                <!-- Competency Grid Section -->
+                <section class="competency-container">
+                    <div class="competency-grid-wrapper">
+                        <!-- General Competencies -->
+                        <div class="competency-section">
+                            <h2 class="section-title">Allgemeine digitale Kompetenzen</h2>
+                            <div class="competency-grid">
+                                <div class="competency-card" data-category="general">
+                                    <div class="card-overlay"></div>
+                                    <div class="icon-container">
+                                        <i class="fas fa-search"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="competency-title">Suchen, Verarbeiten und Aufbewahren</h3>
+                                        <p class="card-description">Effizientes Suchen und Organisieren digitaler Inhalte</p>
+                                    </div>
+                                </div>
+        
+                                <div class="competency-card" data-category="general">
+                                    <div class="card-overlay"></div>
+                                    <div class="icon-container">
+                                        <i class="fas fa-comments"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="competency-title">Kommunikation und Zusammenarbeit</h3>
+                                        <p class="card-description">Digitale Kommunikation und Kollaboration</p>
+                                    </div>
+                                </div>
+        
+                                <div class="competency-card" data-category="general">
+                                    <div class="card-overlay"></div>
+                                    <div class="icon-container">
+                                        <i class="fas fa-laptop"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="competency-title">Produzieren und Präsentieren</h3>
+                                        <p class="card-description">Erstellen und Gestalten digitaler Inhalte</p>
+                                    </div>
+                                </div>
+        
+                                <div class="competency-card" data-category="general">
+                                    <div class="card-overlay"></div>
+                                    <div class="icon-container">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="competency-title">Schützen und sicher Agieren</h3>
+                                        <p class="card-description">Sicherheit und Datenschutz im digitalen Umfeld</p>
+                                    </div>
+                                </div>
+        
+                                <div class="competency-card" data-category="general">
+                                    <div class="card-overlay"></div>
+                                    <div class="icon-container">
+                                        <i class="fas fa-puzzle-piece"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="competency-title">Problemlösen und Handeln</h3>
+                                        <p class="card-description">Technische Probleme lösen und Werkzeuge nutzen</p>
+                                    </div>
+                                </div>
+        
+                                <div class="competency-card" data-category="general">
+                                    <div class="card-overlay"></div>
+                                    <div class="icon-container">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="card-content">
+                                        <h3 class="competency-title">Analysieren und Reflektieren</h3>
+                                        <p class="card-description">Bewertung und Analyse digitaler Medien</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                                        <!-- Professional Competencies -->
+                                        <div class="competency-section">
+                                            <h2 class="section-title">Berufsspezifische digitale Kompetenzen</h2>
+                                            <div class="competency-grid">
+                                                <div class="competency-card" data-category="professional">
+                                                    <div class="card-overlay"></div>
+                                                    <div class="icon-container">
+                                                        <i class="fas fa-tasks"></i>
+                                                    </div>
+                                                    <div class="card-content">
+                                                        <h3 class="competency-title">Organisation und Administration</h3>
+                                                        <p class="card-description">Digitale Verwaltung und Organisation</p>
+                                                    </div>
+                                                </div>
+                        
+                                                <div class="competency-card" data-category="professional">
+                                                    <div class="card-overlay"></div>
+                                                    <div class="icon-container">
+                                                        <i class="fas fa-chalkboard-teacher"></i>
+                                                    </div>
+                                                    <div class="card-content">
+                                                        <h3 class="competency-title">Lehren und Lernen</h3>
+                                                        <p class="card-description">Digitale Lehr- und Lernmethoden</p>
+                                                    </div>
+                                                </div>
+                        
+                                                <div class="competency-card" data-category="professional">
+                                                    <div class="card-overlay"></div>
+                                                    <div class="icon-container">
+                                                        <i class="fas fa-users"></i>
+                                                    </div>
+                                                    <div class="card-content">
+                                                        <h3 class="competency-title">Lernende fördern</h3>
+                                                        <p class="card-description">Individuelle Förderung mit digitalen Medien</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                                <!-- Detail View -->
+                                                <div class="detail-section">
+                                                    <div class="detail-content">
+                                                        <div class="detail-header">
+                                                            <h2 class="detail-title"></h2>
+                                                            <div class="detail-icon"></div>
+                                                        </div>
+                                                        <div class="detail-body">
+                                                            <div class="description-section">
+                                                                <h3>Beschreibung</h3>
+                                                                <p class="competency-description"></p>
+                                                            </div>
+                                                            <div class="example-section">
+                                                                <h3>Beispiel</h3>
+                                                                <p class="competency-example"></p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </section>
+                                        </main>
+                                    
+                                        <!-- Footer -->
+                                        <footer>
+                                            <p>&copy; 2024 Open-Digi. Alle Rechte vorbehalten.</p>
+                                        </footer>
+                                    
+                                        <!-- JavaScript -->
+                                        <script src="js/courses.js"></script>
+                                    </body>
+                                    </html>
+                                    

@@ -180,10 +180,27 @@ const competencyDescriptions = {
 
 document.addEventListener('DOMContentLoaded', () => {
     const competencyCards = document.querySelectorAll('.competency-card');
-    const selectionTitle = document.getElementById('selection-title');
-    const descriptionSection = document.querySelector('.description-section');
-    const descriptionContent = document.querySelector('.competency-description');
-    const exampleContent = document.querySelector('.competency-example');
+    const detailSection = document.querySelector('.detail-section');
+    const detailTitle = document.querySelector('.detail-title');
+    const detailIcon = document.querySelector('.detail-icon');
+    const description = document.querySelector('.competency-description');
+    const example = document.querySelector('.competency-example');
+    const heroTitle = document.querySelector('.animate-title');
+
+    // Initialize Intersection Observer for fade-in animations
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    // Observe all cards for fade-in
+    competencyCards.forEach(card => {
+        observer.observe(card);
+    });
 
     function findCompetencyByTitle(title) {
         return competencies.find(comp => 
@@ -192,33 +209,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateActiveCard(clickedCard) {
-        competencyCards.forEach(card => card.classList.remove('active'));
+        // Remove active class from all cards
+        competencyCards.forEach(card => {
+            card.classList.remove('active');
+            card.style.transform = 'scale(1)';
+        });
+
+        // Add active class and scale up the clicked card
         clickedCard.classList.add('active');
+        clickedCard.style.transform = 'scale(1.02)';
     }
 
-    function updateContent(competency) {
-        // Update hero title with animation
-        if (selectionTitle) {
-            selectionTitle.style.opacity = '0';
-            setTimeout(() => {
-                selectionTitle.textContent = competency.title;
-                selectionTitle.style.opacity = '1';
-            }, 300);
-        }
+    function animateContent(element, content, delay = 0) {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            element.textContent = content;
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        }, delay);
+    }
 
-        // Update description section with animation
-        if (descriptionSection) {
-            descriptionSection.style.opacity = '0';
-            setTimeout(() => {
-                if (descriptionContent) {
-                    descriptionContent.textContent = competency.description;
-                }
-                if (exampleContent) {
-                    exampleContent.textContent = competency.example;
-                }
-                descriptionSection.style.opacity = '1';
-            }, 300);
-        }
+    function updateDetailView(competency, iconClass) {
+        // Animate the detail section sliding in
+        detailSection.style.opacity = '0';
+        detailSection.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+            // Update content
+            detailTitle.textContent = competency.title;
+            detailIcon.innerHTML = `<i class="${iconClass}"></i>`;
+            description.textContent = competency.description;
+            example.textContent = competency.example;
+
+            // Animate content appearing
+            detailSection.style.opacity = '1';
+            detailSection.style.transform = 'translateY(0)';
+        }, 300);
     }
 
     competencyCards.forEach(card => {
@@ -228,14 +256,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const title = titleElement.textContent.trim();
             const competency = findCompetencyByTitle(title);
+            const iconClass = card.querySelector('.icon-container i').className;
 
             if (!competency) {
                 console.error('No matching competency found for:', title);
                 return;
             }
 
+            // Update hero title with animation
+            heroTitle.style.opacity = '0';
+            heroTitle.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                heroTitle.textContent = competency.title;
+                heroTitle.style.opacity = '1';
+                heroTitle.style.transform = 'translateY(0)';
+            }, 300);
+
             updateActiveCard(card);
-            updateContent(competency);
+            updateDetailView(competency, iconClass);
+        });
+
+        // Add hover effect
+        card.addEventListener('mouseover', () => {
+            card.style.transform = 'translateY(-5px)';
+        });
+
+        card.addEventListener('mouseout', () => {
+            if (!card.classList.contains('active')) {
+                card.style.transform = 'translateY(0)';
+            }
         });
     });
 });
