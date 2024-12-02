@@ -355,3 +355,172 @@ footer p {
         font-size: 1em;
     }
 }
+
+#competency-section {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    margin: 40px auto;
+    max-width: 1400px;
+    padding: 0 20px;
+}
+
+.competency-column {
+    flex: 1;
+    max-width: 450px;
+}
+
+.competency-column h2 {
+    color: var(--primary-color);
+    font-size: 1.5em;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.competency-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.competency-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 74, 153, 0.1);
+    box-shadow: var(--card-shadow);
+}
+
+.competency-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--card-hover-shadow);
+    border-color: var(--primary-color);
+}
+
+.competency-card.selected {
+    background-color: var(--light-background);
+    border-color: var(--primary-color);
+    box-shadow: var(--card-hover-shadow);
+}
+
+.competency-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--light-background);
+    border-radius: 12px;
+    padding: 12px;
+    transition: all 0.3s ease;
+}
+
+.competency-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.competency-card:hover .competency-icon {
+    background: var(--primary-color);
+}
+
+.competency-card:hover .competency-icon img {
+    transform: scale(1.1);
+    filter: brightness(0) invert(1);
+}
+
+.competency-content {
+    flex: 1;
+}
+
+.competency-title {
+    color: var(--primary-color);
+    font-size: 1.1em;
+    margin: 0;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    font-weight: 600;
+}
+
+.competency-description {
+    color: var(--text-color);
+    font-size: 0.9em;
+    line-height: 1.5;
+    margin: 0;
+}
+
+#competency-description {
+    flex: 0 1 400px;
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    border: 1px solid rgba(0, 74, 153, 0.1);
+    box-shadow: var(--card-shadow);
+    align-self: flex-start;
+    position: sticky;
+    top: 20px;
+}
+
+#competency-description h2 {
+    color: var(--primary-color);
+    font-size: 1.4em;
+    margin-bottom: 20px;
+}
+
+.description-content {
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.example-section {
+    margin-top: 20px;
+    padding: 20px;
+    background: var(--light-background);
+    border-radius: 8px;
+}
+
+.example-section h3 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+@media (max-width: 1200px) {
+    #competency-section {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .competency-column {
+        max-width: 100%;
+    }
+
+    #competency-description {
+        position: static;
+        width: 100%;
+        margin-top: 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    #competency-section {
+        padding: 0 15px;
+    }
+
+    .competency-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .competency-icon {
+        margin-bottom: 15px;
+    }
+}
