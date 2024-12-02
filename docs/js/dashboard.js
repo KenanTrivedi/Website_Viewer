@@ -142,10 +142,35 @@ document.addEventListener('DOMContentLoaded', async function () {
       }
     })
 
-    // Setup event listener for export button
+    // Setup event listener for export buttons
     const exportSelectedButton = document.getElementById('exportSelected')
     if (exportSelectedButton) {
       exportSelectedButton.addEventListener('click', exportSelectedData)
+    }
+
+    const exportAllButton = document.getElementById('exportAll')
+    if (exportAllButton) {
+      exportAllButton.addEventListener('click', function() {
+        // Select all checkboxes
+        document.querySelectorAll('.user-select').forEach(checkbox => {
+          checkbox.checked = true;
+        });
+        exportSelectedData();
+      })
+    }
+
+    // Setup event listener for visualization toggle
+    const toggleVisualizationButton = document.getElementById('toggleVisualization')
+    const visualizationSection = document.getElementById('visualizationSection')
+    if (toggleVisualizationButton && visualizationSection) {
+      toggleVisualizationButton.addEventListener('click', function() {
+        const isHidden = visualizationSection.style.display === 'none'
+        visualizationSection.style.display = isHidden ? 'block' : 'none'
+        toggleVisualizationButton.innerHTML = `<i class="fas fa-chart-line me-2"></i>${isHidden ? 'Hide' : 'Show'} Visualization`
+        if (isHidden) {
+          updateVisualization()
+        }
+      })
     }
 
     // Fetch initial data
@@ -359,23 +384,166 @@ function showError(message) {
 }
 
 function updateVisualization() {
-  const selectedUsers = []
+  const selectedUsers = [];
   document.querySelectorAll('.user-select:checked').forEach((checkbox) => {
-    const row = checkbox.closest('tr')
-    const userCode = row.querySelector('td:nth-child(2)').textContent
-    selectedUsers.push(userCode)
-  })
-  console.log('Selected users for visualization:', selectedUsers)
-  // Add visualization logic here
+    const row = checkbox.closest('tr');
+    const userCode = row.querySelector('td:nth-child(2)').textContent;
+    const user = users.find(u => u.userCode === userCode);
+    if (user) {
+      selectedUsers.push(user);
+    }
+  });
+
+  if (selectedUsers.length === 0) {
+    showError('Please select at least one user to visualize data.');
+    return;
+  }
+
+  const ctx = document.getElementById('visualization');
+  if (!ctx) {
+    console.error('Visualization canvas not found');
+    return;
+  }
+
+  // Destroy existing chart if it exists
+  if (chart) {
+    chart.destroy();
+  }
+
+  const datasets = [];
+  const categories = Object.keys(labelMap);
+
+  // Add datasets for initial scores (T1)
+  datasets.push({
+    label: 'Initial Scores (T1)',
+    data: categories.map(category => {
+      const scores = selectedUsers.map(user => user.initialScores[category] || 0);
+      return scores.reduce((a, b) => a + b, 0) / scores.length;
+    }),
+    backgroundColor: categories.map(category => getLighterColor(colorMap[category])),
+    borderColor: categories.map(category => colorMap[category]),
+    borderWidth: 2
+  });
+
+  // Add datasets for updated scores (T2)
+  datasets.push({
+    label: 'Latest Scores (T2)',
+    data: categories.map(category => {
+      const scores = selectedUsers.map(user => user.updatedScores[category] || 0);
+      return scores.reduce((a, b) => a + b, 0) / scores.length;
+    }),
+    backgroundColor: categories.map(category => colorMap[category]),
+    borderColor: categories.map(category => colorMap[category]),
+    borderWidth: 2
+  });
+
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: categories.map(category => labelMap[category]),
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          title: {
+            display: true,
+            text: 'Score (%)'
+          }
+        }
+      },
+      plugins: {
+        title: {
+          display: true,
+          text: `Average Scores Comparison (${selectedUsers.length} users)`
+        },
+        legend: {
+          display: true,
+          position: 'top'
+        }
+      }
+    }
+  });
 }
 
 function exportSelectedData() {
-  const selectedUsers = []
+  const selectedUsers = [];
   document.querySelectorAll('.user-select:checked').forEach((checkbox) => {
-    const row = checkbox.closest('tr')
-    const userCode = row.querySelector('td:nth-child(2)').textContent
-    selectedUsers.push(userCode)
-  })
-  console.log('Exporting selected users:', selectedUsers)
-  // Add export logic here
+    const row = checkbox.closest('tr');
+    const userCode = row.querySelector('td:nth-child(2)').textContent;
+    const user = users.find(u => u.userCode === userCode);
+    if (user) {
+      selectedUsers.push(user);
+    }
+  });
+
+  if (selectedUsers.length === 0) {
+    showError('Please select at least one user to export data.');
+    return;
+  }
+
+  // Prepare CSV data
+  const csvData = [];
+  const headers = [
+    'User Code',
+    'Gender',
+    'Birth Year',
+    'First Submission',
+    'Latest Submission',
+    'Courses',
+    'Is Complete',
+    ...Object.keys(labelMap).flatMap(category => [`${category} (T1)`, `${category} (T2)`]),
+    ...questionIds.flatMap(qId => [`${qId} (T1)`, `${qId} (T2)`])
+  ];
+  csvData.push(headers);
+
+  // Add data for each selected user
+  selectedUsers.forEach(user => {
+    const row = [
+      user.userCode,
+      user.gender,
+      user.birthYear,
+      user.firstSubmissionTime,
+      user.latestSubmissionTime,
+      (user.courses || []).join(';'),
+      user.isComplete ? 'Yes' : 'No',
+      // Add scores for each category
+      ...Object.keys(labelMap).flatMap(category => [
+        user.initialScores[category] || '',
+        user.updatedScores[category] || ''
+      ]),
+      // Add responses for each question
+      ...questionIds.flatMap(qId => [
+        user.initialResponses?.[qId] || '',
+        user.updatedResponses?.[qId] || ''
+      ])
+    ];
+    csvData.push(row);
+  });
+
+  // Convert to CSV string
+  const csvString = csvData.map(row => 
+    row.map(cell => 
+      typeof cell === 'string' && cell.includes(',') 
+        ? `"${cell}"` 
+        : cell
+    ).join(',')
+  ).join('\n');
+
+  // Create and trigger download
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  if (navigator.msSaveBlob) { // IE 10+
+    navigator.msSaveBlob(blob, 'survey_data.csv');
+  } else {
+    link.href = URL.createObjectURL(blob);
+    link.download = 'survey_data.csv';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 }
