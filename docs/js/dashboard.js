@@ -265,7 +265,6 @@ function renderTable() {
       <th>Veränderung der Kompetenzüberzeugungen</th>
       <th>Erste Abgabe</th>
       <th>Letzte Abgabe</th>
-      ${questionIds.map(id => `<th>${id} (T1)</th><th>${id} (T2)</th>`).join('')}
     `
 
     // Clear and prepare tbody
@@ -308,33 +307,57 @@ function renderTable() {
 function filterUsers() {
   const searchInput = document.getElementById('userSearch')
   const searchTerm = searchInput ? searchInput.value.toLowerCase() : ''
+  const dateRange = getSelectedDateRange()
 
-  return users.filter((user) => {
-    const matchesSearch =
-      !searchTerm ||
-      (user.userCode && user.userCode.toLowerCase().includes(searchTerm)) ||
-      (user.gender && user.gender.toLowerCase().includes(searchTerm)) ||
-      (user.birthYear && user.birthYear.toString().includes(searchTerm))
+  return users.filter(user => {
+    const matchesSearch = !searchTerm || [
+      user.userCode,
+      user.attemptNumber?.toString(),
+      user.data?.q0_0, // Geschlecht
+      user.data?.q0_1, // Geburtsjahr
+      user.data?.q0_2, // Lehramt
+      user.data?.q0_3, // Fächer
+      (user.courses || []).join(', '),
+      user.data?.t2_course_feedback || user.openEndedResponses?.attempt2_course_feedback,
+      user.openEndedResponses?.t1_strategy,
+      user.openEndedResponses?.t2_reflection
+    ].some(field => field?.toString().toLowerCase().includes(searchTerm))
 
-    const matchesDateRange = filterByDateRange(user)
-
-    return matchesSearch && matchesDateRange
+    return matchesSearch && (!dateRange.start || filterByDateRange(user))
   })
 }
 
+function getSelectedDateRange() {
+  const dateRangePicker = document.getElementById('dateRange')
+  if (!dateRangePicker || !dateRangePicker._flatpickr) {
+    return { start: null, end: null }
+  }
+  const selectedDates = dateRangePicker._flatpickr.selectedDates
+  return {
+    start: selectedDates[0] || null,
+    end: selectedDates[1] || null
+  }
+}
+
 function filterByDateRange(user) {
-  if (!startDate && !endDate) return true
+  const dateRange = getSelectedDateRange()
+  if (!dateRange.start || !dateRange.end) {
+    return true
+  }
 
-  const submissionDate = user.firstSubmissionTime
-    ? new Date(user.firstSubmissionTime)
-    : null
+  const submissionDate = user.firstSubmissionTime ? new Date(user.firstSubmissionTime) : null
+  if (!submissionDate) {
+    return false
+  }
 
-  if (!submissionDate) return false
+  // Reset hours, minutes, seconds, and milliseconds for accurate date comparison
+  submissionDate.setHours(0, 0, 0, 0)
+  const start = new Date(dateRange.start)
+  start.setHours(0, 0, 0, 0)
+  const end = new Date(dateRange.end)
+  end.setHours(23, 59, 59, 999)
 
-  if (startDate && submissionDate < startDate) return false
-  if (endDate && submissionDate > endDate) return false
-
-  return true
+  return submissionDate >= start && submissionDate <= end
 }
 
 function updatePagination(totalUsers) {
@@ -389,67 +412,79 @@ function showError(message) {
 }
 
 function updateVisualization() {
-  const selectedUsers = [];
-  document.querySelectorAll('.user-select:checked').forEach((checkbox) => {
-    const row = checkbox.closest('tr');
-    const userCode = row.querySelector('td:nth-child(2)').textContent;
-    const user = users.find(u => u.userCode === userCode);
-    if (user) {
-      selectedUsers.push(user);
+  const canvas = document.getElementById('visualization')
+  if (!canvas) return
+
+  const ctx = canvas.getContext('2d')
+  
+  // Calculate averages
+  const initialScores = {
+    'Suchen': 0,
+    'Kommunizieren': 0,
+    'Produzieren': 0,
+    'Schützen': 0,
+    'Problemlösen': 0,
+    'Analysieren': 0
+  }
+  
+  const latestScores = { ...initialScores }
+  let userCount = 0
+
+  users.forEach(user => {
+    if (user.initialScores && user.updatedScores) {
+      initialScores['Suchen'] += user.initialScores['Suchen, Verarbeiten und Aufbewahren'] || 0
+      initialScores['Kommunizieren'] += user.initialScores['Kommunikation und Kollaborieren'] || 0
+      initialScores['Produzieren'] += user.initialScores['Produzieren und Präsentieren'] || 0
+      initialScores['Schützen'] += user.initialScores['Schützen und sicher Agieren'] || 0
+      initialScores['Problemlösen'] += user.initialScores['Problemlösen und Handeln'] || 0
+      initialScores['Analysieren'] += user.initialScores['Analysieren und Reflektieren'] || 0
+
+      latestScores['Suchen'] += user.updatedScores['Suchen, Verarbeiten und Aufbewahren'] || 0
+      latestScores['Kommunizieren'] += user.updatedScores['Kommunikation und Kollaborieren'] || 0
+      latestScores['Produzieren'] += user.updatedScores['Produzieren und Präsentieren'] || 0
+      latestScores['Schützen'] += user.updatedScores['Schützen und sicher Agieren'] || 0
+      latestScores['Problemlösen'] += user.updatedScores['Problemlösen und Handeln'] || 0
+      latestScores['Analysieren'] += user.updatedScores['Analysieren und Reflektieren'] || 0
+      userCount++
     }
-  });
+  })
 
-  if (selectedUsers.length === 0) {
-    showError('Please select at least one user to visualize data.');
-    return;
-  }
-
-  const ctx = document.getElementById('visualization');
-  if (!ctx) {
-    console.error('Visualization canvas not found');
-    return;
-  }
+  // Calculate averages
+  Object.keys(initialScores).forEach(key => {
+    initialScores[key] = userCount ? Math.round(initialScores[key] / userCount) : 0
+    latestScores[key] = userCount ? Math.round(latestScores[key] / userCount) : 0
+  })
 
   // Destroy existing chart if it exists
-  if (chart) {
-    chart.destroy();
+  if (window.myChart) {
+    window.myChart.destroy()
   }
 
-  const datasets = [];
-  const categories = Object.keys(labelMap);
-
-  // Add datasets for initial scores (T1)
-  datasets.push({
-    label: 'Initial Scores (T1)',
-    data: categories.map(category => {
-      const scores = selectedUsers.map(user => user.initialScores[category] || 0);
-      return scores.reduce((a, b) => a + b, 0) / scores.length;
-    }),
-    backgroundColor: categories.map(category => getLighterColor(colorMap[category])),
-    borderColor: categories.map(category => colorMap[category]),
-    borderWidth: 2
-  });
-
-  // Add datasets for updated scores (T2)
-  datasets.push({
-    label: 'Latest Scores (T2)',
-    data: categories.map(category => {
-      const scores = selectedUsers.map(user => user.updatedScores[category] || 0);
-      return scores.reduce((a, b) => a + b, 0) / scores.length;
-    }),
-    backgroundColor: categories.map(category => colorMap[category]),
-    borderColor: categories.map(category => colorMap[category]),
-    borderWidth: 2
-  });
-
-  chart = new Chart(ctx, {
+  // Create new chart
+  window.myChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: categories.map(category => labelMap[category]),
-      datasets: datasets
+      labels: Object.keys(initialScores),
+      datasets: [
+        {
+          label: 'Initial Scores (T1)',
+          data: Object.values(initialScores),
+          backgroundColor: 'rgba(54, 162, 235, 0.5)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        },
+        {
+          label: 'Latest Scores (T2)',
+          data: Object.values(latestScores),
+          backgroundColor: 'rgba(75, 192, 192, 0.5)',
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 1
+        }
+      ]
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       scales: {
         y: {
           beginAtZero: true,
@@ -463,15 +498,17 @@ function updateVisualization() {
       plugins: {
         title: {
           display: true,
-          text: `Average Scores Comparison (${selectedUsers.length} users)`
+          text: `Average Scores Comparison (${userCount} users)`,
+          font: {
+            size: 16
+          }
         },
         legend: {
-          display: true,
           position: 'top'
         }
       }
     }
-  });
+  })
 }
 
 function exportSelectedData() {
@@ -555,3 +592,15 @@ function exportSelectedData() {
     document.body.removeChild(link);
   }
 }
+
+document.getElementById('applyDateFilter').addEventListener('click', function() {
+  renderTable()
+})
+
+document.getElementById('clearDateFilter').addEventListener('click', function() {
+  const dateRangePicker = document.getElementById('dateRange')
+  if (dateRangePicker && dateRangePicker._flatpickr) {
+    dateRangePicker._flatpickr.clear()
+    renderTable()
+  }
+})
