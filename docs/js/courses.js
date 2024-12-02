@@ -191,14 +191,17 @@ document.addEventListener('DOMContentLoaded', () => {
         clickedCard.classList.add('active');
     }
 
+    function findCompetencyByTitle(title) {
+        return competencies.find(c => c.title.trim() === title.trim());
+    }
+
     competencyCards.forEach(card => {
         card.addEventListener('click', () => {
-            // Get the competency type from the card's data attribute
-            const competencyType = card.dataset.competency;
-            const title = card.querySelector('.competency-title').textContent;
+            const titleElement = card.querySelector('.competency-title');
+            if (!titleElement) return;
             
-            // Find the matching competency data
-            const competency = competencies.find(c => c.title === title);
+            const title = titleElement.textContent;
+            const competency = findCompetencyByTitle(title);
             
             if (competency) {
                 // Update the display area
@@ -208,6 +211,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Update active state
                 updateActiveCard(card);
+            } else {
+                console.log('No matching competency found for:', title);
             }
         });
     });
