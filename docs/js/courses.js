@@ -178,113 +178,110 @@ const competencyDescriptions = {
   }
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     const competencyCards = document.querySelectorAll('.competency-card');
-    const detailSection = document.querySelector('.detail-section');
-    const detailTitle = document.querySelector('.detail-title');
-    const detailIcon = document.querySelector('.detail-icon');
-    const description = document.querySelector('.competency-description');
-    const example = document.querySelector('.competency-example');
-    const heroTitle = document.querySelector('.animate-title');
+    const selectedTitle = document.querySelector('.selected-title');
+    const competencyDescription = document.querySelector('.competency-description');
+    const competencyExample = document.querySelector('.competency-example');
+    let activeCard = null;
 
-    // Initialize Intersection Observer for fade-in animations
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in');
-                observer.unobserve(entry.target);
+    // Competency data
+    const competencyData = {
+        'Suchen, Verarbeiten und Aufbewahren': {
+            description: 'Umfasst das Wissen, die Motivation und Fähigkeiten, gezielt nach digitalen Daten und Inhalten zu suchen, diese effektiv zu organisieren, zu speichern und abzurufen.',
+            example: 'Sucht im Internet nach verlässlichen Informationen zu einer Unterrichtseinheit, nutzt dabei mehrere Websites und speichert die gefundenen Informationen gut strukturiert in einem Cloud-Speicher, sodass diese jederzeit online- und offline darauf zugegriffen werden kann.'
+        },
+        'Kommunikation und Zusammenarbeit': {
+            description: 'Beinhaltet die Fähigkeit, digitale Technologien für die Kommunikation zu nutzen und digital mit anderen zusammenzuarbeiten.',
+            example: 'Nutzt verschiedene digitale Kommunikationskanäle für den Austausch mit Kollegen, organisiert Online-Meetings und arbeitet kollaborativ an gemeinsamen Dokumenten.'
+        },
+        'Produzieren und Präsentieren': {
+            description: 'Umfasst die Erstellung und Bearbeitung digitaler Inhalte sowie deren ansprechende Präsentation.',
+            example: 'Erstellt interaktive Präsentationen, bearbeitet Bilder und Videos für den Unterricht, entwickelt digitale Lernmaterialien.'
+        },
+        'Schützen und sicher Agieren': {
+            description: 'Bezieht sich auf den sicheren Umgang mit digitalen Medien und den Schutz persönlicher Daten.',
+            example: 'Verwendet sichere Passwörter, schützt sensible Daten, kennt und beachtet Datenschutzrichtlinien im schulischen Kontext.'
+        },
+        'Problemlösen und Handeln': {
+            description: 'Beinhaltet die Fähigkeit, technische Probleme zu lösen und digitale Werkzeuge bedarfsgerecht einzusetzen.',
+            example: 'Behebt grundlegende technische Probleme selbstständig, wählt passende digitale Tools für verschiedene Unterrichtssituationen aus.'
+        },
+        'Analysieren und Reflektieren': {
+            description: 'Umfasst die kritische Bewertung digitaler Medien und deren Wirkung.',
+            example: 'Bewertet die Qualität digitaler Lernressourcen, reflektiert den eigenen Medieneinsatz im Unterricht.'
+        },
+        'Organisation und Administration': {
+            description: 'Bezieht sich auf die digitale Verwaltung und Organisation schulischer Prozesse.',
+            example: 'Nutzt digitale Systeme für die Notenverwaltung, Anwesenheitskontrolle und Unterrichtsplanung.'
+        },
+        'Lehren und Lernen': {
+            description: 'Umfasst den didaktisch sinnvollen Einsatz digitaler Medien im Unterricht.',
+            example: 'Setzt digitale Tools gezielt zur Förderung von Lernprozessen ein, gestaltet interaktive Lerneinheiten.'
+        },
+        'Lernende fördern': {
+            description: 'Beinhaltet die individuelle Förderung von Schülern durch digitale Medien.',
+            example: 'Erstellt differenzierte digitale Lernmaterialien, bietet individuelle Unterstützung durch digitale Werkzeuge.'
+        },
+        'Berufliches Engagement': {
+            description: 'Bezieht sich auf die professionelle Weiterentwicklung im digitalen Bereich.',
+            example: 'Nimmt an Online-Fortbildungen teil, tauscht sich in digitalen Lehrercommunitys aus.'
+        },
+        'Bewertung': {
+            description: 'Umfasst die Nutzung digitaler Werkzeuge für Bewertungsprozesse.',
+            example: 'Verwendet digitale Tools für Feedback und Leistungsbewertung, dokumentiert Lernfortschritte digital.'
+        },
+        'Förderung digitaler Kompetenzen': {
+            description: 'Bezieht sich auf die Vermittlung digitaler Kompetenzen an Schüler.',
+            example: 'Integriert Medienkompetenzvermittlung in den Fachunterricht, schult kritischen Umgang mit digitalen Medien.'
+        }
+    };
+
+    // Handle card clicks
+    competencyCards.forEach(card => {
+        card.addEventListener('click', function() {
+            // Remove active class from previous card
+            if (activeCard) {
+                activeCard.classList.remove('active');
+            }
+
+            // Add active class to clicked card
+            this.classList.add('active');
+            activeCard = this;
+
+            // Get competency title from card
+            const title = this.querySelector('.card-content h3').textContent;
+
+            // Update description section
+            selectedTitle.textContent = title;
+            if (competencyData[title]) {
+                competencyDescription.textContent = competencyData[title].description;
+                competencyExample.textContent = competencyData[title].example;
+            }
+
+            // Scroll description into view on mobile
+            if (window.innerWidth <= 1200) {
+                document.querySelector('.description-column').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
             }
         });
-    }, { threshold: 0.1 });
-
-    // Observe all cards for fade-in
-    competencyCards.forEach(card => {
-        observer.observe(card);
     });
 
-    function findCompetencyByTitle(title) {
-        return competencies.find(comp => 
-            comp.title.toLowerCase().trim() === title.toLowerCase().trim()
-        );
-    }
-
-    function updateActiveCard(clickedCard) {
-        // Remove active class from all cards
-        competencyCards.forEach(card => {
-            card.classList.remove('active');
-            card.style.transform = 'scale(1)';
-        });
-
-        // Add active class and scale up the clicked card
-        clickedCard.classList.add('active');
-        clickedCard.style.transform = 'scale(1.02)';
-    }
-
-    function animateContent(element, content, delay = 0) {
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(20px)';
-        
-        setTimeout(() => {
-            element.textContent = content;
-            element.style.opacity = '1';
-            element.style.transform = 'translateY(0)';
-        }, delay);
-    }
-
-    function updateDetailView(competency, iconClass) {
-        // Animate the detail section sliding in
-        detailSection.style.opacity = '0';
-        detailSection.style.transform = 'translateY(20px)';
-
-        setTimeout(() => {
-            // Update content
-            detailTitle.textContent = competency.title;
-            detailIcon.innerHTML = `<i class="${iconClass}"></i>`;
-            description.textContent = competency.description;
-            example.textContent = competency.example;
-
-            // Animate content appearing
-            detailSection.style.opacity = '1';
-            detailSection.style.transform = 'translateY(0)';
-        }, 300);
-    }
-
+    // Add hover effects
     competencyCards.forEach(card => {
-        card.addEventListener('click', () => {
-            const titleElement = card.querySelector('.competency-title');
-            if (!titleElement) return;
-
-            const title = titleElement.textContent.trim();
-            const competency = findCompetencyByTitle(title);
-            const iconClass = card.querySelector('.icon-container i').className;
-
-            if (!competency) {
-                console.error('No matching competency found for:', title);
-                return;
+        card.addEventListener('mouseenter', function() {
+            const img = this.querySelector('.card-bg img');
+            if (img) {
+                img.style.transform = 'scale(1.1)';
             }
-
-            // Update hero title with animation
-            heroTitle.style.opacity = '0';
-            heroTitle.style.transform = 'translateY(-20px)';
-            
-            setTimeout(() => {
-                heroTitle.textContent = competency.title;
-                heroTitle.style.opacity = '1';
-                heroTitle.style.transform = 'translateY(0)';
-            }, 300);
-
-            updateActiveCard(card);
-            updateDetailView(competency, iconClass);
         });
 
-        // Add hover effect
-        card.addEventListener('mouseover', () => {
-            card.style.transform = 'translateY(-5px)';
-        });
-
-        card.addEventListener('mouseout', () => {
-            if (!card.classList.contains('active')) {
-                card.style.transform = 'translateY(0)';
+        card.addEventListener('mouseleave', function() {
+            const img = this.querySelector('.card-bg img');
+            if (img) {
+                img.style.transform = 'scale(1)';
             }
         });
     });
