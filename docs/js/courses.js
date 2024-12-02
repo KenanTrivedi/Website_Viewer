@@ -178,26 +178,36 @@ const competencyDescriptions = {
   }
 };
 
-document.addEventListener('DOMContentLoaded', function() {
-  const competencyCards = document.querySelectorAll('.competency-card');
-  const descriptionSection = document.getElementById('competency-description');
+document.addEventListener('DOMContentLoaded', () => {
+    const competencyCards = document.querySelectorAll('.competency-card');
+    const competencyTitle = document.querySelector('.selected-competency-title');
+    const competencyDescription = document.querySelector('.selected-competency-description');
+    const competencyExample = document.querySelector('.selected-competency-example');
 
-  competencyCards.forEach(card => {
-    card.addEventListener('click', function() {
-      const competencyType = this.dataset.competency;
-      const competencyData = competencyDescriptions[competencyType];
-
-      if (competencyData) {
-        descriptionSection.innerHTML = `
-          <h3>${competencyData.title}</h3>
-          <p>${competencyData.description}</p>
-        `;
-      }
-
-      // Remove active class from all cards
-      competencyCards.forEach(c => c.classList.remove('active'));
-      // Add active class to clicked card
-      this.classList.add('active');
+    competencyCards.forEach(card => {
+        card.addEventListener('click', () => {
+            // Find the matching competency data
+            const title = card.querySelector('h3').textContent;
+            const competency = competencies.find(c => c.title === title);
+            
+            if (competency) {
+                // Update the display area
+                competencyTitle.textContent = competency.fullTitle;
+                competencyDescription.textContent = competency.description;
+                competencyExample.textContent = competency.example;
+                
+                // Remove active class from all cards and add to clicked card
+                competencyCards.forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                
+                // Scroll the description into view on mobile
+                competencyTitle.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        });
     });
-  });
+    
+    // Trigger click on first card to show initial content
+    if (competencyCards.length > 0) {
+        competencyCards[0].click();
+    }
 });
