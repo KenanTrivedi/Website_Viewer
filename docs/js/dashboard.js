@@ -236,26 +236,18 @@ function renderTable() {
     thead.innerHTML = `
       <th>Select</th>
       <th>User Code</th>
-      <th>Gender</th>
-      <th>Birth Year</th>
-      <th>First Submission</th>
-      <th>Latest Submission</th>
-      ${questionIds
-        .filter(
-          (id) =>
-            id.startsWith('q') &&
-            id !== 'q0_0' &&
-            id !== 'q0_1' &&
-            id !== 'q0_2' &&
-            id !== 'q0_3'
-        )
-        .map(
-          (id) => `
-          <th>${id} (T1)</th>
-          <th>${id} (Latest)</th>
-        `
-        )
-        .join('')}
+      <th>Attempt Number</th>
+      <th>Geschlecht</th>
+      <th>Geburtsjahr</th>
+      <th>Lehramt</th>
+      <th>Fächer</th>
+      <th>Kurse</th>
+      <th>Feedback zu Kursen</th>
+      <th>Strategie bei der Auswahl</th>
+      <th>Veränderung der Kompetenzüberzeugungen</th>
+      <th>Erste Abgabe</th>
+      <th>Letzte Abgabe</th>
+      ${questionIds.map(id => `<th>${id} (T1)</th><th>${id} (T2)</th>`).join('')}
     `
 
     // Clear and prepare tbody
@@ -267,27 +259,22 @@ function renderTable() {
 
       tr.innerHTML = `
         <td><input type="checkbox" class="user-select" /></td>
-        <td>${user.userCode || ''}</td>
-        <td>${user.gender || ''}</td>
-        <td>${user.birthYear || ''}</td>
+        <td>${escapeHtml(user.userCode || '')}</td>
+        <td>${user.attemptNumber || ''}</td>
+        <td>${escapeHtml(user.gender || '')}</td>
+        <td>${escapeHtml(user.birthYear || '')}</td>
+        <td>${escapeHtml(user.data?.responses?.q0_2 || '')}</td>
+        <td>${escapeHtml(user.data?.responses?.q0_3 || '')}</td>
+        <td>${escapeHtml((user.courses || []).join(', '))}</td>
+        <td>${escapeHtml(user.openEndedResponses?.course_feedback || '')}</td>
+        <td>${escapeHtml(user.openEndedResponses?.t1_strategy || '')}</td>
+        <td>${escapeHtml(user.openEndedResponses?.t2_reflection || '')}</td>
         <td>${user.firstSubmissionTime ? new Date(user.firstSubmissionTime).toLocaleString() : ''}</td>
         <td>${user.latestSubmissionTime ? new Date(user.latestSubmissionTime).toLocaleString() : ''}</td>
-        ${questionIds
-          .filter(
-            (id) =>
-              id.startsWith('q') &&
-              id !== 'q0_0' &&
-              id !== 'q0_1' &&
-              id !== 'q0_2' &&
-              id !== 'q0_3'
-          )
-          .map(
-            (id) => `
-            <td>${user.initialResponses?.[id] || ''}</td>
-            <td>${user.updatedResponses?.[id] || ''}</td>
-          `
-          )
-          .join('')}
+        ${questionIds.map(id => `
+          <td>${escapeHtml(user.initialResponses?.[id] || '')}</td>
+          <td>${escapeHtml(user.updatedResponses?.[id] || '')}</td>
+        `).join('')}
       `
 
       tbody.appendChild(tr)
@@ -489,14 +476,18 @@ function exportSelectedData() {
   const csvData = [];
   const headers = [
     'User Code',
-    'Gender',
-    'Birth Year',
-    'First Submission',
-    'Latest Submission',
-    'Courses',
-    'Is Complete',
-    ...Object.keys(labelMap).flatMap(category => [`${category} (T1)`, `${category} (T2)`]),
-    ...questionIds.flatMap(qId => [`${qId} (T1)`, `${qId} (T2)`])
+    'Attempt Number',
+    'Geschlecht',
+    'Geburtsjahr',
+    'Lehramt',
+    'Fächer',
+    'Kurse',
+    'Feedback zu Kursen',
+    'Strategie bei der Auswahl',
+    'Veränderung der Kompetenzüberzeugungen',
+    'Erste Abgabe',
+    'Letzte Abgabe',
+    ...questionIds.flatMap(id => [`${id} (T1)`, `${id} (T2)`])
   ];
   csvData.push(headers);
 
@@ -504,21 +495,20 @@ function exportSelectedData() {
   selectedUsers.forEach(user => {
     const row = [
       user.userCode,
+      user.attemptNumber || '',
       user.gender,
       user.birthYear,
-      user.firstSubmissionTime,
-      user.latestSubmissionTime,
+      user.data?.responses?.q0_2 || '',
+      user.data?.responses?.q0_3 || '',
       (user.courses || []).join(';'),
-      user.isComplete ? 'Yes' : 'No',
-      // Add scores for each category
-      ...Object.keys(labelMap).flatMap(category => [
-        user.initialScores[category] || '',
-        user.updatedScores[category] || ''
-      ]),
-      // Add responses for each question
-      ...questionIds.flatMap(qId => [
-        user.initialResponses?.[qId] || '',
-        user.updatedResponses?.[qId] || ''
+      user.openEndedResponses?.course_feedback || '',
+      user.openEndedResponses?.t1_strategy || '',
+      user.openEndedResponses?.t2_reflection || '',
+      user.firstSubmissionTime ? new Date(user.firstSubmissionTime).toLocaleString() : '',
+      user.latestSubmissionTime ? new Date(user.latestSubmissionTime).toLocaleString() : '',
+      ...questionIds.flatMap(id => [
+        user.initialResponses?.[id] || '',
+        user.updatedResponses?.[id] || ''
       ])
     ];
     csvData.push(row);
