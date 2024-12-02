@@ -184,6 +184,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const descriptionElement = document.querySelector('.selected-competency-description');
     const exampleElement = document.querySelector('.selected-competency-example');
 
+    function updateActiveCard(clickedCard) {
+        // Remove active class from all cards
+        competencyCards.forEach(card => card.classList.remove('active'));
+        // Add active class to clicked card
+        clickedCard.classList.add('active');
+    }
+
     competencyCards.forEach(card => {
         card.addEventListener('click', () => {
             // Get the competency type from the card's data attribute
@@ -199,9 +206,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 descriptionElement.textContent = competency.description || 'Beschreibung wird geladen...';
                 exampleElement.textContent = competency.example || 'Beispiel wird geladen...';
                 
-                // Remove active class from all cards and add to clicked card
-                competencyCards.forEach(c => c.classList.remove('active'));
-                card.classList.add('active');
+                // Update active state
+                updateActiveCard(card);
             }
         });
     });
