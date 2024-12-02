@@ -180,28 +180,28 @@ const competencyDescriptions = {
 
 document.addEventListener('DOMContentLoaded', () => {
     const competencyCards = document.querySelectorAll('.competency-card');
-    const competencyTitle = document.querySelector('.selected-competency-title');
-    const competencyDescription = document.querySelector('.selected-competency-description');
-    const competencyExample = document.querySelector('.selected-competency-example');
+    const titleElement = document.querySelector('.selected-competency-title');
+    const descriptionElement = document.querySelector('.selected-competency-description');
+    const exampleElement = document.querySelector('.selected-competency-example');
 
     competencyCards.forEach(card => {
         card.addEventListener('click', () => {
+            // Get the competency type from the card's data attribute
+            const competencyType = card.dataset.competency;
+            const title = card.querySelector('.competency-title').textContent;
+            
             // Find the matching competency data
-            const title = card.querySelector('h3').textContent;
             const competency = competencies.find(c => c.title === title);
             
             if (competency) {
                 // Update the display area
-                competencyTitle.textContent = competency.fullTitle;
-                competencyDescription.textContent = competency.description;
-                competencyExample.textContent = competency.example;
+                titleElement.textContent = competency.fullTitle || competency.title;
+                descriptionElement.textContent = competency.description || 'Beschreibung wird geladen...';
+                exampleElement.textContent = competency.example || 'Beispiel wird geladen...';
                 
                 // Remove active class from all cards and add to clicked card
                 competencyCards.forEach(c => c.classList.remove('active'));
                 card.classList.add('active');
-                
-                // Scroll the description into view on mobile
-                competencyTitle.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         });
     });
