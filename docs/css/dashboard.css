@@ -106,22 +106,52 @@
     min-width: 100px;
 }
 
-#visualizationSidebar {
+.visualization-sidebar {
     position: fixed;
     top: 0;
-    right: -400px;
-    width: 400px;
-    height: 100%;
-    background-color: #f8f9fa;
-    transition: right 0.3s ease;
-    padding: 20px;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    right: -500px;
+    width: 500px;
+    height: 100vh;
+    background: #fff;
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+    transition: right 0.3s ease-in-out;
     z-index: 1050;
+    display: flex;
+    flex-direction: column;
+}
+
+.visualization-sidebar.active {
+    right: 0;
+}
+
+.visualization-header {
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+}
+
+.visualization-content {
+    flex: 1;
+    padding: 1.5rem;
     overflow-y: auto;
 }
 
-#visualizationSidebar.open {
-    right: 0;
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    display: none;
+}
+
+.overlay.active {
+    display: block;
 }
 
 .flatpickr-calendar {
@@ -143,4 +173,132 @@
 /* New CSS for highlighting changed scores */
 .score-changed {
     background-color: #ffeeba;
+}
+
+/* General Styles */
+body {
+    background-color: #f8f9fa;
+}
+
+.container-fluid {
+    padding: 20px;
+}
+
+/* Card Styles */
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+}
+
+.visualization-card {
+    height: calc(100vh - 250px);
+    position: sticky;
+    top: 20px;
+}
+
+.visualization-card .card-body {
+    height: calc(100% - 60px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Table Styles */
+.table-responsive {
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+#userTable {
+    margin-bottom: 0;
+}
+
+#userTable th,
+#userTable td {
+    white-space: nowrap;
+    padding: 12px;
+    vertical-align: middle;
+}
+
+.table-light th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
+/* Button and Control Styles */
+.btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-info {
+    color: #fff;
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.input-group {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Search and Filter Styles */
+#userSearch,
+.date-range-picker {
+    border: 1px solid #dee2e6;
+    padding: 0.5rem;
+}
+
+/* Pagination Styles */
+.pagination-info {
+    color: #6c757d;
+}
+
+/* Loading and Error Messages */
+#loadingIndicator,
+#errorMessage {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1060;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1200px) {
+    .visualization-card {
+        height: auto;
+        position: static;
+    }
+    
+    #visualizationSection {
+        margin-top: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .visualization-sidebar {
+        width: 100%;
+        right: -100%;
+    }
+}
+
+/* Chart Styles */
+#visualization {
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 600px;
 }

@@ -159,18 +159,36 @@ document.addEventListener('DOMContentLoaded', async function () {
       })
     }
 
-    // Setup event listener for visualization toggle
+    // Setup event listeners for visualization
     const toggleVisualizationButton = document.getElementById('toggleVisualization')
-    const visualizationSection = document.getElementById('visualizationSection')
-    if (toggleVisualizationButton && visualizationSection) {
+    const visualizationSidebar = document.getElementById('visualizationSidebar')
+    const closeVisualizationButton = document.getElementById('closeVisualization')
+    const overlay = document.getElementById('visualizationOverlay')
+
+    function closeVisualization() {
+      visualizationSidebar.classList.remove('active')
+      overlay.classList.remove('active')
+      toggleVisualizationButton.innerHTML = '<i class="fas fa-chart-line me-2"></i>Show Visualization'
+    }
+
+    function openVisualization() {
+      visualizationSidebar.classList.add('active')
+      overlay.classList.add('active')
+      toggleVisualizationButton.innerHTML = '<i class="fas fa-chart-line me-2"></i>Hide Visualization'
+      updateVisualization()
+    }
+
+    if (toggleVisualizationButton && visualizationSidebar && closeVisualizationButton && overlay) {
       toggleVisualizationButton.addEventListener('click', function() {
-        const isHidden = visualizationSection.style.display === 'none'
-        visualizationSection.style.display = isHidden ? 'block' : 'none'
-        toggleVisualizationButton.innerHTML = `<i class="fas fa-chart-line me-2"></i>${isHidden ? 'Hide' : 'Show'} Visualization`
-        if (isHidden) {
-          updateVisualization()
+        if (visualizationSidebar.classList.contains('active')) {
+          closeVisualization()
+        } else {
+          openVisualization()
         }
       })
+
+      closeVisualizationButton.addEventListener('click', closeVisualization)
+      overlay.addEventListener('click', closeVisualization)
     }
 
     // Fetch initial data
@@ -266,7 +284,7 @@ function renderTable() {
         <td>${escapeHtml(user.data?.responses?.q0_2 || '')}</td>
         <td>${escapeHtml(user.data?.responses?.q0_3 || '')}</td>
         <td>${escapeHtml((user.courses || []).join(', '))}</td>
-        <td>${escapeHtml(user.openEndedResponses?.course_feedback || '')}</td>
+        <td>${escapeHtml(user.data?.t2_course_feedback || user.openEndedResponses?.attempt2_course_feedback || '')}</td>
         <td>${escapeHtml(user.openEndedResponses?.t1_strategy || '')}</td>
         <td>${escapeHtml(user.openEndedResponses?.t2_reflection || '')}</td>
         <td>${user.firstSubmissionTime ? new Date(user.firstSubmissionTime).toLocaleString() : ''}</td>
