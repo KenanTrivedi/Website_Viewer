@@ -14,8 +14,8 @@ const competencies = [
     category: 'Allgemeine digitale Kompetenzen',
   },
   {
-    title: 'Kommunikation und Kollaborieren',
-    fullTitle: 'Kommunikation und Kollaborieren',
+    title: 'Kommunikation und Zusammenarbeit',
+    fullTitle: 'Kommunikation und Zusammenarbeit',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen.',
     example:
@@ -132,8 +132,8 @@ const competencyDescriptions = {
     title: "Suchen, Verarbeiten und Aufbewahren",
     description: "Umfasst das Wissen, die Motivation und Fähigkeiten, gezielt nach digitalen Daten und Inhalten zu suchen, diese effektiv zu organisieren, zu speichern und abzurufen."
   },
-  'kommunikation-und-kollaborieren': {
-    title: "Kommunikation und Kollaborieren",
+  'kommunikation-und-zusammenarbeit': {
+    title: "Kommunikation und Zusammenarbeit",
     description: "Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen."
   },
   'produzieren-und-präsentieren': {
@@ -180,45 +180,62 @@ const competencyDescriptions = {
 
 document.addEventListener('DOMContentLoaded', () => {
     const competencyCards = document.querySelectorAll('.competency-card');
-    const titleElement = document.querySelector('.selected-competency-title');
-    const descriptionElement = document.querySelector('.selected-competency-description');
-    const exampleElement = document.querySelector('.selected-competency-example');
+    const selectionTitle = document.getElementById('selection-title');
+    const descriptionSection = document.querySelector('.description-section');
+    const descriptionContent = document.querySelector('.competency-description');
+    const exampleContent = document.querySelector('.competency-example');
+
+    function findCompetencyByTitle(title) {
+        return competencies.find(comp => 
+            comp.title.toLowerCase().trim() === title.toLowerCase().trim()
+        );
+    }
 
     function updateActiveCard(clickedCard) {
-        // Remove active class from all cards
         competencyCards.forEach(card => card.classList.remove('active'));
-        // Add active class to clicked card
         clickedCard.classList.add('active');
     }
 
-    function findCompetencyByTitle(title) {
-        return competencies.find(c => c.title.trim() === title.trim());
+    function updateContent(competency) {
+        // Update hero title with animation
+        if (selectionTitle) {
+            selectionTitle.style.opacity = '0';
+            setTimeout(() => {
+                selectionTitle.textContent = competency.title;
+                selectionTitle.style.opacity = '1';
+            }, 300);
+        }
+
+        // Update description section with animation
+        if (descriptionSection) {
+            descriptionSection.style.opacity = '0';
+            setTimeout(() => {
+                if (descriptionContent) {
+                    descriptionContent.textContent = competency.description;
+                }
+                if (exampleContent) {
+                    exampleContent.textContent = competency.example;
+                }
+                descriptionSection.style.opacity = '1';
+            }, 300);
+        }
     }
 
     competencyCards.forEach(card => {
         card.addEventListener('click', () => {
             const titleElement = card.querySelector('.competency-title');
             if (!titleElement) return;
-            
-            const title = titleElement.textContent;
+
+            const title = titleElement.textContent.trim();
             const competency = findCompetencyByTitle(title);
-            
-            if (competency) {
-                // Update the display area
-                titleElement.textContent = competency.fullTitle || competency.title;
-                descriptionElement.textContent = competency.description || 'Beschreibung wird geladen...';
-                exampleElement.textContent = competency.example || 'Beispiel wird geladen...';
-                
-                // Update active state
-                updateActiveCard(card);
-            } else {
-                console.log('No matching competency found for:', title);
+
+            if (!competency) {
+                console.error('No matching competency found for:', title);
+                return;
             }
+
+            updateActiveCard(card);
+            updateContent(competency);
         });
     });
-    
-    // Trigger click on first card to show initial content
-    if (competencyCards.length > 0) {
-        competencyCards[0].click();
-    }
 });

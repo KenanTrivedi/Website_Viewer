@@ -120,6 +120,30 @@ main {
     margin-bottom: 0;
 }
 
+/* Hero Section */
+.hero-section {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../images/hero-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+}
+
+.hero-section h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    animation: fadeInDown 0.5s ease-out;
+}
+
+.hero-description {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    animation: fadeInUp 0.5s ease-out;
+}
+
 /* Central Container */
 .central-container {
     position: relative;
@@ -184,6 +208,7 @@ main {
     overflow: hidden;
     box-shadow: var(--card-shadow);
     border: 2px solid transparent;
+    min-height: 200px;
 }
 
 .competency-icon {
@@ -193,15 +218,15 @@ main {
     width: 100%;
     height: 100%;
     z-index: 1;
-    background-color: rgba(255, 255, 255, 0.9);
+    opacity: 0.15;
+    transition: opacity 0.3s ease;
 }
 
 .competency-icon img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0.2;
-    transition: opacity 0.3s;
+    padding: 20px;
 }
 
 .competency-content {
@@ -232,8 +257,8 @@ main {
     box-shadow: var(--card-hover-shadow);
 }
 
-.competency-card:hover .competency-icon img {
-    opacity: 0.3;
+.competency-card:hover .competency-icon {
+    opacity: 0.25;
 }
 
 .competency-card.active {
@@ -242,8 +267,8 @@ main {
     transform: translateY(-5px);
 }
 
-.competency-card.active .competency-icon img {
-    opacity: 0.4;
+.competency-card.active .competency-icon {
+    opacity: 0.25;
 }
 
 .competency-card.active::after {
@@ -324,6 +349,126 @@ main {
 
 .arrow-right {
     right: 0;
+}
+
+/* Competency Columns */
+.competency-columns {
+    display: flex;
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.competency-column {
+    flex: 1;
+}
+
+.competency-grid {
+    display: grid;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.competency-card {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 200px;
+}
+
+.competency-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.icon-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    opacity: 0.15;
+    transition: opacity 0.3s ease;
+}
+
+.icon-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    padding: 20px;
+}
+
+.competency-content {
+    position: relative;
+    z-index: 2;
+    padding: 1.5rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.competency-title {
+    font-size: 1.25rem;
+    color: #333;
+    margin: 0;
+    transition: color 0.3s ease;
+}
+
+.competency-card.active {
+    border: 2px solid #007bff;
+    transform: translateY(-5px);
+}
+
+.competency-card.active .icon-container {
+    opacity: 0.25;
+}
+
+.description-section {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 /* Footer */
