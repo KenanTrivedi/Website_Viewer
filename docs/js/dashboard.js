@@ -265,6 +265,16 @@ function renderTable() {
       <th>Veränderung der Kompetenzüberzeugungen</th>
       <th>Erste Abgabe</th>
       <th>Letzte Abgabe</th>
+      ${['q1_0', 'q1_1', 'q1_2', 'q1_3', 'q1_4', 'q1_5', 
+         'q2_0', 'q2_1', 'q2_2', 'q2_3', 'q2_4', 'q2_5', 'q2_6',
+         'q3_0', 'q3_1', 'q3_2', 'q3_3', 'q3_4', 'q3_5', 'q3_6',
+         'q4_0', 'q4_1', 'q4_2', 'q4_3', 'q4_4', 'q4_5',
+         'q5_0', 'q5_1', 'q5_2', 'q5_3', 'q5_4', 'q5_5', 'q5_6',
+         'q6_0', 'q6_1', 'q6_2', 'q6_3', 'q6_4', 'q6_5'
+        ].map(id => `
+          <th>${id}_T1</th>
+          <th>${id}_T2</th>
+        `).join('')}
     `
 
     // Clear and prepare tbody
@@ -273,27 +283,31 @@ function renderTable() {
     // Generate rows for each user
     paginatedUsers.forEach((user) => {
       const tr = document.createElement('tr')
-
       tr.innerHTML = `
         <td><input type="checkbox" class="user-select" /></td>
         <td>${escapeHtml(user.userCode || '')}</td>
         <td>${user.attemptNumber || ''}</td>
-        <td>${escapeHtml(user.gender || '')}</td>
-        <td>${escapeHtml(user.birthYear || '')}</td>
-        <td>${escapeHtml(user.data?.responses?.q0_2 || '')}</td>
-        <td>${escapeHtml(user.data?.responses?.q0_3 || '')}</td>
+        <td>${escapeHtml(user.data?.q0_0 || '')}</td>
+        <td>${escapeHtml(user.data?.q0_1 || '')}</td>
+        <td>${escapeHtml(user.data?.q0_2 || '')}</td>
+        <td>${escapeHtml(user.data?.q0_3 || '')}</td>
         <td>${escapeHtml((user.courses || []).join(', '))}</td>
         <td>${escapeHtml(user.data?.t2_course_feedback || user.openEndedResponses?.attempt2_course_feedback || '')}</td>
         <td>${escapeHtml(user.openEndedResponses?.t1_strategy || '')}</td>
         <td>${escapeHtml(user.openEndedResponses?.t2_reflection || '')}</td>
         <td>${user.firstSubmissionTime ? new Date(user.firstSubmissionTime).toLocaleString() : ''}</td>
         <td>${user.latestSubmissionTime ? new Date(user.latestSubmissionTime).toLocaleString() : ''}</td>
-        ${questionIds.map(id => `
-          <td>${escapeHtml(user.initialResponses?.[id] || '')}</td>
-          <td>${escapeHtml(user.updatedResponses?.[id] || '')}</td>
-        `).join('')}
+        ${['q1_0', 'q1_1', 'q1_2', 'q1_3', 'q1_4', 'q1_5', 
+           'q2_0', 'q2_1', 'q2_2', 'q2_3', 'q2_4', 'q2_5', 'q2_6',
+           'q3_0', 'q3_1', 'q3_2', 'q3_3', 'q3_4', 'q3_5', 'q3_6',
+           'q4_0', 'q4_1', 'q4_2', 'q4_3', 'q4_4', 'q4_5',
+           'q5_0', 'q5_1', 'q5_2', 'q5_3', 'q5_4', 'q5_5', 'q5_6',
+           'q6_0', 'q6_1', 'q6_2', 'q6_3', 'q6_4', 'q6_5'
+          ].map(id => `
+            <td>${escapeHtml(user.initialResponses?.[id] || '')}</td>
+            <td>${escapeHtml(user.updatedResponses?.[id] || '')}</td>
+          `).join('')}
       `
-
       tbody.appendChild(tr)
     })
 
