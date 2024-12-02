@@ -52,12 +52,12 @@ const usersPerPage = 100
 
 // Constants (Extracted from survey.js)
 const labelMap = {
-  'Suchen, Verarbeiten und Aufbewahren': 'Suchen',
-  'Kommunikation und Kollaborieren': 'Kommunizieren',
-  'Produzieren und Präsentieren': 'Produzieren',
-  'Schützen und sicher Agieren': 'Schützen',
-  'Problemlösen und Handeln': 'Problemlösen',
-  'Analysieren und Reflektieren': 'Analysieren',
+  'Suchen, Verarbeiten und Aufbewahren': 'Suchen, Verarbeiten und Aufbewahren',
+  'Kommunikation und Kollaborieren': 'Kommunikation und Kollaborieren',
+  'Produzieren und Präsentieren': 'Produzieren und Präsentieren',
+  'Schützen und sicher Agieren': 'Schützen und sicher Agieren',
+  'Problemlösen und Handeln': 'Problemlösen und Handeln',
+  'Analysieren und Reflektieren': 'Analysieren und Reflektieren',
 }
 
 const colorMap = {
@@ -433,21 +433,20 @@ function updateVisualization() {
   
   // Calculate averages
   const categories = {
-    'Suchen': { initialScore: 0, latestScore: 0, color: '#00BF63' }, // Green
-    'Kommunizieren': { initialScore: 0, latestScore: 0, color: '#0CC0DF' }, // Blue
-    'Produzieren': { initialScore: 0, latestScore: 0, color: '#FF6D5F' }, // Red
-    'Schützen': { initialScore: 0, latestScore: 0, color: '#8C52FF' }, // Purple
-    'Problemlösen': { initialScore: 0, latestScore: 0, color: '#E884C4' }, // Pink
-    'Analysieren': { initialScore: 0, latestScore: 0, color: '#FFD473' }  // Yellow
+    'Suchen, Verarbeiten und Aufbewahren': { initialScore: 0, latestScore: 0, color: '#00BF63' }, // Green
+    'Kommunikation und Kollaborieren': { initialScore: 0, latestScore: 0, color: '#0CC0DF' }, // Blue
+    'Produzieren und Präsentieren': { initialScore: 0, latestScore: 0, color: '#FF6D5F' }, // Red
+    'Schützen und sicher Agieren': { initialScore: 0, latestScore: 0, color: '#8C52FF' }, // Purple
+    'Problemlösen und Handeln': { initialScore: 0, latestScore: 0, color: '#E884C4' }, // Pink
+    'Analysieren und Reflektieren': { initialScore: 0, latestScore: 0, color: '#FFD473' }  // Yellow
   }
   
   let userCount = 0
 
   users.forEach(user => {
     if (user.initialScores && user.updatedScores) {
-      Object.entries(categories).forEach(([shortName, data]) => {
-        const fullName = Object.entries(labelMap).find(([_, short]) => short === shortName)?.[0]
-        if (fullName) {
+      Object.entries(categories).forEach(([fullName, data]) => {
+        if (user.initialScores[fullName] !== undefined) {
           data.initialScore += user.initialScores[fullName] || 0
           data.latestScore += user.updatedScores[fullName] || 0
         }
@@ -499,6 +498,30 @@ function updateVisualization() {
           title: {
             display: true,
             text: 'Score (%)'
+          }
+        },
+        x: {
+          ticks: {
+            callback: function(val) {
+              // Split the label into multiple lines for better readability
+              const label = this.getLabelForValue(val);
+              const words = label.split(' ');
+              const lines = [];
+              let currentLine = '';
+              
+              words.forEach(word => {
+                if (currentLine.length + word.length > 15) {
+                  lines.push(currentLine);
+                  currentLine = word;
+                } else {
+                  currentLine += (currentLine.length ? ' ' : '') + word;
+                }
+              });
+              if (currentLine) {
+                lines.push(currentLine);
+              }
+              return lines;
+            }
           }
         }
       },

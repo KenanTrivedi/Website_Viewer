@@ -4,7 +4,7 @@
 const competencies = [
   // General Competencies
   {
-    title: 'Suchen',
+    title: 'Suchen, Verarbeiten und Aufbewahren',
     fullTitle: 'Suchen, Verarbeiten und Aufbewahren',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, gezielt nach digitalen Daten und Inhalten zu suchen, diese effektiv zu organisieren, zu speichern und abzurufen.',
@@ -14,7 +14,7 @@ const competencies = [
     category: 'Allgemeine digitale Kompetenzen',
   },
   {
-    title: 'Kommunizieren',
+    title: 'Kommunikation und Kollaborieren',
     fullTitle: 'Kommunikation und Kollaborieren',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen.',
@@ -24,7 +24,7 @@ const competencies = [
     category: 'Allgemeine digitale Kompetenzen',
   },
   {
-    title: 'Produzieren',
+    title: 'Produzieren und Präsentieren',
     fullTitle: 'Produzieren und Präsentieren',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Inhalte in verschiedenen Formaten zu erstellen, zu bearbeiten und zu integrieren.',
@@ -34,7 +34,7 @@ const competencies = [
     category: 'Allgemeine digitale Kompetenzen',
   },
   {
-    title: 'Schützen',
+    title: 'Schützen und sicher Agieren',
     fullTitle: 'Schützen und sicher Agieren',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Geräte und Inhalte zu schützen, Gesundheits- und Umweltgefahren zu vermeiden.',
@@ -44,7 +44,7 @@ const competencies = [
     category: 'Allgemeine digitale Kompetenzen',
   },
   {
-    title: 'Problemlösen',
+    title: 'Problemlösen und Handeln',
     fullTitle: 'Problemlösen und Handeln',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen.',
@@ -54,7 +54,7 @@ const competencies = [
     category: 'Allgemeine digitale Kompetenzen',
   },
   {
-    title: 'Analysieren',
+    title: 'Analysieren und Reflektieren',
     fullTitle: 'Analysieren und Reflektieren',
     description:
       'Umfasst das Wissen, die Motivation und Fähigkeiten, die Auswirkungen und Verbreitung digitaler Medien und Inhalte zu analysieren.',
@@ -65,7 +65,7 @@ const competencies = [
   },
   // Professional Competencies
   {
-    title: 'Organisieren',
+    title: 'Organisation und Administration',
     fullTitle: 'Organisation und Administration',
     description:
       'Der Kompetenzbereich umfasst sowohl die Kompetenz, digitale Medien gezielt zu suchen, auszuwählen und anzupassen, um den Anforderungen des Unterrichts gerecht zu werden, als auch die Nutzung solcher Medien. Zudem beinhaltet dieser Bereich das effiziente Management, den Schutz und die gemeinsame Nutzung digitaler Daten.',
@@ -75,7 +75,7 @@ const competencies = [
     category: 'Berufsspezifische digitale Kompetenzen',
   },
   {
-    title: 'Engagement',
+    title: 'Berufliches Engagement außerhalb des Unterrichts',
     fullTitle: 'Berufliches Engagement außerhalb des Unterrichts',
     description:
       'Der Kompetenzbereich umfasst die Nutzung von digitalen Medien zur Verbesserung der Kommunikation in Schule, z.B. zwischen Lehrenden und Eltern. Weiterhin wird die Nutzung digitaler Medien für das Schulmanagement und die Zusammenarbeit mit Kolleg*innen dazugezählt.',
@@ -85,7 +85,7 @@ const competencies = [
     category: 'Berufsspezifische digitale Kompetenzen',
   },
   {
-    title: 'Lehren',
+    title: 'Lehren und Lernen',
     fullTitle: 'Lehren und Lernen',
     description:
       'Der Kompetenzbereich umfasst die Nutzung digitaler Medien zur Unterstützung von projektbasiertem, kollaborativen oder selbstregulierten Lernen, zur Unterrichtsdurchführung und Unterstützung der Lernenden.',
@@ -115,7 +115,7 @@ const competencies = [
     category: 'Berufsspezifische digitale Kompetenzen',
   },
   {
-    title: 'Förderung',
+    title: 'Förderung digitaler Kompetenzen der Lernenden',
     fullTitle: 'Förderung digitaler Kompetenzen der Lernenden',
     description:
       'Der Kompetenzbereich umfasst die Vermittlung von grundlegenden digitalen Kompetenzen im Unterricht.',
