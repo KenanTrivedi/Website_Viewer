@@ -126,75 +126,78 @@ const competencies = [
   },
 ]
 
+// Competency descriptions
+const competencyDescriptions = {
+  'suchen-verarbeiten-und-aufbewahren': {
+    title: "Suchen, Verarbeiten und Aufbewahren",
+    description: "Umfasst das Wissen, die Motivation und Fähigkeiten, gezielt nach digitalen Daten und Inhalten zu suchen, diese effektiv zu organisieren, zu speichern und abzurufen."
+  },
+  'kommunikation-und-kollaborieren': {
+    title: "Kommunikation und Kollaborieren",
+    description: "Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen."
+  },
+  'produzieren-und-präsentieren': {
+    title: "Produzieren und Präsentieren",
+    description: "Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Inhalte in verschiedenen Formaten zu erstellen, zu bearbeiten und zu integrieren."
+  },
+  'schützen-und-sicher-agieren': {
+    title: "Schützen und sicher Agieren",
+    description: "Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Inhalte und Geräte zu schützen, Gesundheits- und Umweltgefahren zu vermeiden."
+  },
+  'problemlösen-und-handeln': {
+    title: "Problemlösen und Handeln",
+    description: "Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen."
+  },
+  'analysieren-und-reflektieren': {
+    title: "Analysieren und Reflektieren",
+    description: "Umfasst das Wissen, die Motivation und Fähigkeiten, über die Auswirkungen und Verwendung digitaler Medien und Inhalte zu analysieren."
+  },
+  'organisation-und-administration': {
+    title: "Organisation und Administration",
+    description: "Umfasst das Suchen, Auswählen, Anpassen und die Nutzung von digitalen Werkzeugen, Medien und Ressourcen zur Vorbereitung des eigenen Unterrichts."
+  },
+  'lehren-und-lernen': {
+    title: "Lehren und Lernen",
+    description: "Umfasst die gezielte Nutzung digitaler Medien zur Unterstützung von projektbasiertem, kollaborativem oder selbstreguliertem Lernen sowie die effektive Durchführung des Unterrichts."
+  },
+  'lernende-fördern': {
+    title: "Lernende fördern",
+    description: "Umfasst die Gewährleistung von Barrierefreiheit und Inklusion, damit sichergestellt wird, dass alle Schüler*innen gleichberechtigten Zugang zu digitalen Medien und Lernressourcen haben."
+  },
+  'berufliches-engagement-außerhalb-des-unterrichts': {
+    title: "Berufliches Engagement außerhalb des Unterrichts",
+    description: "Umfasst die Nutzung von digitalen Medien zur Verbesserung der Kommunikation und professionellen Zusammenarbeit in Schule, z.B. mit Schüler*innen und Eltern."
+  },
+  'bewertung': {
+    title: "Bewertung",
+    description: "Umfasst die Verwendung von digitalen Medien zur Erfassung und Bewertung von Lernfortschritten. Weiterhin werden Feedbackprozesse durch den gezielten Einsatz digitaler Technologien effizient gestaltet."
+  },
+  'förderung-digitaler-kompetenzen-der-lernenden': {
+    title: "Förderung digitaler Kompetenzen der Lernenden",
+    description: "Umfasst die Vermittlung von grundlegenden digitalen Kompetenzen im Unterricht."
+  }
+};
+
 document.addEventListener('DOMContentLoaded', function() {
-    const generalGrid = document.querySelector('#general-competencies .competency-grid');
-    const professionalGrid = document.querySelector('#professional-competencies .competency-grid');
-    const descriptionBox = document.querySelector('#competency-description');
-    const descriptionContent = document.querySelector('.description-content');
-    const exampleSection = document.querySelector('.example-section');
-    const exampleText = document.querySelector('.example-text');
+  const competencyCards = document.querySelectorAll('.competency-card');
+  const descriptionSection = document.getElementById('competency-description');
 
-    // Function to create a competency card
-    function createCompetencyCard(competency) {
-        const card = document.createElement('div');
-        card.className = 'competency-card';
-        card.setAttribute('data-competency', competency.title.toLowerCase().replace(/\s+/g, '-'));
+  competencyCards.forEach(card => {
+    card.addEventListener('click', function() {
+      const competencyType = this.dataset.competency;
+      const competencyData = competencyDescriptions[competencyType];
 
-        // Create background div for SVG
-        const bgDiv = document.createElement('div');
-        bgDiv.className = 'card-background';
+      if (competencyData) {
+        descriptionSection.innerHTML = `
+          <h3>${competencyData.title}</h3>
+          <p>${competencyData.description}</p>
+        `;
+      }
 
-        // Create content div
-        const content = document.createElement('div');
-        content.className = 'competency-content';
-        
-        const title = document.createElement('h3');
-        title.className = 'competency-title';
-        title.textContent = competency.title;
-
-        const description = document.createElement('p');
-        description.className = 'competency-description';
-        description.textContent = competency.description;
-
-        content.appendChild(title);
-        content.appendChild(description);
-        
-        card.appendChild(bgDiv);
-        card.appendChild(content);
-
-        // Add click event listener
-        card.addEventListener('click', () => {
-            // Remove selected class from all cards
-            document.querySelectorAll('.competency-card').forEach(c => c.classList.remove('selected'));
-            
-            // Add selected class to clicked card
-            card.classList.add('selected');
-            
-            // Update description box
-            descriptionContent.innerHTML = `<h3>${competency.fullTitle}</h3><p>${competency.description}</p>`;
-            
-            // Show example if it exists
-            if (competency.example) {
-                exampleText.textContent = competency.example;
-                exampleSection.style.display = 'block';
-            } else {
-                exampleSection.style.display = 'none';
-            }
-        });
-
-        return card;
-    }
-
-    // Render competency cards
-    competencies.forEach(competency => {
-        if (competency.category === 'Allgemeine digitale Kompetenzen') {
-            if (generalGrid) {
-                generalGrid.appendChild(createCompetencyCard(competency));
-            }
-        } else if (competency.category === 'Berufsspezifische digitale Kompetenzen') {
-            if (professionalGrid) {
-                professionalGrid.appendChild(createCompetencyCard(competency));
-            }
-        }
+      // Remove active class from all cards
+      competencyCards.forEach(c => c.classList.remove('active'));
+      // Add active class to clicked card
+      this.classList.add('active');
     });
+  });
 });
