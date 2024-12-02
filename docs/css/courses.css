@@ -9,6 +9,8 @@
     --font-family: 'Roboto', sans-serif;
     --background-color: #ffffff;
     --link-hover-color: #007bff;
+    --card-shadow: 0 4px 6px rgba(0, 74, 153, 0.1);
+    --card-hover-shadow: 0 8px 15px rgba(0, 74, 153, 0.2);
 }
 
 /* Reset and Base Styles */
@@ -92,73 +94,61 @@ main {
     flex: 1;
     margin-top: 20px;
     padding: 0 20px 60px;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 /* Intro Text */
 .intro-text {
     max-width: 800px;
-    margin: 100px auto 60px;
-    border: 2px solid var(--primary-color);
+    margin: 40px auto;
     padding: 30px;
-    background-color: #f0f4f8;
-    border-radius: 8px;
-    font-size: 1em;
-    line-height: 1.8;
-    position: relative;
-}
-
-.intro-text::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 5px;
-    height: 100%;
-    background-color: var(--primary-color);
+    background: white;
+    border-radius: 15px;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
 }
 
 .intro-text p {
-    margin-bottom: 1em;
+    margin-bottom: 20px;
+    line-height: 1.7;
+    font-size: 1.1em;
+    color: var(--text-color);
 }
 
 .intro-text p:last-child {
     margin-bottom: 0;
 }
 
-/* Central Container and Arrows */
+/* Central Container */
 .central-container {
     position: relative;
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto 50px;
+    margin: 60px auto;
     text-align: center;
 }
 
 .central-title {
-    width: 160px;
-    height: 160px;
-    margin: 0 auto;
-    background-color: var(--light-background);
-    border: 2px solid var(--primary-color);
+    background: var(--primary-color);
+    color: white;
+    padding: 20px;
     border-radius: 50%;
+    width: 180px;
+    height: 180px;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    padding: 20px;
+    margin: 0 auto;
+    font-size: 1.4em;
     font-weight: 600;
-    color: var(--primary-color);
-    position: relative;
-    z-index: 2;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+    animation: pulse 2s infinite;
 }
 
-.arrows-svg {
-    position: absolute;
-    top: 80px;
-    left: 0;
-    width: 100%;
-    height: 120px;
-    pointer-events: none;
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
 /* Competency Section */
@@ -185,97 +175,136 @@ main {
     font-size: 1.5em;
 }
 
-/* Competency Description */
-#competency-description {
-    flex: 1.5;
-    border: 2px solid var(--primary-color);
-    border-radius: 8px;
-    padding: 30px;
-    background-color: #f9f9f9;
-    margin: 0 20px;
-    max-width: 500px;
-    transition: all 0.3s ease;
-    scroll-margin-top: 100px;
-}
-
-#competency-description h2 {
-    font-size: 1.5em;
-    color: var(--primary-color);
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--primary-color);
-}
-
-#competency-description h3 {
-    font-size: 1.2em;
-    color: var(--secondary-color);
-    margin: 20px 0 10px;
-}
-
-.description-content {
-    margin-bottom: 20px;
-}
-
-.description-content p {
-    line-height: 1.6;
-    margin-bottom: 15px;
-}
-
-.example-section {
-    background-color: var(--light-background);
-    padding: 20px;
-    border-radius: 6px;
-    margin-top: 20px;
-    border: 1px solid var(--primary-color);
-}
-
-.example-text {
-    font-style: italic;
-    line-height: 1.6;
-    color: var(--text-color);
-}
-
-/* Competency Grid */
+/* Competency Cards Container */
 .competency-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+    margin-top: 60px;
+    padding: 0 20px;
 }
 
-/* Competency Card */
+/* Competency Cards */
 .competency-card {
-    background-color: var(--light-background);
-    border: 2px solid var(--primary-color);
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: 1px solid rgba(0, 74, 153, 0.1);
     display: flex;
-    flex-direction: column;
     align-items: center;
+    gap: 20px;
+    box-shadow: var(--card-shadow);
 }
 
 .competency-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 4px 8px rgba(0, 74, 153, 0.2);
+    box-shadow: var(--card-hover-shadow);
+    border-color: var(--primary-color);
 }
 
 .competency-card.selected {
-    background-color: #c0d8ff;
-    box-shadow: 0 4px 8px rgba(0, 74, 153, 0.4);
+    background-color: var(--light-background);
+    box-shadow: var(--card-hover-shadow);
+    border-color: var(--primary-color);
+    transform: scale(1.02);
 }
 
 .competency-icon {
-    font-size: 40px;
+    font-size: 2em;
     color: var(--primary-color);
-    margin-bottom: 10px;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--light-background);
+    border-radius: 50%;
+    transition: all 0.3s ease;
 }
 
-.competency-card span {
-    font-size: 16px;
+.competency-card:hover .competency-icon {
+    transform: scale(1.1);
+    background: var(--primary-color);
+    color: white;
+}
+
+.competency-content {
+    flex: 1;
+    text-align: left;
+}
+
+.competency-title {
+    font-size: 1.2em;
+    font-weight: 600;
     color: var(--primary-color);
-    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+/* Description Box */
+.description-box {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin: 40px auto;
+    max-width: 800px;
+    box-shadow: var(--card-shadow);
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 74, 153, 0.1);
+}
+
+.description-box.visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.description-box h3 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    font-size: 1.4em;
+}
+
+.description-box p {
+    line-height: 1.7;
+    color: var(--text-color);
+}
+
+/* Arrows */
+.arrows-container {
+    position: relative;
+    margin: 40px 0;
+}
+
+.arrow {
+    position: absolute;
+    width: 40%;
+    height: 2px;
+    background: var(--primary-color);
+    top: 50%;
+}
+
+.arrow::after {
+    content: '';
+    position: absolute;
+    right: -10px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    transform: rotate(-45deg);
+}
+
+.arrow-left {
+    left: 0;
+    transform: rotate(180deg);
+}
+
+.arrow-right {
+    right: 0;
 }
 
 /* Footer */
@@ -302,43 +331,48 @@ footer p {
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-    #competency-section {
-        flex-direction: column;
-        align-items: center;
-    }
-
-    #competency-description {
-        margin: 20px 0;
-        max-width: 800px;
-    }
-
-    .competency-column {
-        margin-bottom: 20px;
+    .competency-grid {
+        gap: 30px;
+        padding: 0 15px;
     }
 }
 
-@media (max-width: 768px) {
-    header {
-        flex-direction: column;
-        padding: 10px;
+@media (max-width: 900px) {
+    .competency-grid {
+        grid-template-columns: 1fr;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
     }
 
-    nav {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
+    .central-title {
+        width: 150px;
+        height: 150px;
+        font-size: 1.2em;
     }
 
-    .get-started-button {
-        margin-top: 10px;
+    .arrow {
+        width: 30%;
     }
+}
 
-    .arrows-svg {
-        display: none;
-    }
-
+@media (max-width: 600px) {
     .intro-text {
-        margin: 20px;
         padding: 20px;
+    }
+
+    .competency-card {
+        padding: 20px;
+    }
+
+    .competency-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5em;
+    }
+
+    .description-box {
+        padding: 20px;
+        margin: 30px 15px;
     }
 }
