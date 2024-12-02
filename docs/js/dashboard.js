@@ -287,10 +287,10 @@ function renderTable() {
         <td><input type="checkbox" class="user-select" /></td>
         <td>${escapeHtml(user.userCode || '')}</td>
         <td>${user.attemptNumber || ''}</td>
-        <td>${escapeHtml(user.data?.q0_0 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_1 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_2 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_3 || '')}</td>
+        <td>${escapeHtml(user.data?.q0_0 || user.initialResponses?.q0_0 || '')}</td>
+        <td>${escapeHtml(user.data?.q0_1 || user.initialResponses?.q0_1 || '')}</td>
+        <td>${escapeHtml(user.data?.q0_2 || user.initialResponses?.q0_2 || '')}</td>
+        <td>${escapeHtml(user.data?.q0_3 || user.initialResponses?.q0_3 || '')}</td>
         <td>${escapeHtml((user.courses || []).join(', '))}</td>
         <td>${escapeHtml(user.data?.t2_course_feedback || user.openEndedResponses?.attempt2_course_feedback || '')}</td>
         <td>${escapeHtml(user.openEndedResponses?.t1_strategy || '')}</td>
@@ -432,41 +432,34 @@ function updateVisualization() {
   const ctx = canvas.getContext('2d')
   
   // Calculate averages
-  const initialScores = {
-    'Suchen': 0,
-    'Kommunizieren': 0,
-    'Produzieren': 0,
-    'Schützen': 0,
-    'Problemlösen': 0,
-    'Analysieren': 0
+  const categories = {
+    'Suchen': { initialScore: 0, latestScore: 0, color: '#00BF63' }, // Green
+    'Kommunizieren': { initialScore: 0, latestScore: 0, color: '#0CC0DF' }, // Blue
+    'Produzieren': { initialScore: 0, latestScore: 0, color: '#FF6D5F' }, // Red
+    'Schützen': { initialScore: 0, latestScore: 0, color: '#8C52FF' }, // Purple
+    'Problemlösen': { initialScore: 0, latestScore: 0, color: '#E884C4' }, // Pink
+    'Analysieren': { initialScore: 0, latestScore: 0, color: '#FFD473' }  // Yellow
   }
   
-  const latestScores = { ...initialScores }
   let userCount = 0
 
   users.forEach(user => {
     if (user.initialScores && user.updatedScores) {
-      initialScores['Suchen'] += user.initialScores['Suchen, Verarbeiten und Aufbewahren'] || 0
-      initialScores['Kommunizieren'] += user.initialScores['Kommunikation und Kollaborieren'] || 0
-      initialScores['Produzieren'] += user.initialScores['Produzieren und Präsentieren'] || 0
-      initialScores['Schützen'] += user.initialScores['Schützen und sicher Agieren'] || 0
-      initialScores['Problemlösen'] += user.initialScores['Problemlösen und Handeln'] || 0
-      initialScores['Analysieren'] += user.initialScores['Analysieren und Reflektieren'] || 0
-
-      latestScores['Suchen'] += user.updatedScores['Suchen, Verarbeiten und Aufbewahren'] || 0
-      latestScores['Kommunizieren'] += user.updatedScores['Kommunikation und Kollaborieren'] || 0
-      latestScores['Produzieren'] += user.updatedScores['Produzieren und Präsentieren'] || 0
-      latestScores['Schützen'] += user.updatedScores['Schützen und sicher Agieren'] || 0
-      latestScores['Problemlösen'] += user.updatedScores['Problemlösen und Handeln'] || 0
-      latestScores['Analysieren'] += user.updatedScores['Analysieren und Reflektieren'] || 0
+      Object.entries(categories).forEach(([shortName, data]) => {
+        const fullName = Object.entries(labelMap).find(([_, short]) => short === shortName)?.[0]
+        if (fullName) {
+          data.initialScore += user.initialScores[fullName] || 0
+          data.latestScore += user.updatedScores[fullName] || 0
+        }
+      })
       userCount++
     }
   })
 
   // Calculate averages
-  Object.keys(initialScores).forEach(key => {
-    initialScores[key] = userCount ? Math.round(initialScores[key] / userCount) : 0
-    latestScores[key] = userCount ? Math.round(latestScores[key] / userCount) : 0
+  Object.values(categories).forEach(data => {
+    data.initialScore = userCount ? Math.round(data.initialScore / userCount) : 0
+    data.latestScore = userCount ? Math.round(data.latestScore / userCount) : 0
   })
 
   // Destroy existing chart if it exists
@@ -478,20 +471,20 @@ function updateVisualization() {
   window.myChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: Object.keys(initialScores),
+      labels: Object.keys(categories),
       datasets: [
         {
           label: 'Initial Scores (T1)',
-          data: Object.values(initialScores),
-          backgroundColor: 'rgba(54, 162, 235, 0.5)',
-          borderColor: 'rgba(54, 162, 235, 1)',
+          data: Object.values(categories).map(data => data.initialScore),
+          backgroundColor: Object.values(categories).map(data => data.color + '80'), // 50% opacity
+          borderColor: Object.values(categories).map(data => data.color),
           borderWidth: 1
         },
         {
           label: 'Latest Scores (T2)',
-          data: Object.values(latestScores),
-          backgroundColor: 'rgba(75, 192, 192, 0.5)',
-          borderColor: 'rgba(75, 192, 192, 1)',
+          data: Object.values(categories).map(data => data.latestScore),
+          backgroundColor: Object.values(categories).map(data => data.color),
+          borderColor: Object.values(categories).map(data => data.color),
           borderWidth: 1
         }
       ]
