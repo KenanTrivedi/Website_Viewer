@@ -23,7 +23,6 @@ html, body {
     font-family: var(--font-family);
     color: var(--text-color);
     background: var(--background-color);
-    scroll-behavior: smooth;
 }
 
 body {
@@ -148,22 +147,58 @@ nav a.active {
     padding: 20px 40px;
     max-width: 1800px;
     margin: 0 auto;
-    height: calc(100vh - 180px);
+    position: relative;
+}
+
+.connection-lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.main-line {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 2px;
+    background-color: #0056b3;
+}
+
+.vertical-line {
+    position: absolute;
+    top: 20px;
+    width: 2px;
+    height: 40px;
+    background-color: #0056b3;
+}
+
+.vertical-line.left {
+    left: 20%;
+}
+
+.vertical-line.right {
+    right: 20%;
 }
 
 .section-titles {
     display: flex;
     justify-content: space-between;
     padding: 0 40px;
-    margin: 20px 0;
+    margin: 20px auto;
     max-width: 1800px;
-    margin: 0 auto;
+    position: relative;
 }
 
 .section-titles h2 {
     color: #0056b3;
     font-size: 1.4rem;
     position: relative;
+    z-index: 2;
 }
 
 .section-titles h2::after {
@@ -180,19 +215,14 @@ nav a.active {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    overflow-y: auto;
-    padding-right: 10px;
 }
 
 .description-column {
     background-color: #e8f4ff;
     padding: 30px;
     border-radius: 12px;
-    position: sticky;
-    top: 20px;
+    position: relative;
     height: fit-content;
-    max-height: calc(100vh - 140px);
-    overflow-y: auto;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
