@@ -86,6 +86,33 @@ nav a.active {
     background-color: var(--secondary-color);
 }
 
+/* Main Layout */
+.competency-title-container {
+    text-align: center;
+    margin: 0 auto 2rem;
+    padding: 2rem 0;
+    max-width: 1200px;
+}
+
+.competency-title-container h1 {
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+}
+
+.subtitles {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 2rem;
+    margin-top: 1rem;
+}
+
+.left-subtitle, .right-subtitle {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
 /* Introduction Section */
 .introduction-section {
     max-width: 900px;
@@ -94,12 +121,18 @@ nav a.active {
     background-color: var(--light-background);
     border-radius: 10px;
     box-shadow: var(--card-shadow);
-    line-height: 1.6;
+    text-align: center;
+}
+
+.introduction-section h2 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
 }
 
 .introduction-section p {
+    line-height: 1.6;
     margin-bottom: 1rem;
-    font-size: 1.1em;
     color: var(--text-color);
 }
 
@@ -107,48 +140,72 @@ nav a.active {
     margin-bottom: 0;
 }
 
-/* Main Content Area */
-main {
-    flex: 1;
-    padding: 2rem;
+/* Main Grid Layout */
+.main-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 2rem;
+    padding: 0 2rem;
     max-width: 1400px;
     margin: 0 auto;
 }
 
-.main-content-grid {
-    display: grid;
-    grid-template-columns: 1fr 1.2fr;
-    gap: 3rem;
-    margin-top: 2rem;
-}
-
+/* Competency Columns */
 .competency-column {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     gap: 1.5rem;
 }
 
-.competency-title-container {
-    text-align: center;
-    margin: 2rem 0;
+/* Description Column */
+.description-column {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: var(--card-shadow);
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+    max-height: 80vh;
+    overflow-y: auto;
 }
 
-.competency-title-container h1 {
+.description-content {
+    padding: 1.5rem;
+    background-color: var(--light-background);
+    border-radius: 8px;
+}
+
+.description-content h2 {
     color: var(--primary-color);
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: 0.5rem;
+}
+
+.description-content h3 {
+    color: var(--secondary-color);
+    margin: 1rem 0;
+    font-size: 1.3rem;
+}
+
+.description-content p {
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
 }
 
 /* Competency Cards */
 .competency-card {
-    height: 220px;
-    position: relative;
-    cursor: pointer;
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 25px;
+    background-color: white;
+    border-radius: 10px;
     box-shadow: var(--card-shadow);
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
 }
 
 .competency-card:hover {
@@ -156,144 +213,73 @@ main {
     box-shadow: var(--card-hover-shadow);
 }
 
+.competency-card.active {
+    border: 2px solid var(--primary-color);
+    transform: translateY(-5px);
+    box-shadow: var(--card-hover-shadow);
+}
+
 .card-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+    background-color: var(--light-background);
+    padding: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 120px;
 }
 
 .card-bg img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.2;
-    transition: opacity 0.3s ease;
-}
-
-.competency-card:hover .card-bg img {
-    opacity: 0.3;
+    max-width: 80px;
+    height: auto;
 }
 
 .card-content {
-    position: relative;
-    z-index: 2;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
+    padding: 1rem;
     text-align: center;
 }
 
 .card-content h3 {
     color: var(--primary-color);
-    font-size: 1.3em;
+    font-size: 1.1rem;
     line-height: 1.4;
-    font-weight: 500;
-}
-
-.competency-card.active {
-    border: 2px solid var(--primary-color);
-    box-shadow: 0 0 15px rgba(0, 74, 153, 0.3);
-    transform: translateY(-5px);
-}
-
-/* Description Content */
-.description-content {
-    position: sticky;
-    top: 2rem;
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: var(--card-shadow);
-    max-width: 600px;
-    margin: 0 auto;
-    height: fit-content;
-}
-
-.description-content:empty::before {
-    content: "Wählen Sie eine Kompetenz aus der Liste aus, um Details und Beispiele anzuzeigen.";
-    color: var(--text-color);
-    opacity: 0.7;
-    text-align: center;
-    display: block;
-    padding: 2rem;
-}
-
-.selected-title {
-    color: var(--primary-color);
-    margin-bottom: 20px;
-    font-size: 1.8em;
-    font-weight: 600;
-    text-align: center;
-}
-
-.description-text {
-    margin-bottom: 30px;
-}
-
-.description-text h3,
-.example-text h3 {
-    color: var(--secondary-color);
-    margin-bottom: 15px;
-    font-size: 1.4em;
-    font-weight: 500;
-}
-
-.description-text p,
-.example-text p {
-    line-height: 1.8;
-    color: var(--text-color);
-    font-size: 1.1em;
-}
-
-.example-text {
-    background: var(--light-background);
-    padding: 25px;
-    border-radius: 8px;
-    margin-top: 30px;
-    border-left: 4px solid var(--primary-color);
 }
 
 /* Responsive Design */
 @media (max-width: 1200px) {
     .main-content-grid {
         grid-template-columns: 1fr;
+        gap: 3rem;
     }
 
-    .competency-card {
-        height: 180px;
-    }
-
-    .description-content {
+    .description-column {
         position: static;
-        margin-top: 2rem;
-        max-width: 100%;
+        order: -1;
+    }
+
+    .competency-column {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .subtitles {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
     }
 }
 
 @media (max-width: 768px) {
-    main {
-        padding: 1rem;
-    }
-
-    .introduction-section {
-        padding: 1.5rem;
-        margin: 1rem;
-    }
-
     .competency-title-container h1 {
         font-size: 2rem;
     }
 
-    .card-content h3 {
-        font-size: 1.1em;
+    .introduction-section {
+        margin: 1rem;
+        padding: 1.5rem;
     }
 
-    .selected-title {
-        font-size: 1.5em;
+    .competency-column {
+        grid-template-columns: 1fr;
     }
 }
