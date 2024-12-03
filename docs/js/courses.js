@@ -162,32 +162,56 @@ const competencyDescriptions = {
 
 document.addEventListener('DOMContentLoaded', function() {
     const competencyCards = document.querySelectorAll('.competency-card');
-    const selectedTitle = document.querySelector('.selected-title');
-    const competencyDescription = document.querySelector('.competency-description');
-    const competencyExample = document.querySelector('.competency-example');
-    let activeCard = null;
+    const descriptionContent = document.querySelector('.description-content');
 
+    function updateDescription(competency) {
+        if (!competency) {
+            // Show default instructions if no competency is selected
+            descriptionContent.innerHTML = `
+                <h2>Wählen Sie eine Kompetenz</h2>
+                <p>Klicken Sie auf eine der Kompetenzkarten, um detaillierte Informationen und Beispiele zu sehen.</p>
+            `;
+            return;
+        }
+
+        // Update description content with competency details
+        descriptionContent.innerHTML = `
+            <h2>${competency.fullTitle || competency.title}</h2>
+            <div class="description">
+                <h3>Beschreibung</h3>
+                <p>${competency.description}</p>
+            </div>
+            <div class="example">
+                <h3>Beispiel</h3>
+                <p>${competency.example}</p>
+            </div>
+        `;
+    }
+
+    function handleCardClick(card) {
+        // Remove active class from all cards
+        competencyCards.forEach(c => c.classList.remove('active'));
+        
+        // Add active class to clicked card
+        card.classList.add('active');
+        
+        // Get competency title from card
+        const title = card.querySelector('h3').textContent;
+        
+        // Find matching competency from data
+        const competency = competencies.find(c => c.title === title);
+        
+        // Update description
+        updateDescription(competency);
+    }
+
+    // Add click event listeners to all cards
     competencyCards.forEach(card => {
-        card.addEventListener('click', function() {
-            // Remove active class from previous card
-            if (activeCard) {
-                activeCard.classList.remove('active');
-            }
-            
-            // Add active class to clicked card
-            this.classList.add('active');
-            activeCard = this;
-
-            // Find the competency data
-            const title = this.querySelector('h3').textContent;
-            const competency = competencies.find(c => c.title === title);
-
-            // Update the description content
-            if (competency) {
-                selectedTitle.textContent = competency.fullTitle;
-                competencyDescription.textContent = competency.description;
-                competencyExample.textContent = competency.example;
-            }
-        });
+        card.addEventListener('click', () => handleCardClick(card));
     });
+
+    // Select the first competency by default
+    if (competencyCards.length > 0) {
+        handleCardClick(competencyCards[0]);
+    }
 });
