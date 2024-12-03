@@ -12,6 +12,9 @@ require("dotenv").config();
 // Initialize Express App
 const app = express();
 
+// Set Mongoose options
+mongoose.set('strictQuery', false); // Handle Mongoose 7 deprecation warning
+
 // Middleware Configuration
 app.use(bodyParser.json());
 app.use(express.static("docs")); // Serve static files from 'docs' directory
@@ -440,7 +443,7 @@ app.post("/api/dashboard-login", (req, res) => {
  */
 app.get("/dashboard", (req, res) => {
   res.sendFile(path.resolve(__dirname, "docs", "dashboard.html"));
-});
+ });
 
 /**
  * @route   GET /dashboard-login
@@ -449,7 +452,7 @@ app.get("/dashboard", (req, res) => {
  */
 app.get("/dashboard-login", (req, res) => {
   res.sendFile(path.resolve(__dirname, "docs", "dashboard-login.html"));
-});
+ });
 
 /**
  * @route   GET /api/dashboard-data
@@ -606,7 +609,7 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
  */
 app.get("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "docs", "index.html"));
-});
+ });
 
 // Helper Functions
 /**
