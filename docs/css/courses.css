@@ -113,7 +113,7 @@ nav a.active {
 
 .main-title {
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: #ffffff;
+    color: #ffffff !important;
     padding: 15px 40px;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 74, 153, 0.2);
@@ -128,6 +128,7 @@ nav a.active {
 .main-title:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 74, 153, 0.3);
+    color: #ffffff !important;
 }
 
 /* Introduction Section */
@@ -187,7 +188,7 @@ nav a.active {
 }
 
 .section-titles h2:last-child {
-    justify-self: flex-start;
+    justify-self: flex-end;
 }
 
 .section-titles h2:first-child {
