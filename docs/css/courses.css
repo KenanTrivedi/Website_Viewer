@@ -174,11 +174,12 @@ nav a.active {
     border-radius: 10px;
     box-shadow: var(--card-shadow);
     font-size: 1.1rem;
-    width: fit-content;
+    width: 350px;
     margin-bottom: 1.5rem;
     color: var(--primary-color);
     font-weight: 600;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
 }
 
 .section-titles .connection-lines {
@@ -191,7 +192,7 @@ nav a.active {
 
 .competencies-container {
     display: grid;
-    grid-template-columns: 350px minmax(400px, 1fr) 350px;
+    grid-template-columns: 350px minmax(500px, 1fr) 350px;
     gap: 2rem;
     max-width: 1400px;
     margin: 0 auto;
@@ -222,7 +223,7 @@ nav a.active {
     height: fit-content;
     border-left: 4px solid var(--primary-color);
     position: relative;
-    min-width: 400px;
+    min-width: 500px;
 }
 
 .description-column::before {
@@ -240,7 +241,7 @@ nav a.active {
 .competency-card {
     background: var(--light-background);
     border-radius: 15px;
-    padding: 1.8rem;
+    padding: 2rem;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: var(--card-shadow);
@@ -289,8 +290,8 @@ nav a.active {
 }
 
 .card-bg img {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 100px;
     object-fit: contain;
     filter: drop-shadow(0 4px 6px rgba(0, 74, 153, 0.2));
 }
