@@ -88,9 +88,8 @@ nav a.active {
 /* Main Layout */
 .competency-title-container {
     text-align: center;
-    margin: 0 auto 2rem;
-    padding: 2rem 0;
-    max-width: 1200px;
+    margin-bottom: 40px;
+    position: relative;
 }
 
 .competency-title-container h1 {
@@ -110,6 +109,23 @@ nav a.active {
     color: var(--primary-color);
     font-size: 1.5rem;
     font-weight: 500;
+}
+
+.main-title {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 15px 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 74, 153, 0.2);
+    display: inline-block;
+    margin: 30px auto;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.main-title:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 74, 153, 0.3);
 }
 
 /* Introduction Section */
@@ -152,29 +168,28 @@ nav a.active {
 
 .connection-lines {
     position: absolute;
-    top: 0;
+    top: 50%;
     left: 0;
     right: 0;
-    pointer-events: none;
+    height: 2px;
     z-index: 1;
 }
 
 .main-line {
     position: absolute;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80%;
+    top: 0;
+    left: 20%;
+    right: 20%;
     height: 2px;
-    background-color: #0056b3;
+    background: var(--primary-color);
 }
 
 .vertical-line {
     position: absolute;
-    top: 20px;
     width: 2px;
     height: 40px;
-    background-color: #0056b3;
+    background: var(--primary-color);
+    top: -20px;
 }
 
 .vertical-line.left {
@@ -187,28 +202,26 @@ nav a.active {
 
 .section-titles {
     display: flex;
-    justify-content: space-between;
-    padding: 0 40px;
-    margin: 20px auto;
-    max-width: 1800px;
+    justify-content: space-around;
+    align-items: center;
+    margin: 40px 0;
     position: relative;
+    padding: 0 20px;
 }
 
 .section-titles h2 {
-    color: #0056b3;
-    font-size: 1.4rem;
+    background: var(--light-background);
+    padding: 15px 30px;
+    border-radius: 8px;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
     z-index: 2;
 }
 
-.section-titles h2::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background-color: #0056b3;
+.section-titles h2:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--card-hover-shadow);
 }
 
 .competency-section {
