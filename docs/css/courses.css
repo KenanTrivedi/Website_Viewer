@@ -157,127 +157,86 @@ nav a.active {
 }
 
 /* Main Grid Layout */
-.competencies-container {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
-    padding: 0 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    position: relative;
-}
-
-.connection-lines {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    z-index: 1;
-}
-
-.main-line {
-    position: absolute;
-    top: 0;
-    left: 20%;
-    right: 20%;
-    height: 2px;
-    background: var(--primary-color);
-}
-
-.vertical-line {
-    position: absolute;
-    width: 2px;
-    height: 40px;
-    background: var(--primary-color);
-    top: -20px;
-}
-
-.vertical-line.left {
-    left: 20%;
-}
-
-.vertical-line.right {
-    right: 20%;
-}
-
 .section-titles {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin: 0;
     position: relative;
-    padding: 0;
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 2rem;
 }
 
 .section-titles h2 {
     background: var(--light-background);
-    padding: 10px 20px;
-    border-radius: 8px;
+    padding: 8px 15px;
+    border-radius: 6px;
     box-shadow: var(--card-shadow);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
     z-index: 2;
-    font-size: 1rem;
-    margin: 0 20px 20px 20px;
-    width: auto;
-    text-align: center;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    width: fit-content;
 }
 
-.section-titles h2:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--card-hover-shadow);
+.competencies-container {
+    display: grid;
+    grid-template-columns: 300px 1fr 300px;
+    gap: 2rem;
+    padding: 0 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .competency-section {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    align-items: center;
+}
+
+.competency-section:first-child {
+    grid-column: 1;
+}
+
+.competency-section:last-child {
+    grid-column: 3;
 }
 
 .description-column {
-    background-color: #e8f4ff;
-    padding: 30px;
-    border-radius: 12px;
-    position: relative;
-    height: fit-content;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    grid-column: 2;
+    background: var(--light-background);
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
 }
 
 .competency-card {
-    background-color: #e8f4ff;
-    border-radius: 12px;
-    padding: 25px;
-    text-align: center;
+    width: 100%;
+    background: var(--light-background);
+    border-radius: 8px;
+    padding: 1rem;
     cursor: pointer;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: var(--card-shadow);
+    text-align: center;
 }
 
 .competency-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 15px rgba(0, 86, 179, 0.15);
-    border-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: var(--card-hover-shadow);
 }
 
 .card-bg {
-    width: 100px;
-    height: 100px;
+    width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-bottom: 0.5rem;
 }
 
 .card-bg img {
-    width: 100%;
-    height: 100%;
+    width: 60px;
+    height: 60px;
     object-fit: contain;
 }
 
