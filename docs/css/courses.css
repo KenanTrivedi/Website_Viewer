@@ -182,17 +182,18 @@ nav a.active {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.section-titles h2:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--card-hover-shadow);
+.section-titles h2:first-child {
+    grid-column: 1;
+    justify-self: flex-start;
 }
 
 .section-titles h2:last-child {
+    grid-column: 3;
     justify-self: flex-end;
 }
 
-.section-titles h2:first-child {
-    justify-self: flex-start;
+.section-titles .connection-lines {
+    grid-column: 2;
 }
 
 .competencies-container {
