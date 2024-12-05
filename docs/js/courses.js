@@ -162,38 +162,40 @@ const competencyDescriptions = {
 
 document.addEventListener('DOMContentLoaded', function() {
     const competencyCards = document.querySelectorAll('.competency-card');
-    const descriptionContent = document.querySelector('.description-content');
+    const descriptionElement = document.getElementById('competencyDescription');
+    const exampleContainer = document.getElementById('competencyExample');
+    const exampleText = document.getElementById('exampleText');
+    let lastClickedCard = null;
 
     function updateDescription(competency) {
-        if (!competency) {
-            // Show default instructions if no competency is selected
-            descriptionContent.innerHTML = `
-                <h2>Wählen Sie eine Kompetenz</h2>
-                <p>Klicken Sie auf eine der Kompetenzkarten, um detaillierte Informationen und Beispiele zu sehen.</p>
+        if (competency) {
+            const descriptionHTML = `
+                <h2>${competency.title}</h2>
+                <div class="description-content">
+                    <h3>Beschreibung</h3>
+                    <p>${competency.description}</p>
+                    <h3>Beispiel</h3>
+                    <p>${competency.example}</p>
+                </div>
             `;
-            return;
+            descriptionElement.innerHTML = descriptionHTML;
         }
-
-        // Update description content with competency details
-        descriptionContent.innerHTML = `
-            <h2>${competency.fullTitle || competency.title}</h2>
-            <div class="description">
-                <h3>Beschreibung</h3>
-                <p>${competency.description}</p>
-            </div>
-            <div class="example">
-                <h3>Beispiel</h3>
-                <p>${competency.example}</p>
-            </div>
-        `;
     }
 
     function handleCardClick(card) {
-        // Remove active class from all cards
-        competencyCards.forEach(c => c.classList.remove('active'));
+        // Remove active class and pulse animation from previous card
+        if (lastClickedCard) {
+            lastClickedCard.classList.remove('active-card', 'pulse');
+        }
         
-        // Add active class to clicked card
-        card.classList.add('active');
+        // Add active class and pulse animation to clicked card
+        card.classList.add('active-card', 'pulse');
+        lastClickedCard = card;
+        
+        // Remove pulse animation after it completes
+        setTimeout(() => {
+            card.classList.remove('pulse');
+        }, 1000);
         
         // Get competency title from card
         const title = card.querySelector('h3').textContent;
@@ -210,8 +212,6 @@ document.addEventListener('DOMContentLoaded', function() {
         card.addEventListener('click', () => handleCardClick(card));
     });
 
-    // Select the first competency by default
-    if (competencyCards.length > 0) {
-        handleCardClick(competencyCards[0]);
-    }
+    // Initialize with no competency selected
+    updateDescription(null);
 });
