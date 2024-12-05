@@ -161,11 +161,13 @@ nav a.active {
 /* Main Grid Layout */
 .section-titles {
     display: grid;
-    grid-template-columns: 350px 1fr 350px;
+    grid-template-columns: 350px minmax(400px, 1fr) 350px;
     max-width: 1400px;
-    margin: 0 auto 2rem;
-    padding: 0 2rem;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 20px;
     position: relative;
+    gap: 2rem;
 }
 
 .section-titles h2 {
@@ -179,14 +181,17 @@ nav a.active {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     text-align: center;
     z-index: 1;
+    width: 100%;
 }
 
 .section-titles h2:first-child {
     justify-self: start;
+    margin-right: auto;
 }
 
 .section-titles h2:last-child {
     justify-self: end;
+    margin-left: auto;
 }
 
 .competencies-container {
@@ -194,15 +199,16 @@ nav a.active {
     grid-template-columns: 350px minmax(400px, 1fr) 350px;
     gap: 2rem;
     max-width: 1400px;
+    width: 100%;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 20px;
 }
 
 .competency-section {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    width: 350px;
+    width: 100%;
 }
 
 .competency-section:first-child {
