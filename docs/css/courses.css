@@ -165,6 +165,7 @@ nav a.active {
     max-width: 1400px;
     margin: 0 auto 2rem;
     padding: 0 2rem;
+    position: relative;
 }
 
 .section-titles h2 {
@@ -178,6 +179,7 @@ nav a.active {
     font-weight: 600;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     text-align: center;
+    z-index: 1;
 }
 
 .competencies-container {
@@ -189,18 +191,27 @@ nav a.active {
     padding: 0 2rem;
 }
 
-.left-column, .right-column {
+.competency-section {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
 }
 
+.competency-section:first-child {
+    grid-column: 1;
+}
+
+.competency-section:last-child {
+    grid-column: 3;
+}
+
 .description-column {
+    grid-column: 2;
     background: var(--light-background);
     border-radius: 15px;
     padding: 2rem;
-    min-height: 300px;
     box-shadow: var(--card-shadow);
+    height: fit-content;
 }
 
 .competency-card {
@@ -215,6 +226,7 @@ nav a.active {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    width: 100%;
 }
 
 .competency-card:hover {
@@ -237,11 +249,27 @@ nav a.active {
     filter: drop-shadow(0 4px 6px rgba(0, 74, 153, 0.2));
 }
 
+.card-content {
+    width: 100%;
+}
+
 .card-content h3 {
     font-size: 1.2rem;
     color: var(--primary-color);
     margin: 0;
     line-height: 1.4;
+}
+
+/* Connection Lines */
+.connection-lines {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 800px);
+    height: 2px;
+    background-color: var(--primary-color);
+    opacity: 0.3;
 }
 
 /* Responsive Design */
