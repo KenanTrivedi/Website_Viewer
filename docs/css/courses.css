@@ -179,19 +179,30 @@ nav a.active {
     color: var(--primary-color);
     font-weight: 600;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    text-align: center;
     z-index: 1;
-    width: 100%;
+    width: fit-content;
 }
 
 .section-titles h2:first-child {
     justify-self: start;
-    margin-right: auto;
+    text-align: left;
 }
 
 .section-titles h2:last-child {
     justify-self: end;
-    margin-left: auto;
+    text-align: right;
+}
+
+.section-titles::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60%;
+    height: 2px;
+    background-color: var(--light-background);
+    z-index: 0;
 }
 
 .competencies-container {
