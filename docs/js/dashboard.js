@@ -52,21 +52,21 @@ const usersPerPage = 100
 
 // Constants (Extracted from survey.js)
 const labelMap = {
-  'Suchen, Verarbeiten und Aufbewahren': 'Suchen, Verarbeiten und Aufbewahren',
-  'Kommunikation und Kollaborieren': 'Kommunikation und Kollaborieren',
-  'Produzieren und Präsentieren': 'Produzieren und Präsentieren',
-  'Schützen und sicher Agieren': 'Schützen und sicher Agieren',
-  'Problemlösen und Handeln': 'Problemlösen und Handeln',
-  'Analysieren und Reflektieren': 'Analysieren und Reflektieren',
+  'Suchen, Verarbeiten und Aufbewahren': 'Suchen',
+  'Kommunikation und Kollaborieren': 'Kommunizieren',
+  'Produzieren und Präsentieren': 'Produzieren',
+  'Schützen und sicher Agieren': 'Schützen',
+  'Problemlösen und Handeln': 'Problemlösen',
+  'Analysieren und Reflektieren': 'Analysieren',
 }
 
 const colorMap = {
-  'Suchen, Verarbeiten und Aufbewahren': '#00BF63', // Green
-  'Kommunikation und Kollaborieren': '#0CC0DF', // Blue
-  'Produzieren und Präsentieren': '#FF6D5F', // Red
-  'Schützen und sicher Agieren': '#8C52FF', // Purple
-  'Problemlösen und Handeln': '#E884C4', // Pink
-  'Analysieren und Reflektieren': '#FFD473', // Yellow
+  'Suchen': '#00BF63', // Green
+  'Kommunizieren': '#0CC0DF', // Blue
+  'Produzieren': '#FF6D5F', // Red
+  'Schützen': '#8C52FF', // Purple
+  'Problemlösen': '#E884C4', // Pink
+  'Analysieren': '#FFD473', // Yellow
 }
 
 function getInitialResponse(user, questionId) {
@@ -433,22 +433,22 @@ function updateVisualization() {
   
   // Calculate averages
   const categories = {
-    'Suchen, Verarbeiten und Aufbewahren': { initialScore: 0, latestScore: 0, color: '#00BF63' }, // Green
-    'Kommunikation und Kollaborieren': { initialScore: 0, latestScore: 0, color: '#0CC0DF' }, // Blue
-    'Produzieren und Präsentieren': { initialScore: 0, latestScore: 0, color: '#FF6D5F' }, // Red
-    'Schützen und sicher Agieren': { initialScore: 0, latestScore: 0, color: '#8C52FF' }, // Purple
-    'Problemlösen und Handeln': { initialScore: 0, latestScore: 0, color: '#E884C4' }, // Pink
-    'Analysieren und Reflektieren': { initialScore: 0, latestScore: 0, color: '#FFD473' }  // Yellow
+    'Suchen': { initialScore: 0, latestScore: 0, color: colorMap['Suchen'] },
+    'Kommunizieren': { initialScore: 0, latestScore: 0, color: colorMap['Kommunizieren'] },
+    'Produzieren': { initialScore: 0, latestScore: 0, color: colorMap['Produzieren'] },
+    'Schützen': { initialScore: 0, latestScore: 0, color: colorMap['Schützen'] },
+    'Problemlösen': { initialScore: 0, latestScore: 0, color: colorMap['Problemlösen'] },
+    'Analysieren': { initialScore: 0, latestScore: 0, color: colorMap['Analysieren'] }
   }
   
   let userCount = 0
 
   users.forEach(user => {
     if (user.initialScores && user.updatedScores) {
-      Object.entries(categories).forEach(([fullName, data]) => {
+      Object.entries(labelMap).forEach(([fullName, shortName]) => {
         if (user.initialScores[fullName] !== undefined) {
-          data.initialScore += user.initialScores[fullName] || 0
-          data.latestScore += user.updatedScores[fullName] || 0
+          categories[shortName].initialScore += user.initialScores[fullName] || 0
+          categories[shortName].latestScore += user.updatedScores[fullName] || 0
         }
       })
       userCount++
@@ -498,30 +498,6 @@ function updateVisualization() {
           title: {
             display: true,
             text: 'Score (%)'
-          }
-        },
-        x: {
-          ticks: {
-            callback: function(val) {
-              // Split the label into multiple lines for better readability
-              const label = this.getLabelForValue(val);
-              const words = label.split(' ');
-              const lines = [];
-              let currentLine = '';
-              
-              words.forEach(word => {
-                if (currentLine.length + word.length > 15) {
-                  lines.push(currentLine);
-                  currentLine = word;
-                } else {
-                  currentLine += (currentLine.length ? ' ' : '') + word;
-                }
-              });
-              if (currentLine) {
-                lines.push(currentLine);
-              }
-              return lines;
-            }
           }
         }
       },
