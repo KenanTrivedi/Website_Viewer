@@ -1,8 +1,13 @@
 // Global variables
 let users = []
 let questionIds = [
-  'q0_0',
-  'q0_1',
+  'q0_0',  // Gender
+  'q0_1',  // Birth year
+  'q0_2',  // Teaching student
+  'q0_3',  // Teaching type
+  'q0_4',  // Teaching subjects
+  'q0_5',  // Non-teaching study program
+  'q0_6',  // Semester
   'q1_0',
   'q1_1',
   'q1_2',
@@ -253,16 +258,19 @@ function renderTable() {
     // Generate table header
     thead.innerHTML = `
       <th>Select</th>
-      <th>User Code</th>
-      <th>Attempt Number</th>
+      <th>Code</th>
+      <th>Versuch</th>
       <th>Geschlecht</th>
       <th>Geburtsjahr</th>
-      <th>Lehramt</th>
-      <th>Fächer</th>
+      <th>Lehramt?</th>
+      <th>Art Lehramt</th>
+      <th>Studienfächer</th>
+      <th>Studiengang</th>
+      <th>Semester</th>
       <th>Kurse</th>
-      <th>Feedback zu Kursen</th>
-      <th>Strategie bei der Auswahl</th>
-      <th>Veränderung der Kompetenzüberzeugungen</th>
+      <th>Feedback</th>
+      <th>Strategie</th>
+      <th>Reflexion</th>
       <th>Erste Abgabe</th>
       <th>Letzte Abgabe</th>
       ${['q1_0', 'q1_1', 'q1_2', 'q1_3', 'q1_4', 'q1_5', 
@@ -291,6 +299,9 @@ function renderTable() {
         <td>${escapeHtml(user.data?.q0_1 || user.initialResponses?.q0_1 || '')}</td>
         <td>${escapeHtml(user.data?.q0_2 || user.initialResponses?.q0_2 || '')}</td>
         <td>${escapeHtml(user.data?.q0_3 || user.initialResponses?.q0_3 || '')}</td>
+        <td>${escapeHtml(user.data?.q0_4 || user.initialResponses?.q0_4 || '')}</td>
+        <td>${escapeHtml(user.data?.q0_5 || user.initialResponses?.q0_5 || '')}</td>
+        <td>${escapeHtml(user.data?.q0_6 || user.initialResponses?.q0_6 || '')}</td>
         <td>${escapeHtml((user.courses || []).join(', '))}</td>
         <td>${escapeHtml(user.data?.t2_course_feedback || user.openEndedResponses?.attempt2_course_feedback || '')}</td>
         <td>${escapeHtml(user.openEndedResponses?.t1_strategy || '')}</td>
@@ -329,8 +340,11 @@ function filterUsers() {
       user.attemptNumber?.toString(),
       user.data?.q0_0, // Geschlecht
       user.data?.q0_1, // Geburtsjahr
-      user.data?.q0_2, // Lehramt
-      user.data?.q0_3, // Fächer
+      user.data?.q0_2, // Teaching student
+      user.data?.q0_3, // Teaching type
+      user.data?.q0_4, // Teaching subjects
+      user.data?.q0_5, // Non-teaching study program
+      user.data?.q0_6, // Semester
       (user.courses || []).join(', '),
       user.data?.t2_course_feedback || user.openEndedResponses?.attempt2_course_feedback,
       user.openEndedResponses?.t1_strategy,
@@ -536,16 +550,19 @@ function exportSelectedData() {
   // Prepare CSV data
   const csvData = [];
   const headers = [
-    'User Code',
-    'Attempt Number',
+    'Code',
+    'Versuch',
     'Geschlecht',
     'Geburtsjahr',
-    'Lehramt',
-    'Fächer',
+    'Lehramt?',
+    'Art Lehramt',
+    'Studienfächer',
+    'Studiengang',
+    'Semester',
     'Kurse',
-    'Feedback zu Kursen',
-    'Strategie bei der Auswahl',
-    'Veränderung der Kompetenzüberzeugungen',
+    'Feedback',
+    'Strategie',
+    'Reflexion',
     'Erste Abgabe',
     'Letzte Abgabe',
     ...questionIds.flatMap(id => [`${id} (T1)`, `${id} (T2)`])
@@ -557,10 +574,13 @@ function exportSelectedData() {
     const row = [
       user.userCode,
       user.attemptNumber || '',
-      user.gender,
-      user.birthYear,
-      user.data?.responses?.q0_2 || '',
-      user.data?.responses?.q0_3 || '',
+      user.data?.responses?.q0_0 || '',  // Gender
+      user.data?.responses?.q0_1 || '',  // Birth year
+      user.data?.responses?.q0_2 || '',  // Teaching student
+      user.data?.responses?.q0_3 || '',  // Teaching type
+      user.data?.responses?.q0_4 || '',  // Teaching subjects
+      user.data?.responses?.q0_5 || '',  // Non-teaching study
+      user.data?.responses?.q0_6 || '',  // Semester
       (user.courses || []).join(';'),
       user.openEndedResponses?.course_feedback || '',
       user.openEndedResponses?.t1_strategy || '',
