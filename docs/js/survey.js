@@ -339,14 +339,17 @@ async function loadUserData(isNewAttempt = false) {
 
         if (data.data) {
           if (isNewAttempt) {
-            // Keep only personal information for new attempts
+            // Keep all personal information for new attempts
             userData = {
-              q0_0: data.data.q0_0,
-              q0_1: data.data.q0_1,
-              q0_2: data.data.q0_2,
-              q0_3: data.data.q0_3,
+              q0_0: data.data.q0_0,  // Gender
+              q0_1: data.data.q0_1,  // Birth year
+              q0_2: data.data.q0_2,  // Teaching student
+              q0_3: data.data.q0_3,  // Teaching type
+              q0_4: data.data.q0_4,  // Teaching subjects
+              q0_5: data.data.q0_5,  // Non-teaching program
+              q0_6: data.data.q0_6   // Semester
             }
-            currentSection = 0 // Start from the first section (Personal Information)
+            currentSection = 0 // Start from the first section
             updatedScores = {} // Reset updatedScores
           } else {
             userData = data.data
@@ -1438,8 +1441,23 @@ function handleTeachingStudentChange(radio) {
   console.log('handleTeachingStudentChange called with value:', radio.value);
   // Update the current question's value in userData
   userData[radio.name] = radio.value;
-  // Re-render the section to handle dependencies properly
-  renderSection(0);
+  // Clear dependent fields when changing teaching status
+  if (radio.name === 'q0_2') {
+    if (radio.value === 'Ja') {
+      delete userData['q0_5'];  // Clear non-teaching program
+      // Show teaching-specific questions, hide non-teaching
+      document.querySelector('[name="q0_3"]')?.closest('.question')?.style.display = '';
+      document.querySelector('[name="q0_4"]')?.closest('.question')?.style.display = '';
+      document.querySelector('[name="q0_5"]')?.closest('.question')?.style.display = 'none';
+    } else {
+      delete userData['q0_3'];  // Clear teaching type
+      delete userData['q0_4'];  // Clear teaching subjects
+      // Hide teaching-specific questions, show non-teaching
+      document.querySelector('[name="q0_3"]')?.closest('.question')?.style.display = 'none';
+      document.querySelector('[name="q0_4"]')?.closest('.question')?.style.display = 'none';
+      document.querySelector('[name="q0_5"]')?.closest('.question')?.style.display = '';
+    }
+  }
   // Save the current state (async)
   setTimeout(() => saveSectionData(false), 0);
   console.log('Current userData:', userData);
