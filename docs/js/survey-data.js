@@ -19,7 +19,7 @@ const surveyData = [
         text: 'Studieren Sie Lehramt?',
         type: 'radio',
         options: ['Ja', 'Nein'],
-        id: 'isTeachingStudent'
+        id: 'q0_2'
       },
       {
         text: 'Welches Lehramt studieren Sie?',
@@ -35,7 +35,7 @@ const surveyData = [
           'Wirtschaftspädagogik (M.A.)',
         ],
         dependsOn: {
-          questionId: 'isTeachingStudent',
+          questionId: 'q0_2',
           value: 'Ja'
         }
       },
@@ -43,7 +43,7 @@ const surveyData = [
         text: 'Welche Fächer studieren Sie aktuell in Ihrem Lehramtsstudium?',
         type: 'text',
         dependsOn: {
-          questionId: 'isTeachingStudent',
+          questionId: 'q0_2',
           value: 'Ja'
         }
       },
@@ -51,7 +51,7 @@ const surveyData = [
         text: 'Was studieren Sie?',
         type: 'text',
         dependsOn: {
-          questionId: 'isTeachingStudent',
+          questionId: 'q0_2',
           value: 'Nein'
         }
       },

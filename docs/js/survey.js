@@ -423,8 +423,15 @@ function renderSection(index) {
 
     // Check if this question depends on another question's answer
     if (question.dependsOn) {
-      const dependentQuestionId = `q${index}_${question.dependsOn.questionId}`
+      const dependentQuestionId = question.dependsOn.questionId
       const dependentValue = userData[dependentQuestionId]
+
+      console.log('Checking dependency:', {
+        question: question.text,
+        dependsOn: dependentQuestionId,
+        expectedValue: question.dependsOn.value,
+        actualValue: dependentValue
+      });
 
       // If the dependent question hasn't been answered or doesn't match required value, skip this question
       if (dependentValue !== question.dependsOn.value) {
@@ -436,9 +443,10 @@ function renderSection(index) {
 
     if (question.type === 'radio') {
       question.options.forEach((option) => {
+        const isTeachingQuestion = question.text === 'Studieren Sie Lehramt?';
         html += `<label><input type="radio" name="${questionId}" value="${option}" ${
           savedValue === option ? 'checked' : ''
-        } ${question.id === 'isTeachingStudent' ? 'onchange="handleTeachingStudentChange(this)"' : ''} required> ${option}</label><br>`
+        } ${isTeachingQuestion ? 'onchange="handleTeachingStudentChange(this)"' : ''} required> ${option}</label><br>`
       })
     } else if (question.type === 'number' && question.text.includes('Jahr')) {
       html += `<input type="text" id="${questionId}" name="${questionId}" 
@@ -1427,29 +1435,39 @@ window.validateYear = validateYear
 
 // Handle teaching student radio button changes
 function handleTeachingStudentChange(radio) {
-  const isTeachingStudent = radio.value === 'Ja'
-  const form = document.getElementById('surveyForm')
-
-  // Get all dependent questions
-  const teachingQuestions = form.querySelectorAll('[id^="question-q0_3"], [id^="question-q0_4"]')
-  const nonTeachingQuestion = form.querySelector('[id^="question-q0_5"]')
-
-  // Show/hide questions based on selection
-  teachingQuestions.forEach(question => {
-    question.style.display = isTeachingStudent ? 'block' : 'none'
-    const inputs = question.querySelectorAll('input, select')
-    inputs.forEach(input => {
-      input.required = isTeachingStudent
-    })
-  })
-
-  if (nonTeachingQuestion) {
-    nonTeachingQuestion.style.display = isTeachingStudent ? 'none' : 'block'
-    const inputs = nonTeachingQuestion.querySelectorAll('input, select')
-    inputs.forEach(input => {
-      input.required = !isTeachingStudent
-    })
-  }
+  console.log('handleTeachingStudentChange called with value:', radio.value); // Debug log
+  const isTeachingStudent = radio.value === 'Ja';
+  const form = document.getElementById('surveyForm');
+  
+  // Get all questions
+  const allQuestions = form.querySelectorAll('.question');
+  
+  allQuestions.forEach(question => {
+    const questionId = question.id;
+    
+    // Teaching-specific questions (dropdown and subjects)
+    if (questionId.includes('q0_3') || questionId.includes('q0_4')) {
+      question.style.display = isTeachingStudent ? 'block' : 'none';
+      const inputs = question.querySelectorAll('input, select');
+      inputs.forEach(input => {
+        input.required = isTeachingStudent;
+        if (!isTeachingStudent) input.value = '';
+      });
+    }
+    
+    // Non-teaching question
+    if (questionId.includes('q0_5')) {
+      question.style.display = isTeachingStudent ? 'none' : 'block';
+      const inputs = question.querySelectorAll('input');
+      inputs.forEach(input => {
+        input.required = !isTeachingStudent;
+        if (isTeachingStudent) input.value = '';
+      });
+    }
+  });
+  
+  // Save the current state
+  saveSectionData(false);
 }
 
 // Add to window object for global access
