@@ -1446,16 +1446,24 @@ function handleTeachingStudentChange(radio) {
     if (radio.value === 'Ja') {
       delete userData['q0_5'];  // Clear non-teaching program
       // Show teaching-specific questions, hide non-teaching
-      document.querySelector('[name="q0_3"]')?.closest('.question')?.style.display = '';
-      document.querySelector('[name="q0_4"]')?.closest('.question')?.style.display = '';
-      document.querySelector('[name="q0_5"]')?.closest('.question')?.style.display = 'none';
+      const q3 = document.querySelector('[name="q0_3"]');
+      const q4 = document.querySelector('[name="q0_4"]');
+      const q5 = document.querySelector('[name="q0_5"]');
+      
+      if (q3?.closest('.question')) q3.closest('.question').style.display = '';
+      if (q4?.closest('.question')) q4.closest('.question').style.display = '';
+      if (q5?.closest('.question')) q5.closest('.question').style.display = 'none';
     } else {
       delete userData['q0_3'];  // Clear teaching type
       delete userData['q0_4'];  // Clear teaching subjects
       // Hide teaching-specific questions, show non-teaching
-      document.querySelector('[name="q0_3"]')?.closest('.question')?.style.display = 'none';
-      document.querySelector('[name="q0_4"]')?.closest('.question')?.style.display = 'none';
-      document.querySelector('[name="q0_5"]')?.closest('.question')?.style.display = '';
+      const q3 = document.querySelector('[name="q0_3"]');
+      const q4 = document.querySelector('[name="q0_4"]');
+      const q5 = document.querySelector('[name="q0_5"]');
+      
+      if (q3?.closest('.question')) q3.closest('.question').style.display = 'none';
+      if (q4?.closest('.question')) q4.closest('.question').style.display = 'none';
+      if (q5?.closest('.question')) q5.closest('.question').style.display = '';
     }
   }
   // Save the current state (async)
