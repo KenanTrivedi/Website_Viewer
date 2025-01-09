@@ -1436,60 +1436,12 @@ window.validateYear = validateYear
 // Handle teaching student radio button changes
 function handleTeachingStudentChange(radio) {
   console.log('handleTeachingStudentChange called with value:', radio.value);
-  const isTeachingStudent = radio.value === 'Ja';
-  const form = document.getElementById('surveyForm');
-  
   // Update the current question's value in userData
   userData[radio.name] = radio.value;
-  
-  // Get questions by their index in the section (matching survey-data.js)
-  const teachingDropdown = form.querySelector('#question-q0_3');
-  const teachingSubjects = form.querySelector('#question-q0_4');
-  const nonTeachingStudy = form.querySelector('#question-q0_5');
-  
-  console.log('Found elements:', {
-    teachingDropdown: teachingDropdown?.id,
-    teachingSubjects: teachingSubjects?.id,
-    nonTeachingStudy: nonTeachingStudy?.id
-  });
-  
-  // Handle teaching-specific questions
-  [teachingDropdown, teachingSubjects].forEach(question => {
-    if (question) {
-      question.style.display = isTeachingStudent ? 'block' : 'none';
-      const inputs = question.querySelectorAll('input, select');
-      inputs.forEach(input => {
-        input.required = isTeachingStudent;
-        if (!isTeachingStudent) input.value = '';
-      });
-    }
-  });
-  
-  // Handle non-teaching question
-  if (nonTeachingStudy) {
-    console.log('Setting non-teaching question display to:', isTeachingStudent ? 'none' : 'block');
-    nonTeachingStudy.style.display = isTeachingStudent ? 'none' : 'block';
-    const inputs = nonTeachingStudy.querySelectorAll('input');
-    inputs.forEach(input => {
-      input.required = !isTeachingStudent;
-      if (isTeachingStudent) input.value = '';
-    });
-  } else {
-    console.error('Non-teaching question element not found! Looking for: #question-q0_5');
-    console.log('Available questions:', form.querySelectorAll('.question').length);
-  }
-  
+  // Re-render the section to handle dependencies properly
+  renderSection(0);
   // Save the current state (async)
-  setTimeout(() => {
-    saveSectionData(false);
-    // Force a check after save
-    const nonTeachingQuestionAfterSave = form.querySelector('#question-q0_5');
-    if (nonTeachingQuestionAfterSave) {
-      nonTeachingQuestionAfterSave.style.display = isTeachingStudent ? 'none' : 'block';
-      nonTeachingQuestionAfterSave.style.visibility = isTeachingStudent ? 'hidden' : 'visible';
-    }
-  }, 0);
-  
+  setTimeout(() => saveSectionData(false), 0);
   console.log('Current userData:', userData);
 }
 
