@@ -99,19 +99,22 @@ app.post("/api/reset-user-data", async (req, res) => {
     if (!userData) {
       return res.status(404).json({ message: "User not found." });
     }
-    // Preserve personal information
+    // Preserve personal information including new fields
     const personalInfo = {
-      q0_0: userData.data.q0_0,
-      q0_1: userData.data.q0_1,
-      q0_2: userData.data.q0_2,
-      q0_3: userData.data.q0_3,
+      q0_0: userData.data.q0_0,  // Gender
+      q0_1: userData.data.q0_1,  // Birth Year
+      q0_2: userData.data.q0_2,  // Is Teaching Student
+      q0_3: userData.data.q0_3,  // Teaching Type (if applicable)
+      q0_4: userData.data.q0_4,  // Teaching Subjects (if applicable)
+      q0_5: userData.data.q0_5,  // Non-teaching Subjects (if applicable)
+      q0_6: userData.data.q0_6   // Current Semester
     };
 
     userData.data = personalInfo;
     userData.updatedResponses = {};
     userData.updatedScores = {};
     userData.isComplete = false;
-    userData.currentSection = 0; // Changed from 1 to 0 to start from the first section
+    userData.currentSection = 0;
     await userData.save();
     res.status(200).json({ message: "Survey data reset successfully." });
   } catch (error) {

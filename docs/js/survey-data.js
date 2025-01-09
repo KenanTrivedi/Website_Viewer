@@ -16,6 +16,12 @@ const surveyData = [
         max: new Date().getFullYear(),
       },
       {
+        text: 'Studieren Sie Lehramt?',
+        type: 'radio',
+        options: ['Ja', 'Nein'],
+        id: 'isTeachingStudent'
+      },
+      {
         text: 'Welches Lehramt studieren Sie?',
         type: 'dropdown',
         options: [
@@ -28,11 +34,33 @@ const surveyData = [
           'Wirtschaftspädagogik (B.A.)',
           'Wirtschaftspädagogik (M.A.)',
         ],
+        dependsOn: {
+          questionId: 'isTeachingStudent',
+          value: 'Ja'
+        }
       },
       {
         text: 'Welche Fächer studieren Sie aktuell in Ihrem Lehramtsstudium?',
         type: 'text',
+        dependsOn: {
+          questionId: 'isTeachingStudent',
+          value: 'Ja'
+        }
       },
+      {
+        text: 'Was studieren Sie?',
+        type: 'text',
+        dependsOn: {
+          questionId: 'isTeachingStudent',
+          value: 'Nein'
+        }
+      },
+      {
+        text: 'Im welchem Fachsemester befinden Sie sich aktuell? (Bitte geben Sie das höchste Fachsemester an.)',
+        type: 'number',
+        min: 1,
+        max: 99
+      }
     ],
   },
   {

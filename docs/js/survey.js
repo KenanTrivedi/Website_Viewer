@@ -421,13 +421,24 @@ function renderSection(index) {
     console.log(`Rendering question: ${questionId}`)
     let savedValue = userData[questionId] || ''
 
-    html += `<div class="question"><p>${question.text}</p>`
+    // Check if this question depends on another question's answer
+    if (question.dependsOn) {
+      const dependentQuestionId = `q${index}_${question.dependsOn.questionId}`
+      const dependentValue = userData[dependentQuestionId]
+
+      // If the dependent question hasn't been answered or doesn't match required value, skip this question
+      if (dependentValue !== question.dependsOn.value) {
+        return
+      }
+    }
+
+    html += `<div class="question" id="question-${questionId}"><p>${question.text}</p>`
 
     if (question.type === 'radio') {
       question.options.forEach((option) => {
         html += `<label><input type="radio" name="${questionId}" value="${option}" ${
           savedValue === option ? 'checked' : ''
-        } required> ${option}</label><br>`
+        } ${question.id === 'isTeachingStudent' ? 'onchange="handleTeachingStudentChange(this)"' : ''} required> ${option}</label><br>`
       })
     } else if (question.type === 'number' && question.text.includes('Jahr')) {
       html += `<input type="text" id="${questionId}" name="${questionId}" 
@@ -435,6 +446,13 @@ function renderSection(index) {
                      oninput="validateYear(this)" 
                      maxlength="4" 
                      pattern="[0-9]{4}"
+                     required>`
+    } else if (question.type === 'number') {
+      // For semester number input
+      html += `<input type="number" id="${questionId}" name="${questionId}" 
+                     value="${savedValue}" 
+                     min="1" 
+                     max="99"
                      required>`
     } else if (question.type === 'scale') {
       html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`
@@ -496,9 +514,23 @@ function renderSection(index) {
   html += `</div>`
   document.getElementById('surveyForm').innerHTML = html
 
+  // Add event listeners for scale buttons
   document.querySelectorAll('.scale-button').forEach((button) => {
     button.addEventListener('keydown', handleScaleKeydown)
   })
+
+  // If we're in the personal info section, add the teaching student change handler
+  if (section.title === 'Persönliche Angaben') {
+    const teachingStudentRadios = document.querySelectorAll('input[name="q0_2"]')
+    teachingStudentRadios.forEach(radio => {
+      radio.addEventListener('change', () => handleTeachingStudentChange(radio))
+    })
+    // Trigger the handler if a value is already selected
+    const selectedRadio = document.querySelector('input[name="q0_2"]:checked')
+    if (selectedRadio) {
+      handleTeachingStudentChange(selectedRadio)
+    }
+  }
 
   updateNavigationButtons()
   updateProgressBar()
@@ -604,13 +636,13 @@ function renderDatenschutzSection() {
   const surveyForm = document.getElementById('surveyForm')
   if (surveyForm) {
     surveyForm.innerHTML = datenschutzHtml
-    
+
     // Add event listener to the final submit button
     const submitButton = document.getElementById('submitFinal')
     if (submitButton) {
       submitButton.addEventListener('click', submitFinalData)
     }
-    
+
     updateNavigationButtons()
   }
 }
@@ -650,7 +682,7 @@ function updateProgressBar() {
 // Finish Survey Function
 function finishSurvey() {
   const isLastSection = currentSection === surveyData.length;
-  
+
   if (isLastSection) {
     if (!validateDatenschutz()) {
       markUnansweredQuestions();
@@ -678,7 +710,7 @@ function finishSurvey() {
 function markUnansweredQuestions() {
   const form = document.getElementById('surveyForm')
   if (!form) return null;
-  
+
   const requiredFields = form.querySelectorAll('[required]')
   let firstUnanswered = null
 
@@ -703,7 +735,7 @@ function markUnansweredQuestions() {
       questionDiv.classList.remove('unanswered')
       questionDiv.style.animation = ''
     }
-  })
+  });
 
   if (firstUnanswered) {
     firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -734,7 +766,7 @@ function calculateCategoryScores(data) {
             questionCount++
           }
         }
-      })
+      });
 
       if (questionCount > 0) {
         categoryScores[section.title] = Math.round(
@@ -744,7 +776,7 @@ function calculateCategoryScores(data) {
         categoryScores[section.title] = 0
       }
     }
-  })
+  });
 
   return categoryScores
 }
@@ -1392,3 +1424,33 @@ function hideNavigationButtons() {
 // Expose Necessary Functions Globally
 window.saveSectionData = saveSectionData
 window.validateYear = validateYear
+
+// Handle teaching student radio button changes
+function handleTeachingStudentChange(radio) {
+  const isTeachingStudent = radio.value === 'Ja'
+  const form = document.getElementById('surveyForm')
+
+  // Get all dependent questions
+  const teachingQuestions = form.querySelectorAll('[id^="question-q0_3"], [id^="question-q0_4"]')
+  const nonTeachingQuestion = form.querySelector('[id^="question-q0_5"]')
+
+  // Show/hide questions based on selection
+  teachingQuestions.forEach(question => {
+    question.style.display = isTeachingStudent ? 'block' : 'none'
+    const inputs = question.querySelectorAll('input, select')
+    inputs.forEach(input => {
+      input.required = isTeachingStudent
+    })
+  })
+
+  if (nonTeachingQuestion) {
+    nonTeachingQuestion.style.display = isTeachingStudent ? 'none' : 'block'
+    const inputs = nonTeachingQuestion.querySelectorAll('input, select')
+    inputs.forEach(input => {
+      input.required = !isTeachingStudent
+    })
+  }
+}
+
+// Add to window object for global access
+window.handleTeachingStudentChange = handleTeachingStudentChange;
