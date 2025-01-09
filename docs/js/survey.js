@@ -1475,7 +1475,8 @@ function handleTeachingStudentChange(radio) {
       if (isTeachingStudent) input.value = '';
     });
   } else {
-    console.error('Non-teaching question element not found! ID: question-q0_5');
+    console.error('Non-teaching question element not found! Looking for: #question-q0_5');
+    console.log('Available questions:', form.querySelectorAll('.question').length);
   }
   
   // Save the current state (async)
