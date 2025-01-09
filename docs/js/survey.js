@@ -1439,35 +1439,17 @@ function handleTeachingStudentChange(radio) {
   const isTeachingStudent = radio.value === 'Ja';
   const form = document.getElementById('surveyForm');
   
-  // Get all questions
-  const allQuestions = form.querySelectorAll('.question');
+  // Update the current question's value in userData
+  userData[radio.name] = radio.value;
   
-  allQuestions.forEach(question => {
-    const questionId = question.id;
-    
-    // Teaching-specific questions (dropdown and subjects)
-    if (questionId.includes('q0_3') || questionId.includes('q0_4')) {
-      question.style.display = isTeachingStudent ? 'block' : 'none';
-      const inputs = question.querySelectorAll('input, select');
-      inputs.forEach(input => {
-        input.required = isTeachingStudent;
-        if (!isTeachingStudent) input.value = '';
-      });
-    }
-    
-    // Non-teaching question
-    if (questionId.includes('q0_5')) {
-      question.style.display = isTeachingStudent ? 'none' : 'block';
-      const inputs = question.querySelectorAll('input');
-      inputs.forEach(input => {
-        input.required = !isTeachingStudent;
-        if (isTeachingStudent) input.value = '';
-      });
-    }
-  });
+  // Re-render the section to handle dependencies
+  renderSection(0);
   
   // Save the current state
   saveSectionData(false);
+  
+  // Log the current state for debugging
+  console.log('Current userData:', userData);
 }
 
 // Add to window object for global access
