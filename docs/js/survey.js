@@ -642,40 +642,48 @@ function updateProgressBar() {
 
 // Finish Survey Function
 function finishSurvey() {
-  if (validateSection()) {
-    saveSectionData(false) // Not setting isComplete yet
-    currentSection++
-    if (currentSection === surveyData.length) {
-      renderDatenschutzSection()
-      updateProgressBar()
-      window.scrollTo(0, 0)
-    } else if (currentSection > surveyData.length) {
-      // Now proceed to show results
-      saveSectionData(true) // Now set isComplete to true
-      showResults()
-    } else {
-      renderSection(currentSection)
-      updateProgressBar()
-      window.scrollTo(0, 0)
+  const isLastSection = currentSection === surveyData.length;
+  
+  if (isLastSection) {
+    if (!validateDatenschutz()) {
+      markUnansweredQuestions();
+      return;
     }
+    saveSectionData(true);
+    showResults();
+  } else if (validateSection()) {
+    saveSectionData(false);
+    currentSection++;
+    if (currentSection === surveyData.length) {
+      renderDatenschutzSection();
+    } else {
+      renderSection(currentSection);
+    }
+    updateProgressBar();
+    window.scrollTo(0, 0);
   } else {
-    alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
-    markUnansweredQuestions()
+    alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.');
+    markUnansweredQuestions();
   }
 }
 
 // Mark Unanswered Questions Function
 function markUnansweredQuestions() {
   const form = document.getElementById('surveyForm')
+  if (!form) return null;
+  
   const requiredFields = form.querySelectorAll('[required]')
   let firstUnanswered = null
 
   requiredFields.forEach((field) => {
-    const questionDiv = field.closest('.question')
+    const questionDiv = field.closest('.question') || field.parentElement
+    if (!questionDiv) return;
+
     const isUnanswered =
       (field.type === 'radio' &&
         !form.querySelector(`input[name="${field.name}"]:checked`)) ||
-      (field.type !== 'radio' && !field.value.trim())
+      (field.type === 'checkbox' && !field.checked) ||
+      (field.type !== 'radio' && field.type !== 'checkbox' && !field.value.trim())
 
     if (isUnanswered) {
       questionDiv.classList.add('unanswered')
