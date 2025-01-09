@@ -1435,20 +1435,40 @@ window.validateYear = validateYear
 
 // Handle teaching student radio button changes
 function handleTeachingStudentChange(radio) {
-  console.log('handleTeachingStudentChange called with value:', radio.value); // Debug log
+  console.log('handleTeachingStudentChange called with value:', radio.value);
   const isTeachingStudent = radio.value === 'Ja';
   const form = document.getElementById('surveyForm');
   
   // Update the current question's value in userData
   userData[radio.name] = radio.value;
   
-  // Re-render the section to handle dependencies
-  renderSection(0);
+  // Directly manipulate the DOM for instant feedback
+  const teachingQuestions = form.querySelectorAll('[id^="question-q0_3"], [id^="question-q0_4"]');
+  const nonTeachingQuestion = form.querySelector('[id^="question-q0_5"]');
   
-  // Save the current state
-  saveSectionData(false);
+  // Handle teaching-specific questions
+  teachingQuestions.forEach(question => {
+    question.style.display = isTeachingStudent ? 'block' : 'none';
+    const inputs = question.querySelectorAll('input, select');
+    inputs.forEach(input => {
+      input.required = isTeachingStudent;
+      if (!isTeachingStudent) input.value = '';
+    });
+  });
   
-  // Log the current state for debugging
+  // Handle non-teaching question
+  if (nonTeachingQuestion) {
+    nonTeachingQuestion.style.display = isTeachingStudent ? 'none' : 'block';
+    const inputs = nonTeachingQuestion.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.required = !isTeachingStudent;
+      if (isTeachingStudent) input.value = '';
+    });
+  }
+  
+  // Save the current state (async)
+  setTimeout(() => saveSectionData(false), 0);
+  
   console.log('Current userData:', userData);
 }
 
