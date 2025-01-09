@@ -566,26 +566,38 @@ function renderDatenschutzSection() {
       </div>
       <div class="final-inputs">
         <div class="question">
-          <p>Datum</p>
+          <label for="datum">Datum</label>
           <input type="date" id="datum" name="datum" value="${
             new Date().toISOString().split('T')[0]
-          }" readonly required>
+          }" readonly required aria-required="true">
         </div>
         <div class="question">
-          <p>Unterschrift (Bitte tippen Sie Ihren Namen als Unterschrift)</p>
-          <input type="text" id="unterschrift" name="unterschrift" required>
+          <label for="unterschrift">Unterschrift (Bitte tippen Sie Ihren Namen als Unterschrift)</label>
+          <input type="text" id="unterschrift" name="unterschrift" required aria-required="true">
         </div>
-        <div class="agreement">
-          <label>
-            <input type="checkbox" id="datenschutzConsent" required>
-            <span>Ich stimme der Datenschutzerklärung zu.</span>
-          </label>
+        <div class="agreement-questions">
+          <div class="agreement">
+            <label>
+              <input type="checkbox" id="datenschutzKenntnis" name="datenschutzKenntnis" required>
+              Mir sind die Datenschutzhinweise zur Befragung zur Kenntnis gegeben worden.
+            </label>
+          </div>
+          <div class="agreement">
+            <label>
+              <input type="checkbox" id="datenschutzVerarbeitung" name="datenschutzVerarbeitung" required>
+              Ich erkläre mich damit einverstanden, dass meine Daten gemäß der Informationen zum Datenschutz verarbeitet und gespeichert werden.
+            </label>
+          </div>
+          <div class="agreement">
+            <label>
+              <input type="checkbox" id="teilnahmeEinverstaendnis" name="teilnahmeEinverstaendnis" required>
+              Hiermit erkläre mich einverstanden, unter den genannten Bedingungen an der Befragung teilzunehmen.
+            </label>
+          </div>
         </div>
-        <button id="submitFinal" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 15px 30px; cursor: pointer; border-radius: 5px; font-size: 18px; display: block; margin: 20px auto;">Hier gelangst du zu deiner individuellen Diagnostik</button>
       </div>
     </div>
   `
-
   document.getElementById('surveyForm').innerHTML = datenschutzHtml
 
   // Add event listener to the final submit button
@@ -1247,20 +1259,35 @@ function validateSection() {
 
 // Validate Datenschutz Section Function
 function validateDatenschutz() {
-  const datenschutzConsent =
-    document.getElementById('datenschutzConsent').checked
-  const unterschrift = document.getElementById('unterschrift').value.trim()
+  const unterschriftElement = document.getElementById('unterschrift')
+  const datenschutzKenntnisElement = document.getElementById('datenschutzKenntnis')
+  const datenschutzVerarbeitungElement = document.getElementById('datenschutzVerarbeitung')
+  const teilnahmeEinverstaendnisElement = document.getElementById('teilnahmeEinverstaendnis')
 
   let isValid = true
 
-  if (!datenschutzConsent) {
-    isValid = false
-    alert('Bitte stimmen Sie der Datenschutzerklärung zu.')
-  }
-
-  if (unterschrift === '') {
+  if (unterschriftElement.value.trim() === '') {
     isValid = false
     alert('Bitte geben Sie Ihre Unterschrift ein.')
+    return isValid
+  }
+
+  if (!datenschutzKenntnisElement.checked) {
+    isValid = false
+    alert('Bitte bestätigen Sie, dass Sie die Datenschutzhinweise gelesen haben.')
+    return isValid
+  }
+
+  if (!datenschutzVerarbeitungElement.checked) {
+    isValid = false
+    alert('Bitte stimmen Sie der Verarbeitung Ihrer Daten zu.')
+    return isValid
+  }
+
+  if (!teilnahmeEinverstaendnisElement.checked) {
+    isValid = false
+    alert('Bitte stimmen Sie der Teilnahme an der Befragung zu.')
+    return isValid
   }
 
   return isValid
