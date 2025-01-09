@@ -1456,18 +1456,30 @@ function handleTeachingStudentChange(radio) {
     });
   });
   
-  // Handle non-teaching question
+  // Handle non-teaching question with additional checks
   if (nonTeachingQuestion) {
+    console.log('Setting non-teaching question display to:', isTeachingStudent ? 'none' : 'block');
     nonTeachingQuestion.style.display = isTeachingStudent ? 'none' : 'block';
+    nonTeachingQuestion.style.visibility = isTeachingStudent ? 'hidden' : 'visible';
     const inputs = nonTeachingQuestion.querySelectorAll('input');
     inputs.forEach(input => {
       input.required = !isTeachingStudent;
       if (isTeachingStudent) input.value = '';
     });
+  } else {
+    console.error('Non-teaching question element not found! Expected question with ID starting with "question-q0_5"');
   }
   
   // Save the current state (async)
-  setTimeout(() => saveSectionData(false), 0);
+  setTimeout(() => {
+    saveSectionData(false);
+    // Force a check after save
+    const nonTeachingQuestionAfterSave = form.querySelector('[id^="question-q0_5"]');
+    if (nonTeachingQuestionAfterSave) {
+      nonTeachingQuestionAfterSave.style.display = isTeachingStudent ? 'none' : 'block';
+      nonTeachingQuestionAfterSave.style.visibility = isTeachingStudent ? 'hidden' : 'visible';
+    }
+  }, 0);
   
   console.log('Current userData:', userData);
 }
