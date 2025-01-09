@@ -595,17 +595,24 @@ function renderDatenschutzSection() {
             </label>
           </div>
         </div>
+        <div class="button-container">
+          <button type="button" id="submitFinal" class="btn btn-primary">Weiter</button>
+        </div>
       </div>
     </div>
   `
-  document.getElementById('surveyForm').innerHTML = datenschutzHtml
-
-  // Add event listener to the final submit button
-  document
-    .getElementById('submitFinal')
-    .addEventListener('click', submitFinalData)
-
-  updateNavigationButtons()
+  const surveyForm = document.getElementById('surveyForm')
+  if (surveyForm) {
+    surveyForm.innerHTML = datenschutzHtml
+    
+    // Add event listener to the final submit button
+    const submitButton = document.getElementById('submitFinal')
+    if (submitButton) {
+      submitButton.addEventListener('click', submitFinalData)
+    }
+    
+    updateNavigationButtons()
+  }
 }
 
 // Handle Scale Keydown Function
