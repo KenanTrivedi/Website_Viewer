@@ -1442,39 +1442,47 @@ function handleTeachingStudentChange(radio) {
   // Update the current question's value in userData
   userData[radio.name] = radio.value;
   
-  // Directly manipulate the DOM for instant feedback
-  const teachingQuestions = form.querySelectorAll('[id^="question-q0_3"], [id^="question-q0_4"]');
-  const nonTeachingQuestion = form.querySelector('[id^="question-q0_5"]');
+  // Get questions by their index in the section (matching survey-data.js)
+  const teachingDropdown = form.querySelector('#question-q0_3');
+  const teachingSubjects = form.querySelector('#question-q0_4');
+  const nonTeachingStudy = form.querySelector('#question-q0_5');
   
-  // Handle teaching-specific questions
-  teachingQuestions.forEach(question => {
-    question.style.display = isTeachingStudent ? 'block' : 'none';
-    const inputs = question.querySelectorAll('input, select');
-    inputs.forEach(input => {
-      input.required = isTeachingStudent;
-      if (!isTeachingStudent) input.value = '';
-    });
+  console.log('Found elements:', {
+    teachingDropdown: teachingDropdown?.id,
+    teachingSubjects: teachingSubjects?.id,
+    nonTeachingStudy: nonTeachingStudy?.id
   });
   
-  // Handle non-teaching question with additional checks
-  if (nonTeachingQuestion) {
+  // Handle teaching-specific questions
+  [teachingDropdown, teachingSubjects].forEach(question => {
+    if (question) {
+      question.style.display = isTeachingStudent ? 'block' : 'none';
+      const inputs = question.querySelectorAll('input, select');
+      inputs.forEach(input => {
+        input.required = isTeachingStudent;
+        if (!isTeachingStudent) input.value = '';
+      });
+    }
+  });
+  
+  // Handle non-teaching question
+  if (nonTeachingStudy) {
     console.log('Setting non-teaching question display to:', isTeachingStudent ? 'none' : 'block');
-    nonTeachingQuestion.style.display = isTeachingStudent ? 'none' : 'block';
-    nonTeachingQuestion.style.visibility = isTeachingStudent ? 'hidden' : 'visible';
-    const inputs = nonTeachingQuestion.querySelectorAll('input');
+    nonTeachingStudy.style.display = isTeachingStudent ? 'none' : 'block';
+    const inputs = nonTeachingStudy.querySelectorAll('input');
     inputs.forEach(input => {
       input.required = !isTeachingStudent;
       if (isTeachingStudent) input.value = '';
     });
   } else {
-    console.error('Non-teaching question element not found! Expected question with ID starting with "question-q0_5"');
+    console.error('Non-teaching question element not found! ID: question-q0_5');
   }
   
   // Save the current state (async)
   setTimeout(() => {
     saveSectionData(false);
     // Force a check after save
-    const nonTeachingQuestionAfterSave = form.querySelector('[id^="question-q0_5"]');
+    const nonTeachingQuestionAfterSave = form.querySelector('#question-q0_5');
     if (nonTeachingQuestionAfterSave) {
       nonTeachingQuestionAfterSave.style.display = isTeachingStudent ? 'none' : 'block';
       nonTeachingQuestionAfterSave.style.visibility = isTeachingStudent ? 'hidden' : 'visible';
