@@ -23,11 +23,7 @@ app.use(express.static("docs")); // Serve static files from 'docs' directory
 const mongoURI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/surveyDB"; // Use environment variable or default
 mongoose
-  .connect(mongoURI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    // useCreateIndex: true, // No longer necessary in newer Mongoose versions
-  })
+  .connect(mongoURI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
