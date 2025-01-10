@@ -312,27 +312,33 @@ nav a.active {
     width: 300px;
     background: linear-gradient(145deg, #ffffff, var(--card-bg-color));
     border-radius: 12px;
-    padding: 1.75rem;
+    padding: 2rem;  
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
     border: 2px solid transparent;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    min-height: 160px;
+    min-height: 200px;  
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: 1.5rem;  
     margin: 0.5rem 0;
 }
 
 .competency-card img {
-    width: 64px;
-    height: 64px;
-    margin-bottom: 0.5rem;
+    width: 100px;  
+    height: 100px;  
+    margin-bottom: 1rem;  
     transition: transform 0.3s ease;
+    object-fit: contain;  
+}
+
+.competency-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 }
 
 .competency-card:hover img {
@@ -340,16 +346,11 @@ nav a.active {
 }
 
 .competency-card h3 {
-    font-size: 1.1rem;
+    font-size: 1.2rem;  
     line-height: 1.4;
     margin: 0;
     color: var(--text-color);
-}
-
-.competency-card.active-card {
-    border-color: var(--primary-color);
-    background: linear-gradient(145deg, #ffffff, rgba(var(--primary-color-rgb), 0.1));
-    box-shadow: 0 6px 12px rgba(var(--primary-color-rgb), 0.15);
+    font-weight: 500;  
 }
 
 .competency-section:first-child .competency-card {
