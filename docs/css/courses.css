@@ -312,7 +312,7 @@ nav a.active {
     width: 300px;
     background: linear-gradient(145deg, #ffffff, var(--card-bg-color));
     border-radius: 12px;
-    padding: 2rem;  
+    padding: 1.5rem;  
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -324,14 +324,14 @@ nav a.active {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1.5rem;  
+    gap: 1rem;  
     margin: 0.5rem 0;
 }
 
 .competency-card img {
-    width: 100px;  
-    height: 100px;  
-    margin-bottom: 1rem;  
+    width: 150px;  
+    height: 150px;  
+    margin-bottom: 0.5rem;  
     transition: transform 0.3s ease;
     object-fit: contain;  
 }
@@ -419,8 +419,8 @@ nav a.active {
 }
 
 .card-bg img {
-    width: 100px;
-    height: 100px;
+    width: 150px;  
+    height: 150px;  
     object-fit: contain;
     filter: drop-shadow(0 4px 6px rgba(0, 74, 153, 0.2));
 }
