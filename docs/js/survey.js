@@ -419,8 +419,7 @@ function renderSection(index) {
   }
 
   // Get attemptNumber from sessionStorage
-  const attemptNumber =
-    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
   if (index === surveyData.length) {
     renderDatenschutzSection()
@@ -445,28 +444,24 @@ function renderSection(index) {
     let savedValue = userData[questionId] || ''
 
     // Check if this question depends on another question's answer
+    let shouldDisplay = true;
     if (question.dependsOn) {
       const dependentQuestionId = question.dependsOn.questionId
       const dependentValue = userData[dependentQuestionId]
-
       console.log('Checking dependency:', {
         question: question.text,
         dependsOn: dependentQuestionId,
         expectedValue: question.dependsOn.value,
         actualValue: dependentValue
       });
-
-      // If the dependent question hasn't been answered or doesn't match required value, skip this question
-      if (dependentValue !== question.dependsOn.value) {
-        return
-      }
+      shouldDisplay = dependentValue === question.dependsOn.value;
     }
 
-    html += `<div class="question" id="question-${questionId}"><p>${question.text}</p>`
+    html += `<div class="question" id="question-${questionId}" style="${shouldDisplay ? '' : 'display: none;'}"><p>${question.text}</p>`
 
     if (question.type === 'radio') {
       question.options.forEach((option) => {
-        const isTeachingQuestion = question.text === 'Studieren Sie Lehramt?';
+        const isTeachingQuestion = questionId === 'q0_2';
         html += `<label><input type="radio" name="${questionId}" value="${option}" ${
           savedValue === option ? 'checked' : ''
         } ${isTeachingQuestion ? 'onchange="handleTeachingStudentChange(this)"' : ''} required> ${option}</label><br>`
@@ -624,7 +619,7 @@ function renderDatenschutzSection() {
           Es erfolgt keine Weitergabe Ihrer Daten an Dritte außerhalb des Forschungsprojektes.
         </p>
         <p>
-          Unter folgendem Link finden Sie ausführliche Hinweise zum Schutz Ihrer Daten.
+          Unter folgendem <a href="datenschutz.html" target="_blank">Link</a> finden Sie ausführliche Hinweise zum Schutz Ihrer Daten.
         </p>
       </div>
       <div class="final-inputs">
@@ -658,12 +653,21 @@ function renderDatenschutzSection() {
             </label>
           </div>
         </div>
-        <div class="button-container">
-          <button type="button" id="submitFinal" class="btn btn-primary">Weiter</button>
+        <div class="navigation-buttons">
+          <button type="button" id="prevButton" class="btn btn-secondary">
+            <i class="fas fa-chevron-left"></i> Zurück
+          </button>
+          <button type="button" id="saveProgressButton" class="btn btn-primary">
+            <i class="fas fa-save"></i> Fortschritt speichern
+          </button>
+          <button type="button" id="submitFinal" class="btn btn-primary">
+            Weiter <i class="fas fa-chevron-right"></i>
+          </button>
         </div>
       </div>
     </div>
   `
+
   const surveyForm = document.getElementById('surveyForm')
   if (surveyForm) {
     surveyForm.innerHTML = datenschutzHtml
@@ -674,6 +678,13 @@ function renderDatenschutzSection() {
       submitButton.addEventListener('click', submitFinalData)
     }
 
+    // Remove any existing navigation buttons
+    const existingNav = document.querySelector('.navigation-buttons')
+    if (existingNav) {
+      existingNav.remove()
+    }
+
+    // Update the navigation buttons to match the survey style
     updateNavigationButtons()
   }
 }
@@ -1022,11 +1033,15 @@ async function showResults() {
     if (attemptNumber === 1) {
       // T1 specific content
       resultHtml += `
-        <p>Basierend auf deinen Ergebnissen wähle nun einen oder mehrere Kompetenzbereiche aus, in denen du dich weiterbilden möchtest. Wir haben für jeden Kompetenzbereich mehrere Mikrofortbildungen entwickelt, die du absolvieren kannst. Die Auswahl der Kompetenzbereiche kannst du anhand verschiedener Motive selbst vornehmen: Möchtest du den Kompetenzbereich mit dem geringsten Score verbessern, oder interessierst du dich besonders für einen Kompetenzbereich bzw. ist ein Thema gerade sehr aktuell bei dir.</p>
-        <p>Schaue dir nun die Kompetenzbereiche an und entscheide dich für 1 bis 2.</p>
-        <p><strong>Welche Strategie/n hast du bei der Auswahl der Kompetenzbereiche genutzt?</strong></p>
-        <textarea id="t1OpenEndedResponse" rows="4" style="width:100%;" required></textarea>
-        <button id="submitT1OpenEndedResponse" class="btn btn-primary">Absenden</button>
+        <p>Nun ist es Zeit, deine digitalen Kompetenzen zu fördern. Hier kommst du zu den Kursen der jeweiligen Kompetenzbereiche. Klicke einfach auf den Link und du wirst zu ILIAS weitergeleitet.</p>
+        <ul>
+          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_121177&client_id=ilias_hro" target="_blank">Suchen, Verarbeiten und Aufbewahren</a></li>
+          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122050&client_id=ilias_hro" target="_blank">Analysieren und Reflektieren</a></li>
+          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_120680&client_id=ilias_hro" target="_blank">Kommunikation & Kollaboration</a></li>
+          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122048&client_id=ilias_hro" target="_blank">Problemlösen und Handeln</a></li>
+          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122047&client_id=ilias_hro" target="_blank">Produzieren</a></li>
+          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122049&client_id=ilias_hro" target="_blank">Schützen und sicher Agieren</a></li>
+        </ul>
       `
     } else if (attemptNumber > 1) {
       // T2 specific content
@@ -1055,39 +1070,34 @@ async function showResults() {
       createCompetencyChart1(initialScores, {})
     }
 
-    // Add event listener to the download button
+    // Add event listener for chart download
     const downloadButton = document.getElementById('downloadChart')
     if (downloadButton) {
       downloadButton.addEventListener('click', downloadChart)
-    } else {
-      console.error('Download button not found')
     }
 
-    // Hide navigation buttons
+    // Add event listeners for response submissions
+    const t1ResponseButton = document.getElementById('submitT1OpenEndedResponse')
+    if (t1ResponseButton) {
+      t1ResponseButton.addEventListener('click', submitT1OpenEndedResponse)
+    }
+
+    const t2ResponseButton = document.getElementById('submitT2OpenEndedResponse')
+    if (t2ResponseButton) {
+      t2ResponseButton.addEventListener('click', submitT2OpenEndedResponse)
+    }
+
+    // Hide navigation buttons for results page
     hideNavigationButtons()
-
-    // Add event listeners for open-ended responses
-    if (attemptNumber === 1) {
-      document
-        .getElementById('submitT1OpenEndedResponse')
-        .addEventListener('click', submitT1OpenEndedResponse)
-    } else if (attemptNumber > 1) {
-      document
-        .getElementById('submitT2OpenEndedResponse')
-        .addEventListener('click', submitT2OpenEndedResponse)
-    }
   } catch (error) {
     console.error('Error displaying results:', error)
-    alert('Fehler beim Anzeigen der Ergebnisse. Bitte versuchen Sie es erneut.')
   }
 }
 
 // Assign showResults to window after its definition
 window.showResults = showResults
 
-/**
- * Function to handle T1 open-ended response submission
- */
+// Function to handle T1 open-ended response submission
 function submitT1OpenEndedResponse(event) {
   event.preventDefault()
   const openEndedResponse = document
@@ -1188,43 +1198,41 @@ function showCourseLinks() {
     .insertAdjacentHTML('beforeend', courseLinksHtml)
 }
 
-// Update Navigation Buttons Function (Single Definition)
+// Update Navigation Buttons Function
 function updateNavigationButtons() {
+  const container = document.querySelector('.container')
+  if (!container) return
+
+  // Remove any existing navigation buttons
+  const existingNav = container.querySelector('.navigation-buttons')
+  if (existingNav) {
+    existingNav.remove()
+  }
+
+  // Create new navigation buttons
+  const navigationButtons = document.createElement('div')
+  navigationButtons.className = 'navigation-buttons'
+  navigationButtons.innerHTML = `
+    <button type="button" id="prevButton" class="btn btn-secondary">
+      <i class="fas fa-chevron-left"></i> Zurück
+    </button>
+    <button type="button" id="saveProgressButton" class="btn btn-primary">
+      <i class="fas fa-save"></i> Fortschritt speichern
+    </button>
+    <button type="button" id="nextButton" class="btn btn-primary">
+      Weiter <i class="fas fa-chevron-right"></i>
+    </button>
+  `
+  container.appendChild(navigationButtons)
+
+  // Add event listeners
   const prevButton = document.getElementById('prevButton')
   const nextButton = document.getElementById('nextButton')
+  const saveButton = document.getElementById('saveProgressButton')
 
-  // Disable the Previous button on the first section
-  if (currentSection === 0) {
-    if (prevButton) prevButton.disabled = true
-  } else {
-    if (prevButton) prevButton.disabled = false
-  }
-
-  if (currentSection === surveyData.length) {
-    // Hide the Next button and show only the Final button if needed
-    if (nextButton) nextButton.style.display = 'none'
-  } else if (currentSection === surveyData.length - 1) {
-    // Change the Next button to 'Finish' on the last survey section
-    if (nextButton) {
-      nextButton.style.display = 'inline-block'
-      nextButton.textContent = 'Finish'
-      // Remove existing event listeners to prevent multiple triggers
-      nextButton.removeEventListener('click', nextSection)
-      nextButton.removeEventListener('click', finishSurvey)
-      // Add Finish event listener
-      nextButton.addEventListener('click', finishSurvey)
-    }
-  } else {
-    if (nextButton) {
-      nextButton.style.display = 'inline-block'
-      nextButton.textContent = 'Weiter'
-      // Remove existing event listeners to prevent multiple triggers
-      nextButton.removeEventListener('click', finishSurvey)
-      // Add Next event listener
-      nextButton.removeEventListener('click', nextSection) // Ensure it's removed first
-      nextButton.addEventListener('click', nextSection)
-    }
-  }
+  if (prevButton) prevButton.addEventListener('click', previousSection)
+  if (nextButton) nextButton.addEventListener('click', nextSection)
+  if (saveButton) saveButton.addEventListener('click', saveAndResumeLater)
 }
 
 async function startNewSurvey() {
@@ -1441,35 +1449,58 @@ window.validateYear = validateYear
 // Handle teaching student radio button changes
 function handleTeachingStudentChange(radio) {
   console.log('handleTeachingStudentChange called with value:', radio.value);
+  
   // Update the current question's value in userData
   userData[radio.name] = radio.value;
-  // Clear dependent fields when changing teaching status
-  if (radio.name === 'q0_2') {
-    if (radio.value === 'Ja') {
-      delete userData['q0_5'];  // Clear non-teaching program
-      // Show teaching-specific questions, hide non-teaching
-      const q3 = document.querySelector('[name="q0_3"]');
-      const q4 = document.querySelector('[name="q0_4"]');
-      const q5 = document.querySelector('[name="q0_5"]');
-      
-      if (q3?.closest('.question')) q3.closest('.question').style.display = '';
-      if (q4?.closest('.question')) q4.closest('.question').style.display = '';
-      if (q5?.closest('.question')) q5.closest('.question').style.display = 'none';
-    } else {
-      delete userData['q0_3'];  // Clear teaching type
-      delete userData['q0_4'];  // Clear teaching subjects
-      // Hide teaching-specific questions, show non-teaching
-      const q3 = document.querySelector('[name="q0_3"]');
-      const q4 = document.querySelector('[name="q0_4"]');
-      const q5 = document.querySelector('[name="q0_5"]');
-      
-      if (q3?.closest('.question')) q3.closest('.question').style.display = 'none';
-      if (q4?.closest('.question')) q4.closest('.question').style.display = 'none';
-      if (q5?.closest('.question')) q5.closest('.question').style.display = '';
+
+  // Get all dependent questions
+  const teachingQuestions = [
+    document.querySelector('#question-q0_3'),  // Lehramt type
+    document.querySelector('#question-q0_4')   // Teaching subjects
+  ];
+  const nonTeachingQuestion = document.querySelector('#question-q0_5');  // Non-teaching program
+
+  if (radio.value === 'Ja') {
+    // Show teaching questions, hide non-teaching
+    teachingQuestions.forEach(q => {
+      if (q) {
+        q.style.display = '';
+        // Make inputs required
+        const inputs = q.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => input.required = true);
+      }
+    });
+    if (nonTeachingQuestion) {
+      nonTeachingQuestion.style.display = 'none';
+      // Remove required from hidden inputs
+      const inputs = nonTeachingQuestion.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => input.required = false);
+      // Clear the value
+      delete userData['q0_5'];
     }
+  } else {
+    // Show non-teaching question, hide teaching
+    teachingQuestions.forEach(q => {
+      if (q) {
+        q.style.display = 'none';
+        // Remove required from hidden inputs
+        const inputs = q.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => input.required = false);
+      }
+    });
+    if (nonTeachingQuestion) {
+      nonTeachingQuestion.style.display = '';
+      // Make inputs required
+      const inputs = nonTeachingQuestion.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => input.required = true);
+    }
+    // Clear teaching-related values
+    delete userData['q0_3'];
+    delete userData['q0_4'];
   }
-  // Save the current state (async)
-  setTimeout(() => saveSectionData(false), 0);
+
+  // Save the current state
+  saveSectionData(false);
   console.log('Current userData:', userData);
 }
 

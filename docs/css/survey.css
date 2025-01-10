@@ -202,40 +202,40 @@ input[type="radio"]:checked+.scale-button {
 .navigation-buttons {
     display: flex;
     justify-content: space-between;
-    margin-top: 30px;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #fff;
+    border-top: 1px solid #eee;
 }
 
-.btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.navigation-buttons button {
+    padding: 8px 20px;
+    border-radius: 4px;
     font-size: 16px;
-    transition: background-color 0.3s ease;
-    display: flex;
+    cursor: pointer;
+    display: inline-flex;
     align-items: center;
+    gap: 8px;
 }
 
-.btn i {
-    margin: 0 5px;
+.navigation-buttons .btn-secondary {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #dee2e6;
 }
 
-.btn-primary {
+.navigation-buttons .btn-primary {
     background-color: #004a99;
     color: white;
+    border: none;
 }
 
-.btn-primary:hover {
+.navigation-buttons .btn-primary:hover {
     background-color: #003366;
 }
 
-.btn-secondary {
-    background-color: #f0f0f0;
-    color: #333;
-}
-
-.btn-secondary:hover {
-    background-color: #e0e0e0;
+.navigation-buttons .btn-secondary:hover {
+    background-color: #e9ecef;
 }
 
 footer {
