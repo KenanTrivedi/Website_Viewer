@@ -383,10 +383,30 @@ async function loadUserData(isNewAttempt = false) {
 }
 
 function validateYear(input) {
+  // Remove any non-digit characters
   input.value = input.value.replace(/\D/g, '')
+  
+  // Enforce maximum length of 4 digits
   if (input.value.length > 4) {
     input.value = input.value.slice(0, 4)
   }
+  
+  // Add visual feedback
+  const currentYear = new Date().getFullYear()
+  if (input.value.length === 4) {
+    const year = parseInt(input.value)
+    if (year < 1900 || year > currentYear) {
+      input.setCustomValidity(`Bitte geben Sie ein Jahr zwischen 1900 und ${currentYear} ein.`)
+      input.style.borderColor = 'red'
+    } else {
+      input.setCustomValidity('')
+      input.style.borderColor = ''
+    }
+  } else {
+    input.setCustomValidity('Bitte geben Sie ein vollständiges Jahr ein (JJJJ).')
+    input.style.borderColor = 'red'
+  }
+  input.reportValidity()
 }
 
 function renderSection(index) {
@@ -1305,6 +1325,24 @@ function validateSection() {
   const form = document.getElementById('surveyForm')
   if (!form) return false
 
+  // Special validation for birth year in the personal information section
+  if (currentSection === 0) {
+    const birthYearInput = form.querySelector('input[name="q0_1"]')
+    if (birthYearInput) {
+      const birthYear = birthYearInput.value.trim()
+      const currentYear = new Date().getFullYear()
+      
+      // Check if it's exactly 4 digits and within valid range
+      if (!/^\d{4}$/.test(birthYear) || 
+          parseInt(birthYear) < 1900 || 
+          parseInt(birthYear) > currentYear) {
+        alert('Bitte geben Sie ein gültiges Geburtsjahr im Format JJJJ ein (z.B. 1990).')
+        birthYearInput.focus()
+        return false
+      }
+    }
+  }
+
   const firstUnanswered = markUnansweredQuestions()
   if (firstUnanswered) {
     // Scroll to the first unanswered question smoothly
@@ -1313,42 +1351,6 @@ function validateSection() {
   }
 
   return true
-}
-
-// Validate Datenschutz Section Function
-function validateDatenschutz() {
-  const unterschriftElement = document.getElementById('unterschrift')
-  const datenschutzKenntnisElement = document.getElementById('datenschutzKenntnis')
-  const datenschutzVerarbeitungElement = document.getElementById('datenschutzVerarbeitung')
-  const teilnahmeEinverstaendnisElement = document.getElementById('teilnahmeEinverstaendnis')
-
-  let isValid = true
-
-  if (unterschriftElement.value.trim() === '') {
-    isValid = false
-    alert('Bitte geben Sie Ihre Unterschrift ein.')
-    return isValid
-  }
-
-  if (!datenschutzKenntnisElement.checked) {
-    isValid = false
-    alert('Bitte bestätigen Sie, dass Sie die Datenschutzhinweise gelesen haben.')
-    return isValid
-  }
-
-  if (!datenschutzVerarbeitungElement.checked) {
-    isValid = false
-    alert('Bitte stimmen Sie der Verarbeitung Ihrer Daten zu.')
-    return isValid
-  }
-
-  if (!teilnahmeEinverstaendnisElement.checked) {
-    isValid = false
-    alert('Bitte stimmen Sie der Teilnahme an der Befragung zu.')
-    return isValid
-  }
-
-  return isValid
 }
 
 // Remove Unanswered Markers Function
@@ -1473,3 +1475,38 @@ function handleTeachingStudentChange(radio) {
 
 // Add to window object for global access
 window.handleTeachingStudentChange = handleTeachingStudentChange;
+
+function validateDatenschutz() {
+  const unterschriftElement = document.getElementById('unterschrift')
+  const datenschutzKenntnisElement = document.getElementById('datenschutzKenntnis')
+  const datenschutzVerarbeitungElement = document.getElementById('datenschutzVerarbeitung')
+  const teilnahmeEinverstaendnisElement = document.getElementById('teilnahmeEinverstaendnis')
+
+  let isValid = true
+
+  if (unterschriftElement.value.trim() === '') {
+    isValid = false
+    alert('Bitte geben Sie Ihre Unterschrift ein.')
+    return isValid
+  }
+
+  if (!datenschutzKenntnisElement.checked) {
+    isValid = false
+    alert('Bitte bestätigen Sie, dass Sie die Datenschutzhinweise gelesen haben.')
+    return isValid
+  }
+
+  if (!datenschutzVerarbeitungElement.checked) {
+    isValid = false
+    alert('Bitte stimmen Sie der Verarbeitung Ihrer Daten zu.')
+    return isValid
+  }
+
+  if (!teilnahmeEinverstaendnisElement.checked) {
+    isValid = false
+    alert('Bitte stimmen Sie der Teilnahme an der Befragung zu.')
+    return isValid
+  }
+
+  return isValid
+}
