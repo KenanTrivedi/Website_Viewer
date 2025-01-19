@@ -549,6 +549,8 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
           data: {
             responses: responses,
             formattedResponses: formattedResponses,
+            openEndedResponses: user.openEndedResponses || {},
+            strategy: user.openEndedResponses?.t1_strategy || "",
           },
           isComplete: user.isComplete || false,
           courses: user.courses || [],

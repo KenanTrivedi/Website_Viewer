@@ -244,8 +244,9 @@ async function fetchData() {
 function renderTable() {
   try {
     const filteredUsers = filterUsers()
-    const start = (currentPage - 1) * usersPerPage
-    const paginatedUsers = filteredUsers.slice(start, start + usersPerPage)
+    const startIndex = (currentPage - 1) * usersPerPage
+    const endIndex = startIndex + usersPerPage
+    const usersToDisplay = filteredUsers.slice(startIndex, endIndex)
 
     const thead = document.querySelector('#userTable thead tr')
     const tbody = document.querySelector('#userTable tbody')
@@ -289,7 +290,7 @@ function renderTable() {
     tbody.innerHTML = ''
 
     // Generate rows for each user
-    paginatedUsers.forEach((user) => {
+    usersToDisplay.forEach((user) => {
       const tr = document.createElement('tr')
       tr.innerHTML = `
         <td><input type="checkbox" class="user-select" /></td>
