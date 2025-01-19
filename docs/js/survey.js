@@ -442,12 +442,95 @@ function renderSection(index) {
       }
 
       questionContainer.appendChild(scaleContainer)
+    } else if (question.type === 'radio') {
+      // Render radio options
+      const optionsContainer = document.createElement('div')
+      optionsContainer.className = 'radio-container'
+
+      question.options.forEach((option, optionIndex) => {
+        const label = document.createElement('label')
+        label.className = 'radio-label'
+
+        const input = document.createElement('input')
+        input.type = 'radio'
+        input.name = `q${index}_${questionIndex}`
+        input.value = option
+        input.className = 'radio-input'
+        input.required = true
+        if (question.id === 'q0_2') {
+          input.onchange = () => handleTeachingStudentChange(input)
+        }
+
+        const span = document.createElement('span')
+        span.textContent = option
+        span.className = 'radio-text'
+
+        label.appendChild(input)
+        label.appendChild(span)
+        optionsContainer.appendChild(label)
+      })
+
+      questionContainer.appendChild(optionsContainer)
+    } else if (question.type === 'dropdown') {
+      // Render dropdown
+      const select = document.createElement('select')
+      select.name = `q${index}_${questionIndex}`
+      select.className = 'form-control'
+      select.required = true
+
+      // Add default empty option
+      const defaultOption = document.createElement('option')
+      defaultOption.value = ''
+      defaultOption.textContent = 'Bitte auswählen'
+      select.appendChild(defaultOption)
+
+      question.options.forEach(option => {
+        const optionElement = document.createElement('option')
+        optionElement.value = option
+        optionElement.textContent = option
+        select.appendChild(optionElement)
+      })
+
+      // Handle dependencies
+      if (question.dependsOn) {
+        const dependentQuestion = document.querySelector(`input[name="q${index}_${question.dependsOn.questionId}"][value="${question.dependsOn.value}"]`)
+        if (!dependentQuestion?.checked) {
+          questionContainer.style.display = 'none'
+        }
+      }
+
+      questionContainer.appendChild(select)
+    } else if (question.type === 'number') {
+      // Render number input
+      const input = document.createElement('input')
+      input.type = 'number'
+      input.name = `q${index}_${questionIndex}`
+      input.className = 'form-control'
+      input.required = true
+      if (question.min !== undefined) input.min = question.min
+      if (question.max !== undefined) input.max = question.max
+
+      // For birth year validation
+      if (index === 0 && questionIndex === 1) {
+        input.onchange = () => validateYear(input)
+      }
+
+      questionContainer.appendChild(input)
     } else if (question.type === 'text' || question.type === 'date') {
       const input = document.createElement('input')
       input.type = question.type
       input.name = `q${index}_${questionIndex}`
       input.className = 'form-control'
       input.required = true
+
+      // Handle dependencies
+      if (question.dependsOn) {
+        const dependentQuestion = document.querySelector(`input[name="q${index}_${question.dependsOn.questionId}"][value="${question.dependsOn.value}"]`)
+        if (!dependentQuestion?.checked) {
+          questionContainer.style.display = 'none'
+        }
+      }
+
       questionContainer.appendChild(input)
     }
 
