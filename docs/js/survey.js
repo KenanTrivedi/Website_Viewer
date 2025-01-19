@@ -321,13 +321,12 @@ async function loadUserData(isNewAttempt = false) {
     try {
       const response = await fetch(`/api/user-data/${userId}`)
       if (response.status === 404) {
-        // User data not found, initialize userData
         console.log('User data not found, initializing new user data.')
         userData = {}
+        userDataInitial = {}
         currentSection = 0
         initialScores = {}
         updatedScores = {}
-        // No need to renderSection here because we'll do it after the try/catch
       } else if (!response.ok) {
         throw new Error('Error fetching user data')
       } else {
@@ -339,6 +338,9 @@ async function loadUserData(isNewAttempt = false) {
 
         if (data.data) {
           if (isNewAttempt) {
+            // Store initial data for reference
+            userDataInitial = data.initialResponses || {}
+            
             // Keep all personal information for new attempts
             userData = {
               q0_0: data.data.q0_0,  // Gender
@@ -349,19 +351,19 @@ async function loadUserData(isNewAttempt = false) {
               q0_5: data.data.q0_5,  // Non-teaching program
               q0_6: data.data.q0_6   // Semester
             }
-            currentSection = 0 // Start from the first section
-            updatedScores = {} // Reset updatedScores
+            currentSection = 0
+            updatedScores = {}
           } else {
             userData = data.data
-            currentSection =
-              data.currentSection !== undefined ? data.currentSection : 0
+            userDataInitial = data.initialResponses || {}
+            currentSection = data.currentSection !== undefined ? data.currentSection : 0
             updatedScores = data.updatedScores || {}
           }
           initialScores = data.initialScores || {}
           console.log('Processed user data:', userData)
         } else {
-          // No data found in the response, initialize userData
           userData = {}
+          userDataInitial = {}
           currentSection = 0
         }
       }
@@ -956,9 +958,22 @@ function populateFormFields(form, data, sectionIndex) {
   const section = surveyData[sectionIndex]
   if (!section) return
 
+  // Get attempt number from session storage
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+  const isT2 = attemptNumber > 1
+
   section.questions.forEach((question, questionIndex) => {
     const questionId = `q${sectionIndex}_${questionIndex}`
-    const value = data[questionId]
+    
+    // For T2, use initial responses for teaching subjects and semester
+    let value
+    if (isT2 && (questionId === 'q0_4' || questionId === 'q0_6')) {
+      // Use the value from initialResponses for these fields
+      value = userDataInitial[questionId]
+    } else {
+      value = data[questionId]
+    }
+
     if (value !== undefined) {
       const field = form.querySelector(`[name="${questionId}"]`)
       if (field) {
@@ -968,9 +983,15 @@ function populateFormFields(form, data, sectionIndex) {
           )
           if (radioButton) radioButton.checked = true
         } else if (field.type === 'date') {
-          field.value = value // Already set to today's date and read-only
+          field.value = value
         } else {
           field.value = value
+        }
+
+        // For T2, make teaching subjects and semester read-only
+        if (isT2 && (questionId === 'q0_4' || questionId === 'q0_6')) {
+          field.readOnly = true
+          field.style.backgroundColor = '#f0f0f0'
         }
       }
     }
