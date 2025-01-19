@@ -1033,15 +1033,11 @@ async function showResults() {
     if (attemptNumber === 1) {
       // T1 specific content
       resultHtml += `
-        <p>Nun ist es Zeit, deine digitalen Kompetenzen zu fördern. Hier kommst du zu den Kursen der jeweiligen Kompetenzbereiche. Klicke einfach auf den Link und du wirst zu ILIAS weitergeleitet.</p>
-        <ul>
-          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_121177&client_id=ilias_hro" target="_blank">Suchen, Verarbeiten und Aufbewahren</a></li>
-          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122050&client_id=ilias_hro" target="_blank">Analysieren und Reflektieren</a></li>
-          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_120680&client_id=ilias_hro" target="_blank">Kommunikation & Kollaboration</a></li>
-          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122048&client_id=ilias_hro" target="_blank">Problemlösen und Handeln</a></li>
-          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122047&client_id=ilias_hro" target="_blank">Produzieren</a></li>
-          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122049&client_id=ilias_hro" target="_blank">Schützen und sicher Agieren</a></li>
-        </ul>
+        <p>Basierend auf deinen Ergebnissen wähle nun einen oder mehrere Kompetenzbereiche aus, in denen du dich weiterbilden möchtest. Wir haben für jeden Kompetenzbereich mehrere Mikrofortbildungen entwickelt, die du absolvieren kannst. Die Auswahl der Kompetenzbereiche kannst du anhand verschiedener Motive selbst vornehmen: Möchtest du den Kompetenzbereich mit dem geringsten Score verbessern, oder interessierst du dich besonders für einen Kompetenzbereich bzw. ist ein Thema gerade sehr aktuell bei dir.</p>
+        <p>Schaue dir nun die Kompetenzbereiche an und entscheide dich für 1 bis 2.</p>
+        <p><strong>Welche Strategie/n hast du bei der Auswahl der Kompetenzbereiche genutzt?</strong></p>
+        <textarea id="t1OpenEndedResponse" rows="4" style="width:100%;" required></textarea>
+        <button id="submitT1OpenEndedResponse" class="btn btn-primary">Absenden</button>
       `
     } else if (attemptNumber > 1) {
       // T2 specific content
@@ -1121,16 +1117,29 @@ function submitT1OpenEndedResponse(event) {
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`Server responded with status ${response.status}`)
+        throw new Error('Network response was not ok')
       }
       return response.json()
     })
     .then(() => {
-      document.getElementById('t1OpenEndedResponse').value = ''
-      showCourseLinks()
+      // After successful submission, show the course list
+      document.getElementById('surveyForm').innerHTML += `
+        <p>Hier kommst du zu den Kursen der jeweiligen Kompetenzbereiche. Klicke einfach auf den Link und du wirst zu ILIAS weitergeleitet.</p>
+        <ul>
+          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_121177&client_id=ilias_hro" target="_blank">Suchen, Verarbeiten und Aufbewahren</a></li>
+          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122050&client_id=ilias_hro" target="_blank">Analysieren und Reflektieren</a></li>
+          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_120680&client_id=ilias_hro" target="_blank">Kommunikation & Kollaboration</a></li>
+          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122048&client_id=ilias_hro" target="_blank">Problemlösen und Handeln</a></li>
+          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122047&client_id=ilias_hro" target="_blank">Produzieren</a></li>
+          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122049&client_id=ilias_hro" target="_blank">Schützen und sicher Agieren</a></li>
+        </ul>
+      `
+      // Disable the submit button and textarea after submission
+      document.getElementById('submitT1OpenEndedResponse').disabled = true
+      document.getElementById('t1OpenEndedResponse').disabled = true
     })
     .catch((error) => {
-      console.error('Error saving open-ended response:', error)
+      console.error('Error:', error)
       alert(
         'Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.'
       )
@@ -1163,7 +1172,7 @@ function submitT2OpenEndedResponse(event) {
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`Server responded with status ${response.status}`)
+        throw new Error('Network response was not ok')
       }
       return response.json()
     })
@@ -1172,7 +1181,7 @@ function submitT2OpenEndedResponse(event) {
       alert('Vielen Dank für Ihre Antwort!')
     })
     .catch((error) => {
-      console.error('Error saving open-ended response:', error)
+      console.error('Error:', error)
       alert(
         'Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.'
       )
