@@ -323,7 +323,6 @@ async function loadUserData(isNewAttempt = false) {
       if (response.status === 404) {
         console.log('User data not found, initializing new user data.')
         userData = {}
-        userDataInitial = {}
         currentSection = 0
         initialScores = {}
         updatedScores = {}
@@ -334,28 +333,29 @@ async function loadUserData(isNewAttempt = false) {
         console.log('Loaded user data:', data)
 
         // Store attemptNumber in sessionStorage
-        sessionStorage.setItem('attemptNumber', data.attemptNumber || '1')
+        const attemptNumber = data.attemptNumber || 1
+        sessionStorage.setItem('attemptNumber', attemptNumber.toString())
 
         if (data.data) {
           if (isNewAttempt) {
-            // Store initial data for reference
-            userDataInitial = data.initialResponses || {}
-            
-            // Keep all personal information for new attempts
+            // For new attempts, use initial responses for teaching subjects and semester
             userData = {
               q0_0: data.data.q0_0,  // Gender
               q0_1: data.data.q0_1,  // Birth year
               q0_2: data.data.q0_2,  // Teaching student
               q0_3: data.data.q0_3,  // Teaching type
-              q0_4: data.data.q0_4,  // Teaching subjects
+              q0_4: data.initialResponses?.q0_4 || data.data.q0_4,  // Teaching subjects - use initial response
               q0_5: data.data.q0_5,  // Non-teaching program
-              q0_6: data.data.q0_6   // Semester
+              q0_6: data.initialResponses?.q0_6 || data.data.q0_6,  // Semester - use initial response
+              initialResponses: data.initialResponses || {}  // Store initial responses for reference
             }
             currentSection = 0
             updatedScores = {}
           } else {
-            userData = data.data
-            userDataInitial = data.initialResponses || {}
+            userData = {
+              ...data.data,
+              initialResponses: data.initialResponses || {}
+            }
             currentSection = data.currentSection !== undefined ? data.currentSection : 0
             updatedScores = data.updatedScores || {}
           }
@@ -363,7 +363,6 @@ async function loadUserData(isNewAttempt = false) {
           console.log('Processed user data:', userData)
         } else {
           userData = {}
-          userDataInitial = {}
           currentSection = 0
         }
       }
@@ -420,8 +419,9 @@ function renderSection(index) {
     index = 0
   }
 
-  // Get attemptNumber from sessionStorage
-  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
+  // Get attempt number from session storage
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+  const isT2 = attemptNumber > 1
 
   if (index === surveyData.length) {
     renderDatenschutzSection()
@@ -965,11 +965,11 @@ function populateFormFields(form, data, sectionIndex) {
   section.questions.forEach((question, questionIndex) => {
     const questionId = `q${sectionIndex}_${questionIndex}`
     
-    // For T2, use initial responses for teaching subjects and semester
     let value
     if (isT2 && (questionId === 'q0_4' || questionId === 'q0_6')) {
-      // Use the value from initialResponses for these fields
-      value = userDataInitial[questionId]
+      // For T2, use the initial responses for teaching subjects and semester
+      value = data.initialResponses?.[questionId] || data[questionId]
+      console.log(`T2 field ${questionId}:`, value) // Debug log
     } else {
       value = data[questionId]
     }
@@ -986,12 +986,13 @@ function populateFormFields(form, data, sectionIndex) {
           field.value = value
         } else {
           field.value = value
-        }
-
-        // For T2, make teaching subjects and semester read-only
-        if (isT2 && (questionId === 'q0_4' || questionId === 'q0_6')) {
-          field.readOnly = true
-          field.style.backgroundColor = '#f0f0f0'
+          
+          // For T2, make teaching subjects and semester read-only
+          if (isT2 && (questionId === 'q0_4' || questionId === 'q0_6')) {
+            field.readOnly = true
+            field.style.backgroundColor = '#f0f0f0'
+            console.log(`Setting ${questionId} as read-only`) // Debug log
+          }
         }
       }
     }
@@ -1285,15 +1286,15 @@ async function startNewSurvey() {
       throw new Error('Fehler beim Zurücksetzen der Umfrage.')
     }
 
-    alert(
-      'Ihre Umfrage wurde erfolgreich zurückgesetzt. Sie können jetzt eine neue Umfrage starten.'
-    )
-
     // Set 'startNewAttempt' to 'true' in sessionStorage
     sessionStorage.setItem('startNewAttempt', 'true')
 
     // Load user data as a new attempt
-    loadUserData(true)
+    await loadUserData(true)
+
+    alert(
+      'Ihre Umfrage wurde erfolgreich zurückgesetzt. Sie können jetzt eine neue Umfrage starten.'
+    )
   } catch (error) {
     console.error('Fehler beim Zurücksetzen der Umfrage:', error)
     alert(
