@@ -45,7 +45,7 @@ const userDataSchema = new mongoose.Schema({
   updatedScores: { type: Object, default: {} },
   initialResponses: { type: Object, default: {} },
   updatedResponses: { type: Object, default: {} },
-  currentSection: { type: Number, default: 0 },
+  currentSection: { type: Number, default: -1 },
   datenschutzConsent: { type: Boolean, default: false },
   unterschrift: { type: String, default: "" },
   attemptNumber: { type: Number, default: 1 }, // New field to track T1 or T2
@@ -238,8 +238,6 @@ app.post("/login", async (req, res) => {
  * @desc    Save or update user survey data, including consent and signature
  * @access  Public
  */
-// In server.js, modify the /api/save-user-data endpoint
-
 app.post("/api/save-user-data", async (req, res) => {
   const {
     userId,
@@ -277,7 +275,7 @@ app.post("/api/save-user-data", async (req, res) => {
         updatedScores: {},
         initialResponses: {},
         updatedResponses: {},
-        currentSection: 0,
+        currentSection: -1,
         datenschutzConsent: false,
         unterschrift: "",
         attemptNumber: 1,
@@ -285,104 +283,50 @@ app.post("/api/save-user-data", async (req, res) => {
       });
     }
 
+    // Update timestamps
+    if (!userData.firstSubmissionTime) {
+      userData.firstSubmissionTime = currentTime;
+    }
+    userData.latestSubmissionTime = currentTime;
+
     // Handle data updates based on section
     if (isPersonalInfo && personalInfo) {
-      // For personal info section, only update specific fields
       userData.data = {
         ...userData.data,
         ...personalInfo,
       };
     } else if (data) {
-      // For other sections, update all data
       userData.data = {
         ...userData.data,
         ...data,
       };
     }
 
-    // Update metadata
-    userData.currentSection =
-      currentSection !== undefined ? currentSection : userData.currentSection;
-    userData.latestSubmissionTime = currentTime;
-    userData.isComplete = isComplete;
+    // Update other fields if provided
+    if (typeof isComplete !== 'undefined') userData.isComplete = isComplete;
+    if (typeof currentSection !== 'undefined') userData.currentSection = currentSection;
+    if (typeof datenschutzConsent !== 'undefined') userData.datenschutzConsent = datenschutzConsent;
+    if (unterschrift) userData.unterschrift = unterschrift;
+    if (openEndedResponses) userData.openEndedResponses = openEndedResponses;
 
-    // Handle scores and responses for completion
-    if (isComplete) {
-      if (
-        !userData.initialScores ||
-        Object.keys(userData.initialScores).length === 0
-      ) {
-        console.log("Setting initial scores and responses");
-        // First attempt (T1)
-        const calculatedScores = calculateCategoryScores(
-          {
-            initialResponses: data,
-            attemptNumber: 1,
-          },
-          surveyData
-        );
-
-        userData.initialScores = calculatedScores.t1;
-        userData.initialResponses = { ...data }; // Create a new copy
-        userData.updatedScores = {};
-        userData.updatedResponses = {};
-      } else {
-        console.log(
-          "Setting updated scores and responses",
-          userData.attemptNumber
-        );
-        // Subsequent attempts (T2, T3, etc.)
-        const calculatedScores = calculateCategoryScores(
-          {
-            initialResponses: userData.initialResponses,
-            updatedResponses: data,
-            attemptNumber: userData.attemptNumber,
-          },
-          surveyData
-        );
-
-        // Keep initial scores unchanged
-        userData.updatedScores = calculatedScores.latest;
-        userData.updatedResponses = { ...data }; // Create a new copy
-      }
-
-      console.log("Initial Scores:", userData.initialScores);
-      console.log("Updated Scores:", userData.updatedScores);
-      console.log("Attempt Number:", userData.attemptNumber);
-    }
-
-    // Update consent and signature
-    if (datenschutzConsent !== undefined) {
-      userData.datenschutzConsent = datenschutzConsent;
-    }
-    if (unterschrift) {
-      userData.unterschrift = unterschrift;
-    }
-
-    // Update open-ended responses
-    if (openEndedResponses) {
-      userData.openEndedResponses = {
-        ...userData.openEndedResponses,
-        ...openEndedResponses,
-      };
-    }
-
+    // Save the updated user data
     await userData.save();
 
     res.status(200).json({
-      message: "User data saved successfully.",
+      message: "Data saved successfully",
       success: true,
-      initialScores: userData.initialScores,
-      updatedScores: userData.updatedScores,
-      isComplete: userData.isComplete,
-      openEndedResponses: userData.openEndedResponses,
-      attemptNumber: userData.attemptNumber,
+      userData: {
+        data: userData.data,
+        currentSection: userData.currentSection,
+        isComplete: userData.isComplete,
+        datenschutzConsent: userData.datenschutzConsent,
+      },
     });
   } catch (err) {
     console.error("Error saving user data:", err);
     res.status(500).json({
       message: "Error saving user data",
-      details: err.message,
+      error: err.message,
       success: false,
     });
   }
@@ -396,27 +340,47 @@ app.post("/api/save-user-data", async (req, res) => {
 app.get("/api/user-data/:userId", async (req, res) => {
   const { userId } = req.params;
   try {
-    const userData = await UserData.findOne({ userId });
-    if (userData) {
-      res.status(200).json({
-        data: userData.data,
-        courses: userData.courses,
-        isComplete: userData.isComplete,
-        initialScores: userData.initialScores,
-        updatedScores: userData.updatedScores,
-        initialResponses: userData.initialResponses,
-        updatedResponses: userData.updatedResponses,
-        currentSection: userData.currentSection || 0,
-        datenschutzConsent: userData.datenschutzConsent, // Include Consent
-        unterschrift: userData.unterschrift || "", // Include Signature
-        attemptNumber: userData.attemptNumber || 1, // Include attemptNumber
+    let userData = await UserData.findOne({ userId });
+    
+    if (!userData) {
+      // Initialize new user data if not found
+      userData = new UserData({
+        userId,
+        data: {},
+        courses: [],
+        isComplete: false,
+        firstSubmissionTime: new Date(),
+        latestSubmissionTime: new Date(),
+        initialScores: {},
+        updatedScores: {},
+        initialResponses: {},
+        updatedResponses: {},
+        currentSection: -1, // Start with datenschutz
+        datenschutzConsent: false,
+        unterschrift: "",
+        attemptNumber: 1,
+        openEndedResponses: {},
       });
-    } else {
-      res.status(404).json({ message: "User data not found" });
+      await userData.save();
     }
+    
+    res.status(200).json({
+      data: userData.data || {},
+      courses: userData.courses || [],
+      isComplete: userData.isComplete || false,
+      initialScores: userData.initialScores || {},
+      updatedScores: userData.updatedScores || {},
+      initialResponses: userData.initialResponses || {},
+      updatedResponses: userData.updatedResponses || {},
+      currentSection: userData.currentSection ?? -1,
+      datenschutzConsent: userData.datenschutzConsent || false,
+      unterschrift: userData.unterschrift || "",
+      attemptNumber: userData.attemptNumber || 1,
+      openEndedResponses: userData.openEndedResponses || {},
+    });
   } catch (err) {
     console.error("Error fetching user data:", err);
-    res.status(500).json({ message: "Error fetching user data" });
+    res.status(500).json({ message: "Error fetching user data", error: err.message });
   }
 });
 
@@ -620,7 +584,6 @@ app.get("*", (req, res) => {
  * @param   {Array} surveyData - Survey data structure
  * @returns {Object} - Category scores as percentages for both T1 and T2
  */
-// Modified calculateCategoryScores function in server.js
 function calculateCategoryScores(responses, surveyData) {
   // Create an object to store all attempts
   const categoryScores = {

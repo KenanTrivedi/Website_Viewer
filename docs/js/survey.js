@@ -289,19 +289,19 @@ function saveSectionData(isComplete = false) {
 }
 
 function nextSection() {
-  if (currentSection < surveyData.length - 1) {
-    if (validateSection()) {
+  if (validateSection()) {
+    if (currentSection < surveyData.length - 1) {
       currentSection++
       saveSectionData(false) // Save data and currentSection
       renderSection(currentSection)
       updateProgressBar()
       window.scrollTo(0, 0)
     } else {
-      alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
-      markUnansweredQuestions()
+      finishSurvey()
     }
   } else {
-    finishSurvey()
+    alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
+    markUnansweredQuestions()
   }
 }
 
@@ -729,42 +729,27 @@ function updateProgressBar() {
 
 // Finish Survey Function
 function finishSurvey() {
-  const isLastSection = currentSection === surveyData.length;
-
-  if (isLastSection) {
-    if (!validateDatenschutz()) {
-      markUnansweredQuestions();
-      return;
-    }
-    saveSectionData(true);
-    showResults();
-  } else if (validateSection()) {
-    saveSectionData(false);
-    currentSection++;
-    if (currentSection === surveyData.length) {
-      renderDatenschutzSection();
-    } else {
-      renderSection(currentSection);
-    }
-    updateProgressBar();
-    window.scrollTo(0, 0);
+  if (validateSection()) {
+    saveSectionData(true)
+    showResults()
+    window.scrollTo(0, 0)
   } else {
-    alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.');
-    markUnansweredQuestions();
+    alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
+    markUnansweredQuestions()
   }
 }
 
 // Mark Unanswered Questions Function
 function markUnansweredQuestions() {
   const form = document.getElementById('surveyForm')
-  if (!form) return null;
+  if (!form) return null
 
   const requiredFields = form.querySelectorAll('[required]')
   let firstUnanswered = null
 
   requiredFields.forEach((field) => {
     const questionDiv = field.closest('.question') || field.parentElement
-    if (!questionDiv) return;
+    if (!questionDiv) return
 
     const isUnanswered =
       (field.type === 'radio' &&
@@ -783,7 +768,7 @@ function markUnansweredQuestions() {
       questionDiv.classList.remove('unanswered')
       questionDiv.style.animation = ''
     }
-  });
+  })
 
   if (firstUnanswered) {
     firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -814,7 +799,7 @@ function calculateCategoryScores(data) {
             questionCount++
           }
         }
-      });
+      })
 
       if (questionCount > 0) {
         categoryScores[section.title] = Math.round(
@@ -824,7 +809,7 @@ function calculateCategoryScores(data) {
         categoryScores[section.title] = 0
       }
     }
-  });
+  })
 
   return categoryScores
 }

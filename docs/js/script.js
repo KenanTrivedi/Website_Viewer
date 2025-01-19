@@ -535,46 +535,49 @@ function populateFormFields(form, data) {
   })
 }
 
-function saveUserData(userId, data, isComplete = false) {
-  const categoryScores = calculateCategoryScores(data)
-  fetch('/api/save-user-data', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      userId: userId,
-      data: data,
-      isComplete: isComplete,
-      categoryScores: categoryScores,
-    }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('Failed to save data')
-      }
-      return response.json()
-    })
-    .then((result) => {
-      console.log('Data saved successfully:', result)
-      sessionStorage.setItem('surveyData', JSON.stringify(data))
-      sessionStorage.setItem(
-        'initialScores',
-        JSON.stringify(result.initialScores)
-      )
-      sessionStorage.setItem(
-        'updatedScores',
-        JSON.stringify(result.updatedScores)
-      )
-    })
-    .catch((error) => {
-      console.error('Fehler beim Speichern der Benutzerdaten:', error)
-      Swal.fire({
+async function saveUserData(userId, data, isComplete = false, currentSection = null, datenschutzConsent = null) {
+  try {
+    const response = await fetch('/api/save-user-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId,
+        data,
+        isComplete,
+        currentSection: currentSection !== null ? currentSection : undefined,
+        datenschutzConsent: datenschutzConsent !== null ? datenschutzConsent : undefined,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to save data');
+    }
+
+    const result = await response.json();
+    console.log('Data saved successfully:', result);
+
+    // Update session storage with the latest data
+    if (result.userData) {
+      sessionStorage.setItem('surveyData', JSON.stringify(result.userData.data || {}));
+      sessionStorage.setItem('currentSection', String(result.userData.currentSection ?? -1));
+      sessionStorage.setItem('datenschutzConsent', String(result.userData.datenschutzConsent || false));
+    }
+
+    return result;
+  } catch (error) {
+    console.error('Fehler beim Speichern der Benutzerdaten:', error);
+    if (window.Swal) {
+      await Swal.fire({
         icon: 'error',
         title: 'Speicherfehler',
         text: 'Es gab einen Fehler beim Speichern Ihrer Daten. Bitte versuchen Sie es später erneut.',
-      })
-    })
+      });
+    }
+    throw error;
+  }
 }
 
 function calculateCategoryScores(data) {
