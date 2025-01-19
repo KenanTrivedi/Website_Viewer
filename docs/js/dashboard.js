@@ -242,92 +242,76 @@ async function fetchData() {
 }
 
 function renderTable() {
-  try {
-    const filteredUsers = filterUsers()
-    const startIndex = (currentPage - 1) * usersPerPage
-    const endIndex = startIndex + usersPerPage
-    const usersToDisplay = filteredUsers.slice(startIndex, endIndex)
+  const filteredUsers = filterUsers()
+  const tbody = document.querySelector('#userTable tbody')
+  const thead = document.querySelector('#userTable thead')
+  tbody.innerHTML = ''
 
-    const thead = document.querySelector('#userTable thead tr')
-    const tbody = document.querySelector('#userTable tbody')
-
-    if (!thead || !tbody) {
-      console.error('Table elements not found')
-      return
-    }
-
-    // Generate table header
-    thead.innerHTML = `
+  // Create header row
+  let headerHtml = `
+    <tr>
       <th>Select</th>
       <th>Code</th>
-      <th>Versuch</th>
-      <th>Geschlecht</th>
-      <th>Geburtsjahr</th>
-      <th>Lehramt?</th>
-      <th>Art Lehramt</th>
-      <th>Studienfächer</th>
-      <th>Studiengang</th>
-      <th>Semester</th>
-      <th>Kurse</th>
-      <th>Feedback</th>
-      <th>Strategie</th>
-      <th>Reflexion</th>
-      <th>Erste Abgabe</th>
-      <th>Letzte Abgabe</th>
-      ${['q1_0', 'q1_1', 'q1_2', 'q1_3', 'q1_4', 'q1_5', 
-         'q2_0', 'q2_1', 'q2_2', 'q2_3', 'q2_4', 'q2_5', 'q2_6',
-         'q3_0', 'q3_1', 'q3_2', 'q3_3', 'q3_4', 'q3_5', 'q3_6',
-         'q4_0', 'q4_1', 'q4_2', 'q4_3', 'q4_4', 'q4_5',
-         'q5_0', 'q5_1', 'q5_2', 'q5_3', 'q5_4', 'q5_5', 'q5_6',
-         'q6_0', 'q6_1', 'q6_2', 'q6_3', 'q6_4', 'q6_5'
-        ].map(id => `
-          <th>${id}_T1</th>
-          <th>${id}_T2</th>
-        `).join('')}
+      <th>First Submission</th>
+      <th>Latest Submission</th>
+      <th>T2 Attempts</th>
+      <th>T3 Attempts</th>
+      <th>Complete</th>
+  `
+
+  // Add question columns for T1, T2, and T3
+  questionIds.forEach((id) => {
+    headerHtml += `
+      <th>${id}_T1</th>
+      <th>${id}_T2</th>
+      <th>${id}_T3</th>
+    `
+  })
+
+  headerHtml += '</tr>'
+  thead.innerHTML = headerHtml
+
+  // Calculate pagination
+  const startIndex = (currentPage - 1) * usersPerPage
+  const endIndex = startIndex + usersPerPage
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex)
+
+  // Create table rows
+  paginatedUsers.forEach((user) => {
+    const row = document.createElement('tr')
+    
+    // Calculate attempt counts
+    const t2AttemptCount = user.T2AttemptCount || 0;
+    const t3AttemptCount = user.T3AttemptCount || 0;
+
+    // Basic user info
+    row.innerHTML = `
+      <td><input type="checkbox" class="user-select" value="${user.userId}"></td>
+      <td>${escapeHtml(user.code || '')}</td>
+      <td>${new Date(user.firstSubmissionTime).toLocaleDateString()}</td>
+      <td>${new Date(user.latestSubmissionTime).toLocaleDateString()}</td>
+      <td>${t2AttemptCount}</td>
+      <td>${t3AttemptCount}</td>
+      <td>${user.isComplete ? '✓' : '✗'}</td>
     `
 
-    // Clear and prepare tbody
-    tbody.innerHTML = ''
+    // Add responses for each question
+    questionIds.forEach((id) => {
+      const t1Response = escapeHtml(user.initialResponses?.[id] || '')
+      const t2Response = escapeHtml(user.updatedResponses?.[id] || '')
+      const t3Response = escapeHtml(user.updatedResponses2?.[id] || '')
 
-    // Generate rows for each user
-    usersToDisplay.forEach((user) => {
-      const tr = document.createElement('tr')
-      tr.innerHTML = `
-        <td><input type="checkbox" class="user-select" /></td>
-        <td>${escapeHtml(user.userCode || '')}</td>
-        <td>${user.attemptNumber || ''}</td>
-        <td>${escapeHtml(user.data?.q0_0 || user.initialResponses?.q0_0 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_1 || user.initialResponses?.q0_1 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_2 || user.initialResponses?.q0_2 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_3 || user.initialResponses?.q0_3 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_4 || user.initialResponses?.q0_4 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_5 || user.initialResponses?.q0_5 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_6 || user.initialResponses?.q0_6 || '')}</td>
-        <td>${escapeHtml((user.courses || []).join(', '))}</td>
-        <td>${escapeHtml(user.data?.t2_course_feedback || user.openEndedResponses?.attempt2_course_feedback || '')}</td>
-        <td>${escapeHtml(user.openEndedResponses?.t1_strategy || '')}</td>
-        <td>${escapeHtml(user.openEndedResponses?.t2_reflection || '')}</td>
-        <td>${user.firstSubmissionTime ? new Date(user.firstSubmissionTime).toLocaleString() : ''}</td>
-        <td>${user.latestSubmissionTime ? new Date(user.latestSubmissionTime).toLocaleString() : ''}</td>
-        ${['q1_0', 'q1_1', 'q1_2', 'q1_3', 'q1_4', 'q1_5', 
-           'q2_0', 'q2_1', 'q2_2', 'q2_3', 'q2_4', 'q2_5', 'q2_6',
-           'q3_0', 'q3_1', 'q3_2', 'q3_3', 'q3_4', 'q3_5', 'q3_6',
-           'q4_0', 'q4_1', 'q4_2', 'q4_3', 'q4_4', 'q4_5',
-           'q5_0', 'q5_1', 'q5_2', 'q5_3', 'q5_4', 'q5_5', 'q5_6',
-           'q6_0', 'q6_1', 'q6_2', 'q6_3', 'q6_4', 'q6_5'
-          ].map(id => `
-            <td>${escapeHtml(user.initialResponses?.[id] || '')}</td>
-            <td>${escapeHtml(user.updatedResponses?.[id] || '')}</td>
-          `).join('')}
+      row.innerHTML += `
+        <td>${t1Response}</td>
+        <td>${t2Response}</td>
+        <td>${t3Response}</td>
       `
-      tbody.appendChild(tr)
     })
 
-    updatePagination(filteredUsers.length)
-  } catch (error) {
-    console.error('Error rendering table:', error)
-    showError('Failed to display user data. Please refresh the page.')
-  }
+    tbody.appendChild(row)
+  })
+
+  updatePagination(filteredUsers.length)
 }
 
 function filterUsers() {
@@ -533,90 +517,77 @@ function updateVisualization() {
 }
 
 function exportSelectedData() {
-  const selectedUsers = [];
+  const selectedUsers = []
   document.querySelectorAll('.user-select:checked').forEach((checkbox) => {
-    const row = checkbox.closest('tr');
-    const userCode = row.querySelector('td:nth-child(2)').textContent;
-    const user = users.find(u => u.userCode === userCode);
-    if (user) {
-      selectedUsers.push(user);
-    }
-  });
+    const userId = checkbox.value
+    const user = users.find((u) => u.userId === userId)
+    if (user) selectedUsers.push(user)
+  })
 
   if (selectedUsers.length === 0) {
-    showError('Please select at least one user to export data.');
-    return;
+    alert('Bitte wählen Sie mindestens einen Benutzer aus.')
+    return
   }
 
   // Prepare CSV data
-  const csvData = [];
+  const csvData = []
   const headers = [
     'Code',
-    'Versuch',
-    'Geschlecht',
-    'Geburtsjahr',
-    'Lehramt?',
-    'Art Lehramt',
-    'Studienfächer',
-    'Studiengang',
-    'Semester',
-    'Kurse',
-    'Feedback',
-    'Strategie',
-    'Reflexion',
-    'Erste Abgabe',
-    'Letzte Abgabe',
-    ...questionIds.flatMap(id => [`${id} (T1)`, `${id} (T2)`])
-  ];
-  csvData.push(headers);
+    'First Submission',
+    'Latest Submission',
+    'T2 Attempts',
+    'T3 Attempts',
+    'Complete',
+    'T1 Strategy',
+    'T2 Course Feedback',
+    'T2 Reflection',
+    'T3 Progress',
+    'T3 Reflection',
+    ...questionIds.flatMap(id => [`${id}_T1`, `${id}_T2`, `${id}_T3`])
+  ]
+  csvData.push(headers)
 
-  // Add data for each selected user
-  selectedUsers.forEach(user => {
+  selectedUsers.forEach((user) => {
+    const t2AttemptCount = user.T2AttemptCount || 0;
+    const t3AttemptCount = user.T3AttemptCount || 0;
+
     const row = [
-      user.userCode,
-      user.attemptNumber || '',
-      user.data?.responses?.q0_0 || '',  // Gender
-      user.data?.responses?.q0_1 || '',  // Birth year
-      user.data?.responses?.q0_2 || '',  // Teaching student
-      user.data?.responses?.q0_3 || '',  // Teaching type
-      user.data?.responses?.q0_4 || '',  // Teaching subjects
-      user.data?.responses?.q0_5 || '',  // Non-teaching study
-      user.data?.responses?.q0_6 || '',  // Semester
-      (user.courses || []).join(';'),
-      user.openEndedResponses?.course_feedback || '',
+      user.code || '',
+      user.firstSubmissionTime ? new Date(user.firstSubmissionTime).toLocaleDateString() : '',
+      user.latestSubmissionTime ? new Date(user.latestSubmissionTime).toLocaleDateString() : '',
+      t2AttemptCount,
+      t3AttemptCount,
+      user.isComplete ? 'Yes' : 'No',
       user.openEndedResponses?.t1_strategy || '',
+      user.openEndedResponses?.t2_course_feedback || '',
       user.openEndedResponses?.t2_reflection || '',
-      user.firstSubmissionTime ? new Date(user.firstSubmissionTime).toLocaleString() : '',
-      user.latestSubmissionTime ? new Date(user.latestSubmissionTime).toLocaleString() : '',
+      user.openEndedResponses?.t3_progress || '',
+      user.openEndedResponses?.t3_reflection || '',
       ...questionIds.flatMap(id => [
         user.initialResponses?.[id] || '',
-        user.updatedResponses?.[id] || ''
+        user.updatedResponses?.[id] || '',
+        user.updatedResponses2?.[id] || ''
       ])
-    ];
-    csvData.push(row);
-  });
+    ]
+    csvData.push(row)
+  })
 
   // Convert to CSV string
-  const csvString = csvData.map(row => 
-    row.map(cell => 
-      typeof cell === 'string' && cell.includes(',') 
-        ? `"${cell}"` 
-        : cell
-    ).join(',')
-  ).join('\n');
+  const csvString = csvData
+    .map((row) => row.map((cell) => `"${cell}"`).join(','))
+    .join('\n')
 
   // Create and trigger download
-  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  if (navigator.msSaveBlob) { // IE 10+
-    navigator.msSaveBlob(blob, 'survey_data.csv');
-  } else {
-    link.href = URL.createObjectURL(blob);
-    link.download = 'survey_data.csv';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob)
+    link.setAttribute('href', url)
+    link.setAttribute('download', 'survey_data.csv')
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 }
 

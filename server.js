@@ -43,13 +43,19 @@ const userDataSchema = new mongoose.Schema({
   latestSubmissionTime: { type: Date },
   initialScores: { type: Object, default: {} },
   updatedScores: { type: Object, default: {} },
+  updatedScores2: { type: Object, default: {} },
   initialResponses: { type: Object, default: {} },
   updatedResponses: { type: Object, default: {} },
+  updatedResponses2: { type: Object, default: {} },
+  T2History: { type: [Object], default: [] },
+  T3History: { type: [Object], default: [] },
+  T2AttemptCount: { type: Number, default: 0 },
+  T3AttemptCount: { type: Number, default: 0 },
   currentSection: { type: Number, default: -1 },
   datenschutzConsent: { type: Boolean, default: false },
   unterschrift: { type: String, default: "" },
-  attemptNumber: { type: Number, default: 1 }, // New field to track T1 or T2
-  openEndedResponses: { type: Object, default: {} }, // New field to store open-ended responses
+  attemptNumber: { type: Number, default: 1 },
+  openEndedResponses: { type: Object, default: {} }
 });
 const UserData = mongoose.model("UserData", userDataSchema, "userdatas");
 
@@ -108,6 +114,7 @@ app.post("/api/reset-user-data", async (req, res) => {
 
     userData.data = personalInfo;
     userData.updatedResponses = {};
+    userData.updatedResponses2 = {}; // Reset T3 responses
     userData.updatedScores = {};
     userData.isComplete = false;
     userData.currentSection = 0;
@@ -155,81 +162,80 @@ app.post("/register", async (req, res) => {
  * @access  Public
  */
 app.post("/login", async (req, res) => {
-  const { code, courses, startNewAttempt } = req.body;
+  const { code, courses, startNewAttempt, desiredAttempt } = req.body;
   try {
     const existingCode = await Code.findOne({ code: code.toUpperCase() });
     if (!existingCode) {
-      return res.status(400).json({ message: "Ungültiger Code" });
+      return res.status(400).json({ message: "Invalid code" });
     }
 
     let userData = await UserData.findOne({ userId: existingCode._id });
+    
+    if (startNewAttempt) {
+      if (desiredAttempt === 2) {
+        // 1) push the old updatedResponses to T2History
+        if (Object.keys(userData.updatedResponses || {}).length > 0) {
+          userData.T2History.push(userData.updatedResponses);
+        }
 
-    if (!userData) {
-      // Create new user data entry
-      userData = new UserData({
-        userId: existingCode._id,
-        data: {},
-        courses: courses ? [courses] : [],
-        isComplete: false,
-        firstSubmissionTime: new Date(),
-        latestSubmissionTime: new Date(),
-        initialScores: {},
-        updatedScores: {},
-        initialResponses: {},
-        updatedResponses: {},
-        currentSection: 0,
-        datenschutzConsent: false,
-        unterschrift: "",
-        attemptNumber: 1,
-        openEndedResponses: {},
-      });
-      await userData.save();
-    } else {
-      if (startNewAttempt) {
-        // User wants to start a new attempt
-        // Preserve personal information
-        const personalInfo = {
+        // 2) increment T2AttemptCount
+        userData.T2AttemptCount = (userData.T2AttemptCount || 0) + 1;
+
+        // 3) clear updatedResponses
+        userData.updatedResponses = {};
+
+        // 4) preserve personal info, set everything else the same
+        userData.data = {
           q0_0: userData.data.q0_0,
           q0_1: userData.data.q0_1,
           q0_2: userData.data.q0_2,
-          q0_3: userData.data.q0_3,
+          q0_3: userData.data.q0_3
         };
-
-        userData.data = personalInfo;
-        userData.updatedResponses = {};
-        userData.updatedScores = {};
         userData.isComplete = false;
         userData.currentSection = 0;
-
-        if (courses && !userData.courses.includes(courses)) {
-          userData.courses.push(courses);
+      } else if (desiredAttempt === 3) {
+        // Check if T2 is completed
+        if (!userData || userData.attemptNumber < 2) {
+          return res.status(400).json({ message: "Must complete T2 before starting T3" });
         }
 
-        // Increment attemptNumber
-        userData.attemptNumber = (userData.attemptNumber || 1) + 1;
+        // 1) push old updatedResponses2 to T3History
+        if (Object.keys(userData.updatedResponses2 || {}).length > 0) {
+          userData.T3History.push(userData.updatedResponses2);
+        }
 
-        await userData.save();
-      } else {
-        // User wants to continue initial survey or resume
-        userData.latestSubmissionTime = new Date();
-        await userData.save();
+        // 2) increment T3AttemptCount
+        userData.T3AttemptCount = (userData.T3AttemptCount || 0) + 1;
+
+        // 3) clear updatedResponses2
+        userData.updatedResponses2 = {};
+
+        // 4) preserve personal info, set everything else the same
+        userData.data = {
+          q0_0: userData.data.q0_0,
+          q0_1: userData.data.q0_1,
+          q0_2: userData.data.q0_2,
+          q0_3: userData.data.q0_3
+        };
+        userData.isComplete = false;
+        userData.currentSection = 0;
       }
+
+      // 5) Save
+      userData.attemptNumber = desiredAttempt;
+      await userData.save();
     }
 
-    res.status(200).json({
-      message: "Login erfolgreich",
-      userId: existingCode._id,
-      isComplete: userData.isComplete || false,
-      currentSection: userData.currentSection || 0,
-      startNewAttempt: startNewAttempt || false,
-      attemptNumber: userData.attemptNumber || 1,
+    res.json({
+      userId: userData.userId,
+      attemptNumber: userData.attemptNumber,
+      T2AttemptCount: userData.T2AttemptCount || 0,
+      T3AttemptCount: userData.T3AttemptCount || 0,
+      courses: userData.courses
     });
-  } catch (err) {
-    console.error("Fehler beim Login:", err);
-    res.status(500).json({
-      message: "Fehler bei der Verarbeitung der Login-Anfrage",
-      error: err.message,
-    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
@@ -275,6 +281,7 @@ app.post("/api/save-user-data", async (req, res) => {
         updatedScores: {},
         initialResponses: {},
         updatedResponses: {},
+        updatedResponses2: {}, // Initialize T3 responses
         currentSection: -1,
         datenschutzConsent: false,
         unterschrift: "",
@@ -355,6 +362,7 @@ app.get("/api/user-data/:userId", async (req, res) => {
         updatedScores: {},
         initialResponses: {},
         updatedResponses: {},
+        updatedResponses2: {}, // Initialize T3 responses
         currentSection: -1, // Start with datenschutz
         datenschutzConsent: false,
         unterschrift: "",
@@ -372,6 +380,7 @@ app.get("/api/user-data/:userId", async (req, res) => {
       updatedScores: userData.updatedScores || {},
       initialResponses: userData.initialResponses || {},
       updatedResponses: userData.updatedResponses || {},
+      updatedResponses2: userData.updatedResponses2 || {}, // Include T3 responses
       currentSection: userData.currentSection ?? -1,
       datenschutzConsent: userData.datenschutzConsent || false,
       unterschrift: userData.unterschrift || "",
@@ -426,144 +435,53 @@ app.get("/api/dashboard-data", authenticate, async (req, res) => {
   try {
     const users = await UserData.find().lean();
 
-    // Define questionIds here
-    const questionIds = [
-      "q0_0",
-      "q0_1",
-      "q1_0",
-      "q1_1",
-      "q1_2",
-      "q1_3",
-      "q1_4",
-      "q1_5",
-      "q2_0",
-      "q2_1",
-      "q2_2",
-      "q2_3",
-      "q2_4",
-      "q2_5",
-      "q2_6",
-      "q3_0",
-      "q3_1",
-      "q3_2",
-      "q3_3",
-      "q3_4",
-      "q3_5",
-      "q3_6",
-      "q4_0",
-      "q4_1",
-      "q4_2",
-      "q4_3",
-      "q4_4",
-      "q4_5",
-      "q5_0",
-      "q5_1",
-      "q5_2",
-      "q5_3",
-      "q5_4",
-      "q5_5",
-      "q5_6",
-      "q6_0",
-      "q6_1",
-      "q6_2",
-      "q6_3",
-      "q6_4",
-      "q6_5",
-    ];
+    const formattedUsers = users.map(user => ({
+      userId: user.userId,
+      code: user.code,
+      firstSubmissionTime: user.firstSubmissionTime,
+      latestSubmissionTime: user.latestSubmissionTime,
+      t2AttemptCount: user.T2AttemptCount || 0,
+      t3AttemptCount: user.T3AttemptCount || 0,
+      // Latest responses in standard fields
+      updatedResponses: user.updatedResponses || {},  // latest T2
+      updatedResponses2: user.updatedResponses2 || {}, // latest T3
+      // History available but not used in main display
+      T2History: user.T2History || [],
+      T3History: user.T3History || []
+    }));
 
-    const sections = surveyData
-      .map((section) => section.title)
-      .filter(
-        (title) => title !== "Persönliche Angaben" && title !== "Abschluss"
-      );
-
-    const formattedUsers = await Promise.all(
-      users.map(async (user) => {
-        const codeDoc = await Code.findOne({ _id: user.userId });
-        const responses = user.data || {};
-
-        // Format question responses for initial (T1) and latest attempt
-        const formattedResponses = {};
-        questionIds
-          .filter(
-            (id) =>
-              id.startsWith("q") &&
-              id !== "q0_0" &&
-              id !== "q0_1" &&
-              id !== "q0_2" &&
-              id !== "q0_3"
-          )
-          .forEach((id) => {
-            formattedResponses[`${id}_t1`] = user.initialResponses?.[id] || "";
-            formattedResponses[`${id}_t${user.attemptNumber || 1}`] =
-              user.updatedResponses?.[id] || "";
-          });
-
-        return {
-          userId: user.userId,
-          userCode: codeDoc ? codeDoc.code : "Unknown",
-          gender: responses.q0_0 || "",
-          birthYear: responses.q0_1 || "",
-          firstSubmissionTime: user.firstSubmissionTime
-            ? user.firstSubmissionTime.toISOString()
-            : "",
-          latestSubmissionTime: user.latestSubmissionTime
-            ? user.latestSubmissionTime.toISOString()
-            : "",
-          data: {
-            responses: responses,
-            formattedResponses: formattedResponses,
-            openEndedResponses: user.openEndedResponses || {},
-            strategy: user.openEndedResponses?.t1_strategy || "",
-          },
-          isComplete: user.isComplete || false,
-          courses: user.courses || [],
-          initialScores: user.initialScores || {},
-          updatedScores: user.updatedScores || {},
-          initialResponses: user.initialResponses || {},
-          updatedResponses: user.updatedResponses || {},
-          datenschutzConsent: user.datenschutzConsent,
-          unterschrift: user.unterschrift || "",
-          openEndedResponses: user.openEndedResponses || {},
-          strategieAuswahl: user.openEndedResponses?.t1_strategy || "",
-          veraenderungKompetenz: user.openEndedResponses?.t2_reflection || "",
-          attemptNumber: user.attemptNumber || 1,
-          questionResponses: {
-            t1: user.initialResponses || {},
-            [`t${user.attemptNumber || 1}`]: user.updatedResponses || {},
-          },
-        };
-      })
-    );
-
-    // Update response metadata to include attempt information
-    const responseMetadata = {
-      format: {
-        t1: "Initial responses from first attempt",
-        latest: "Responses from latest attempt (T2, T3, etc.)",
-      },
-      questionCount: questionIds.filter(
-        (id) =>
-          id.startsWith("q") &&
-          id !== "q0_0" &&
-          id !== "q0_1" &&
-          id !== "q0_2" &&
-          id !== "q0_3"
-      ).length,
-    };
-
-    res.json({
-      users: formattedUsers,
-      sections,
-      metadata: responseMetadata,
-      questionIds,
-    });
+    res.json(formattedUsers);
   } catch (error) {
-    console.error("Error fetching dashboard data:", error);
-    res.status(500).json({
-      error: "Error fetching dashboard data",
-      details: error.message,
+    console.error('Error fetching dashboard data:', error);
+    res.status(500).json({ message: 'Error fetching dashboard data', error: error.message });
+  }
+});
+
+/**
+ * @route   GET /api/results/:userId
+ * @desc    Get user's T1, T2, and T3 scores
+ * @access  Public
+ */
+app.get("/api/results/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const userData = await UserData.findOne({ userId });
+    
+    if (!userData) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      userData: {
+        initialScores: userData.initialScores || {},
+        updatedScores: userData.updatedScores || {},
+        updatedScores2: userData.updatedScores2 || {},
+        attemptNumber: userData.attemptNumber || 1
+      }
     });
+  } catch (err) {
+    console.error("Error fetching user results:", err);
+    res.status(500).json({ message: "Error fetching user results", error: err.message });
   }
 });
 

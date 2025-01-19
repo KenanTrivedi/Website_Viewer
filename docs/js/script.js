@@ -88,6 +88,12 @@ function setupLoginPageFunctionality() {
           'Mit Code Fragebogen fortsetzen',
           'fas fa-play-circle'
         )
+        createChoiceCard(
+          't3',
+          'Ich möchte eine Follow-up-Befragung (T3) ausfüllen',
+          'Nach T2 erneut meine Kompetenzen einschätzen',
+          'fas fa-redo-alt'
+        )
       }
       setupChoiceCardListeners()
     })
@@ -140,7 +146,7 @@ function setupLoginPageFunctionality() {
         coursesField.required = false
         coursesField.disabled = true
       }
-    } else if (selectedOption === 'redo') {
+    } else if (selectedOption === 'redo' || selectedOption === 't3') {
       codeInput.style.display = 'block'
       coursesList.style.display = 'block'
       if (loginButton) loginButton.style.display = 'block'
@@ -380,7 +386,7 @@ async function handleLogin() {
     return
   }
 
-  if (selectedOption === 'redo' && !courses) {
+  if ((selectedOption === 'redo' || selectedOption === 't3') && !courses) {
     Swal.fire({
       icon: 'error',
       title: 'Fehler',
@@ -409,6 +415,10 @@ async function handleLogin() {
       payload.startNewAttempt = true
     } else if (selectedOption === 'continue') {
       payload.startNewAttempt = false
+    } else if (selectedOption === 't3') {
+      payload.courses = courses
+      payload.startNewAttempt = true
+      payload.desiredAttempt = 3 // Let the server know we want T3
     }
 
     const response = await fetch('/login', {
@@ -425,6 +435,7 @@ async function handleLogin() {
       sessionStorage.setItem('isComplete', data.isComplete)
       sessionStorage.setItem('currentSection', data.currentSection || '0')
       sessionStorage.setItem('startNewAttempt', payload.startNewAttempt)
+      sessionStorage.setItem('attemptNumber', data.attemptNumber || '1')
 
       handleLoginSuccess(data.userId)
     } else {

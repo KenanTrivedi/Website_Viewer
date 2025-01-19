@@ -168,8 +168,7 @@ function saveSectionData(isComplete = false) {
     return
   }
 
-  const attemptNumber =
-    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
   const categoryScores = calculateCategoryScores(userData)
 
   const dataToSend = {
@@ -184,16 +183,27 @@ function saveSectionData(isComplete = false) {
   // Handle personal info section specially
   if (currentSection === 0) {
     dataToSend.personalInfo = {
-      q0_0: userData.q0_0,
-      q0_1: userData.q0_1,
-      q0_2: userData.q0_2,
-      q0_3: userData.q0_3,
+      q0_0: userData.q0_0,  // Gender
+      q0_1: userData.q0_1,  // Birth year
+      q0_2: userData.q0_2,  // Teaching student
+      q0_3: userData.q0_3,  // Teaching type
+      q0_4: userData.q0_4,  // Teaching subjects
+      q0_5: userData.q0_5,  // Non-teaching program
+      q0_6: userData.q0_6,  // Semester
     }
   }
 
+  // Store responses based on attempt number
+  if (attemptNumber === 1) {
+    dataToSend.initialResponses = userData
+  } else if (attemptNumber === 2) {
+    dataToSend.updatedResponses = userData
+  } else if (attemptNumber === 3) {
+    dataToSend.updatedResponses2 = userData
+  }
+
   // Handle datenschutz and signature
-  const datenschutzConsentElement =
-    document.getElementById('datenschutzConsent')
+  const datenschutzConsentElement = document.getElementById('datenschutzConsent')
   const unterschriftElement = document.getElementById('unterschrift')
 
   if (datenschutzConsentElement) {
@@ -201,44 +211,10 @@ function saveSectionData(isComplete = false) {
   }
 
   if (unterschriftElement) {
-    dataToSend.unterschrift = unterschriftElement.value.trim()
+    dataToSend.unterschrift = unterschriftElement.value
   }
 
-  // Handle all open-ended responses
-  const openEndedResponses = {}
-
-  // T1 strategy response
-  const t1StrategyElement = document.getElementById('t1OpenEndedResponse')
-  if (t1StrategyElement && t1StrategyElement.value.trim()) {
-    openEndedResponses.t1_strategy = t1StrategyElement.value.trim()
-  }
-
-  // T2 course feedback
-  if (attemptNumber > 1 && userData['t2_course_feedback']) {
-    openEndedResponses[`attempt${attemptNumber}_course_feedback`] =
-      userData['t2_course_feedback']
-  }
-
-  // T2 reflection response
-  const t2ReflectionElement = document.getElementById('t2OpenEndedResponse')
-  if (t2ReflectionElement && t2ReflectionElement.value.trim()) {
-    openEndedResponses.t2_reflection = t2ReflectionElement.value.trim()
-  }
-
-  if (Object.keys(openEndedResponses).length > 0) {
-    dataToSend.openEndedResponses = openEndedResponses
-  }
-
-  // Handle scores
-  if (isComplete || currentSection === surveyData.length) {
-    if (!sessionStorage.getItem('hasInitialScores')) {
-      dataToSend.initialScores = categoryScores
-      sessionStorage.setItem('hasInitialScores', 'true')
-    } else {
-      dataToSend.updatedScores = categoryScores
-    }
-  }
-
+  // Save data
   fetch('/api/save-user-data', {
     method: 'POST',
     headers: {
@@ -246,45 +222,18 @@ function saveSectionData(isComplete = false) {
     },
     body: JSON.stringify(dataToSend),
   })
-    .then(async (response) => {
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(
-          errorData.message || `Server responded with status ${response.status}`
-        )
-      }
-      return response.json()
-    })
+    .then((response) => response.json())
     .then((result) => {
       console.log('Data saved successfully:', result)
-
-      if (result.initialScores) {
-        sessionStorage.setItem(
-          'initialScores',
-          JSON.stringify(result.initialScores)
-        )
-        initialScores = result.initialScores
-      }
-      if (result.updatedScores) {
-        sessionStorage.setItem(
-          'updatedScores',
-          JSON.stringify(result.updatedScores)
-        )
-        updatedScores = result.updatedScores
-      }
-
-      if (isComplete) {
-        showResults()
+      if (result.userData) {
+        sessionStorage.setItem('surveyData', JSON.stringify(result.userData.data || {}))
+        sessionStorage.setItem('currentSection', String(result.userData.currentSection ?? -1))
+        sessionStorage.setItem('datenschutzConsent', String(result.userData.datenschutzConsent || false))
       }
     })
     .catch((error) => {
       console.error('Error saving data:', error)
-      // Don't show error alert for initial save of personal info section
-      if (currentSection !== 0 || isComplete) {
-        alert(
-          'Es gab einen Fehler beim Speichern Ihrer Daten. Bitte versuchen Sie es erneut.'
-        )
-      }
+      alert('Fehler beim Speichern der Daten. Bitte versuchen Sie es später erneut.')
     })
 }
 
@@ -415,157 +364,127 @@ function validateYear(input) {
 }
 
 function renderSection(index) {
-  console.log(`Rendering section ${index}`)
-
-  if (index < -1 || index > surveyData.length) {
-    console.error(`Invalid section index: ${index}`)
-    currentSection = -1 // Reset to datenschutz section
-    index = -1
-  }
-
-  // Get attempt number from session storage
-  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
-  const isT2 = attemptNumber > 1
-
   if (index === -1) {
     renderDatenschutzSection()
     return
   }
 
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
   const section = surveyData[index]
-  console.log(`Section title: ${section.title}`)
 
-  document.getElementById('surveyForm').innerHTML = ''
-
-  let html = `<div class="section"><h2>${section.title}</h2>`
-
-  // Display the introductory text before every category section except 'Persönliche Angaben'
-  if (section.title !== 'Persönliche Angaben') {
-    html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
+  if (!section) {
+    console.error('Invalid section index:', index)
+    return
   }
 
-  section.questions.forEach((question, qIndex) => {
-    const questionId = `q${index}_${qIndex}`
-    console.log(`Rendering question: ${questionId}`)
-    let savedValue = userData[questionId] || ''
+  // Always show Datenschutz section first on every attempt
+  if (index === 0 && !sessionStorage.getItem('datenschutzConsent')) {
+    renderDatenschutzSection()
+    return
+  }
 
-    // Check if this question depends on another question's answer
-    let shouldDisplay = true;
-    if (question.dependsOn) {
-      const dependentQuestionId = question.dependsOn.questionId
-      const dependentValue = userData[dependentQuestionId]
-      console.log('Checking dependency:', {
-        question: question.text,
-        dependsOn: dependentQuestionId,
-        expectedValue: question.dependsOn.value,
-        actualValue: dependentValue
-      });
-      shouldDisplay = dependentValue === question.dependsOn.value;
-    }
+  const mainContent = document.getElementById('mainContent')
+  mainContent.innerHTML = ''
 
-    html += `<div class="question" id="question-${questionId}" style="${shouldDisplay ? '' : 'display: none;'}"><p>${question.text}</p>`
+  // Create section container
+  const sectionContainer = document.createElement('div')
+  sectionContainer.className = 'section-container'
 
-    if (question.type === 'radio') {
-      question.options.forEach((option) => {
-        const isTeachingQuestion = questionId === 'q0_2';
-        html += `<label><input type="radio" name="${questionId}" value="${option}" ${
-          savedValue === option ? 'checked' : ''
-        } ${isTeachingQuestion ? 'onchange="handleTeachingStudentChange(this)"' : ''} required> ${option}</label><br>`
-      })
-    } else if (question.type === 'number' && question.text.includes('Jahr')) {
-      html += `<input type="text" id="${questionId}" name="${questionId}" 
-                     value="${savedValue}" 
-                     oninput="validateYear(this)" 
-                     maxlength="4" 
-                     pattern="[0-9]{4}"
-                     required>`
-    } else if (question.type === 'number') {
-      // For semester number input
-      html += `<input type="number" id="${questionId}" name="${questionId}" 
-                     value="${savedValue}" 
-                     min="1" 
-                     max="99"
-                     required>`
-    } else if (question.type === 'scale') {
-      html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`
-      for (let i = 0; i <= 6; i++) {
-        html += `<label class="scale-label">
-                  <input type="radio" name="${questionId}" value="${i}" ${
-          savedValue === i.toString() ? 'checked' : ''
-        } required>
-                  <span class="scale-button" role="radio" aria-checked="${
-                    savedValue === i.toString() ? 'true' : 'false'
-                  }" tabindex="0">${i}</span>
-                  <span class="sr-only">${
-                    i === 0
-                      ? 'gar nicht kompetent'
-                      : i === 6
-                      ? 'ausgesprochen kompetent'
-                      : ''
-                  }</span>
-             </label>`
+  // Add section title
+  const title = document.createElement('h2')
+  title.textContent = section.title
+  sectionContainer.appendChild(title)
+
+  // Create form
+  const form = document.createElement('form')
+  form.id = 'surveyForm'
+  form.className = 'survey-form'
+
+  // Skip T2 open-ended questions for T3
+  if (attemptNumber === 3 && section.questions.some(q => q.type === 't2_open_ended')) {
+    nextSection()
+    return
+  }
+
+  // Add questions
+  section.questions.forEach((question, questionIndex) => {
+    const questionContainer = document.createElement('div')
+    questionContainer.className = 'question-container'
+
+    const questionText = document.createElement('p')
+    questionText.className = 'question-text'
+    questionText.textContent = question.text
+    questionContainer.appendChild(questionText)
+
+    if (question.type === 'scale') {
+      // Render scale question
+      const scaleContainer = document.createElement('div')
+      scaleContainer.className = 'scale-container'
+
+      for (let i = 1; i <= 6; i++) {
+        const label = document.createElement('label')
+        label.className = 'scale-label'
+
+        const input = document.createElement('input')
+        input.type = 'radio'
+        input.name = `q${index}_${questionIndex}`
+        input.value = i
+        input.className = 'scale-input'
+        input.required = true
+
+        const span = document.createElement('span')
+        span.textContent = i
+        span.className = 'scale-number'
+
+        label.appendChild(input)
+        label.appendChild(span)
+        scaleContainer.appendChild(label)
       }
-      html += `</div>
-               <div class="scale-labels">
-                 <span>gar nicht kompetent</span>
-                 <span>ausgesprochen kompetent</span>
-               </div>`
-    } else if (question.type === 'dropdown') {
-      html += `<select id="${questionId}" name="${questionId}" required>
-                <option value="" disabled ${
-                  !savedValue ? 'selected' : ''
-                }>Bitte wählen Sie eine Option</option>
-                ${question.options
-                  .map(
-                    (option) =>
-                      `<option value="${option}" ${
-                        savedValue === option ? 'selected' : ''
-                      }>${option}</option>`
-                  )
-                  .join('')}
-             </select>`
-    } else if (question.type === 'text') {
-      html += `<input type="text" id="${questionId}" name="${questionId}" value="${savedValue}" required>`
+
+      questionContainer.appendChild(scaleContainer)
+    } else if (question.type === 'text' || question.type === 'date') {
+      const input = document.createElement('input')
+      input.type = question.type
+      input.name = `q${index}_${questionIndex}`
+      input.className = 'form-control'
+      input.required = true
+      questionContainer.appendChild(input)
     }
 
-    html += `</div>`
+    form.appendChild(questionContainer)
   })
 
-  // After rendering the first section, add the open-ended question for T2
-  if (index === 0 && attemptNumber > 1) {
-    html += `
-      <div class="question">
-        <p>Wie fandest du deine absolvierten Kurse in ILIAS in Bezug auf Inhalt und Struktur? Was hast du für dich mitgenommen? Was war hilfreich für dich?</p>
-        <textarea name="t2_course_feedback" id="t2_course_feedback" rows="4" style="width:100%;" required>${
-          userData['t2_course_feedback'] || ''
-        }</textarea>
-      </div>
-    `
+  sectionContainer.appendChild(form)
+  mainContent.appendChild(sectionContainer)
+
+  // Show navigation buttons
+  const buttonContainer = document.createElement('div')
+  buttonContainer.className = 'button-container'
+
+  if (index > 0) {
+    const prevButton = document.createElement('button')
+    prevButton.textContent = 'Zurück'
+    prevButton.className = 'btn btn-secondary'
+    prevButton.onclick = previousSection
+    buttonContainer.appendChild(prevButton)
   }
 
-  html += `</div>`
-  document.getElementById('surveyForm').innerHTML = html
+  const nextButton = document.createElement('button')
+  nextButton.textContent = index === surveyData.length - 1 ? 'Abschließen' : 'Weiter'
+  nextButton.className = 'btn btn-primary'
+  nextButton.onclick = index === surveyData.length - 1 ? finishSurvey : nextSection
+  buttonContainer.appendChild(nextButton)
 
-  // Add event listeners for scale buttons
-  document.querySelectorAll('.scale-button').forEach((button) => {
-    button.addEventListener('keydown', handleScaleKeydown)
-  })
+  mainContent.appendChild(buttonContainer)
 
-  // If we're in the personal info section, add the teaching student change handler
-  if (section.title === 'Persönliche Angaben') {
-    const teachingStudentRadios = document.querySelectorAll('input[name="q0_2"]')
-    teachingStudentRadios.forEach(radio => {
-      radio.addEventListener('change', () => handleTeachingStudentChange(radio))
-    })
-    // Trigger the handler if a value is already selected
-    const selectedRadio = document.querySelector('input[name="q0_2"]:checked')
-    if (selectedRadio) {
-      handleTeachingStudentChange(selectedRadio)
-    }
+  // Populate form fields if data exists
+  const savedData = JSON.parse(sessionStorage.getItem('surveyData') || '{}')
+  if (Object.keys(savedData).length > 0) {
+    populateFormFields(form, savedData, index)
   }
 
-  updateNavigationButtons()
   updateProgressBar()
+  window.scrollTo(0, 0)
 }
 
 // Submit Final Data Function
@@ -730,14 +649,75 @@ function updateProgressBar() {
 // Finish Survey Function
 function finishSurvey() {
   if (validateSection()) {
-    saveSectionData(true)
-    showResults()
-    window.scrollTo(0, 0)
+    const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
+
+    if (attemptNumber === 3) {
+      // Show T3 open-ended question
+      const mainContent = document.getElementById('mainContent')
+      mainContent.innerHTML = `
+        <div class="open-ended-section">
+          <h2>Abschließende Frage</h2>
+          <div class="form-group">
+            <label for="t3OpenEndedResponse">Wie schätzen Sie Ihren Fortschritt seit T2 ein?</label>
+            <textarea 
+              id="t3OpenEndedResponse" 
+              class="form-control" 
+              rows="5" 
+              placeholder="Bitte beschreiben Sie hier Ihren Fortschritt..."
+            ></textarea>
+          </div>
+          <button onclick="submitT3OpenEndedResponse(event)" class="btn btn-primary mt-3">
+            Abschließen
+          </button>
+        </div>
+      `
+    } else {
+      saveSectionData(true)
+      showResults()
+    }
   } else {
-    alert('Bitte beantworten Sie alle Fragen, bevor Sie fortfahren.')
     markUnansweredQuestions()
   }
 }
+
+// Function to handle T3 open-ended response submission
+function submitT3OpenEndedResponse(event) {
+  event.preventDefault()
+  
+  const response = document.getElementById('t3OpenEndedResponse').value.trim()
+  if (!response) {
+    alert('Bitte beantworten Sie die Frage, bevor Sie fortfahren.')
+    return
+  }
+
+  const userId = sessionStorage.getItem('userId')
+  const dataToSend = {
+    userId,
+    openEndedResponses: {
+      t3_progress: response
+    }
+  }
+
+  fetch('/api/save-user-data', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(dataToSend)
+  })
+    .then(response => response.json())
+    .then(() => {
+      saveSectionData(true)
+      showResults()
+    })
+    .catch(error => {
+      console.error('Error saving T3 response:', error)
+      alert('Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.')
+    })
+}
+
+// Add to window object for global access
+window.submitT3OpenEndedResponse = submitT3OpenEndedResponse
 
 // Mark Unanswered Questions Function
 function markUnansweredQuestions() {
@@ -815,130 +795,121 @@ function calculateCategoryScores(data) {
 }
 
 // Create Competency Chart Function
-function createCompetencyChart1(initialScores, updatedScores) {
-  const canvas = document.getElementById('competencyChart1')
-  const descriptionBox = document.getElementById('descriptionBox1')
-  if (!canvas || !descriptionBox) {
-    console.error('Chart canvas or description box not found')
-    return
-  }
-
+function createCompetencyChart1(initialScores, updatedScores, updatedScores2) {
   if (chart1Instance) {
     chart1Instance.destroy()
   }
 
-  const ctx = canvas.getContext('2d')
+  const ctx = document.getElementById('competencyChart1').getContext('2d')
+  const labels = Object.keys(initialScores).map(key => labelMap[key] || key)
+  const datasets = []
 
-  // Determine all unique labels from initial and updated scores
-  const allLabels = new Set([
-    ...Object.keys(initialScores),
-    ...Object.keys(updatedScores),
-  ])
-  const fullLabels = Array.from(allLabels)
-  const labels = fullLabels.map((key) => labelMap[key] || key)
-  let currentHoveredIndex = -1
+  // T1 dataset (always present)
+  datasets.push({
+    label: 'T1',
+    data: Object.values(initialScores),
+    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+    borderColor: 'rgba(54, 162, 235, 1)',
+    borderWidth: 2,
+    borderRadius: 5,
+  })
 
-  const datasets = [
-    {
-      label: 'Initial Score',
-      data: fullLabels.map((label) => initialScores[label] || 0),
-      backgroundColor: fullLabels.map((label) =>
-        getLighterColor(colorMap[label] || '#999999')
-      ),
-      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-      borderWidth: 1,
-    },
-  ]
-
+  // T2 dataset (if present)
   if (Object.keys(updatedScores).length > 0) {
     datasets.push({
-      label: 'Updated Score',
-      data: fullLabels.map((label) => updatedScores[label] || 0),
-      backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
-      borderWidth: 1,
+      label: 'T2',
+      data: Object.values(updatedScores),
+      backgroundColor: 'rgba(255, 99, 132, 0.2)',
+      borderColor: 'rgba(255, 99, 132, 1)',
+      borderWidth: 2,
+      borderRadius: 5,
     })
   }
 
+  // T3 dataset (if present)
+  if (Object.keys(updatedScores2 || {}).length > 0) {
+    datasets.push({
+      label: 'T3',
+      data: Object.values(updatedScores2),
+      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      borderColor: 'rgba(75, 192, 192, 1)',
+      borderWidth: 2,
+      borderRadius: 5,
+    })
+  }
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        angleLines: {
+          display: true,
+        },
+        suggestedMin: 0,
+        suggestedMax: 6,
+      },
+    },
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      title: {
+        display: true,
+        text: 'Ihre Kompetenzen im Überblick',
+      },
+      tooltip: {
+        callbacks: {
+          title: function (context) {
+            const fullCompetency = Object.keys(initialScores)[context[0].dataIndex]
+            return fullCompetency
+          },
+          label: function (context) {
+            return `Score: ${context.raw}`
+          },
+          afterLabel: function (context) {
+            const fullCompetency = Object.keys(initialScores)[context.dataIndex]
+            return competencyDescriptions[fullCompetency]
+          },
+        },
+      },
+    },
+  }
+
   chart1Instance = new Chart(ctx, {
-    type: 'bar',
+    type: 'radar',
     data: {
       labels: labels,
       datasets: datasets,
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          max: 100,
-          title: {
-            display: true,
-            text: 'Score (%)',
-          },
-        },
-        x: {
-          ticks: {
-            autoSkip: false,
-            maxRotation: 45,
-            minRotation: 45,
-          },
-        },
-      },
-      plugins: {
-        legend: {
-          display: datasets.length > 1, // Show legend only if multiple datasets
-        },
-        tooltip: {
-          callbacks: {
-            title: (tooltipItems) => {
-              const index = tooltipItems[0].dataIndex
-              const fullLabel = fullLabels[index]
-              return fullLabel || tooltipItems[0].label
-            },
-            label: (context) =>
-              `${context.dataset.label}: ${context.parsed.y}%`,
-          },
-        },
-      },
-      onHover: (event, activeElements) => {
-        if (activeElements.length > 0) {
-          const dataIndex = activeElements[0].index
-          if (dataIndex !== currentHoveredIndex) {
-            currentHoveredIndex = dataIndex
-            const fullCompetency = fullLabels[dataIndex]
-            updateDescriptionBox(
-              descriptionBox,
-              fullCompetency,
-              competencyDescriptions[fullCompetency]
-            )
-          }
-        } else {
-          // Do not clear the description box when not hovering
-        }
-      },
-    },
+    options: options,
   })
 
-  chart1Instance.update()
-
-  // Initialize the description box with the first competency
-  if (fullLabels.length > 0) {
-    const firstCompetency = fullLabels[0]
-    updateDescriptionBox(
-      descriptionBox,
-      firstCompetency,
-      competencyDescriptions[firstCompetency]
+  // Add click event listener for description box
+  ctx.canvas.onclick = function (evt) {
+    const points = chart1Instance.getElementsAtEventForMode(
+      evt,
+      'nearest',
+      { intersect: true },
+      true
     )
+    if (points.length) {
+      const firstPoint = points[0]
+      const label = chart1Instance.data.labels[firstPoint.index]
+      const fullCompetency = Object.keys(initialScores)[firstPoint.index]
+      const description = competencyDescriptions[fullCompetency]
+      const descriptionBox = document.getElementById('competencyDescription')
+      if (descriptionBox) {
+        updateDescriptionBox(descriptionBox, fullCompetency, description)
+      }
+    }
   }
 
-  // Fix the size of the description box
-  descriptionBox.style.minHeight = '150px' // Adjust as needed
+  return chart1Instance
 }
 
 /**
- * Populates the form fields based on user data for the given section.
+ * Prefills the form fields based on user data for the given section.
  * @param {HTMLElement} form - The survey form element.
  * @param {Object} data - The user data containing responses.
  * @param {number} sectionIndex - The current section index.
@@ -991,216 +962,127 @@ function populateFormFields(form, data, sectionIndex) {
 async function showResults() {
   const userId = sessionStorage.getItem('userId')
   if (!userId) {
-    console.error('No userId found in sessionStorage.')
+    console.error('No userId found in sessionStorage')
     return
   }
 
-  try {
-    const response = await fetch(`/api/user-data/${userId}`)
-    if (!response.ok) {
-      throw new Error('Failed to fetch user data')
-    }
-    const data = await response.json()
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
-    initialScores = data.initialScores || {}
-    updatedScores = data.updatedScores || {}
+  fetch(`/api/results/${userId}`)
+    .then((response) => response.json())
+    .then((data) => {
+      if (!data.userData) {
+        throw new Error('No user data found')
+      }
 
-    console.log('Fetched User Data:', data)
+      const { initialScores, updatedScores, updatedScores2 } = data.userData
+      
+      // Clear the main content
+      const mainContent = document.getElementById('mainContent')
+      mainContent.innerHTML = `
+        <div class="results-container">
+          <h2>Ihre Ergebnisse</h2>
+          
+          <div class="chart-container" style="position: relative; height:60vh; width:80vw; margin: auto;">
+            <canvas id="competencyChart1"></canvas>
+          </div>
+          
+          <div id="competencyDescription" class="mt-4 p-3 border rounded">
+            <p>Klicken Sie auf einen Bereich im Diagramm für mehr Details.</p>
+          </div>
 
-    const attemptNumber =
-      parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
+          ${attemptNumber === 3 ? `
+            <div class="alert alert-info mt-4">
+              <p>Nicht zufrieden mit Ihren T3-Ergebnissen? Besuchen Sie die ILIAS-Kurse unten, um Ihr Niveau zu verbessern.</p>
+            </div>
 
-    // Calculate competency score using updatedScores if available, otherwise use initialScores
-    const scoreData =
-      Object.keys(updatedScores).length > 0 ? updatedScores : initialScores
-    const score = calculateCompetenzScore(scoreData)
+            <div class="mt-4">
+              <h3>Abschließende Reflexion</h3>
+              <div class="form-group">
+                <label for="t3ReflectionResponse">Wie bewerten Sie Ihre Entwicklung von T2 zu T3?</label>
+                <textarea 
+                  id="t3ReflectionResponse" 
+                  class="form-control" 
+                  rows="4" 
+                  placeholder="Beschreiben Sie hier Ihre Entwicklung..."
+                ></textarea>
+                <button onclick="submitT3ReflectionResponse(event)" class="btn btn-primary mt-2">
+                  Reflexion speichern
+                </button>
+              </div>
+            </div>
+          ` : ''}
 
-    // Generate HTML for results
-    let resultHtml = `
-      <h2>Ihr Kompetenzscore beträgt ${score}%</h2>
-      <p>Dieser Score repräsentiert Ihren aktuellen Stand in digitalen Kompetenzen basierend auf Ihren Antworten.</p>
-      <h3>Kompetenzdiagramm</h3>
-      <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
-        Object.keys(updatedScores).length > 0
-          ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der aktuellen Befragung (T2) darstellen.'
-          : ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung.'
-      }</p>
-      <div class="attention-box">
-        <span class="info-icon">ℹ️</span>
-        Bewegen Sie den Mauszeiger über die Balken, um detaillierte Informationen zu den einzelnen Kompetenzen zu erhalten.
-      </div>
-      <div style="height: 300px; width: 100%;">
-        <canvas id="competencyChart1"></canvas>
-      </div>
-      <div id="descriptionBox1"></div>
-        <div style="display: flex; justify-content: center; margin-top: 20px;">
-    <button id="downloadChart" class="btn btn-primary" style="background-color: #004A99; color: white; border: none; padding: 15px 30px; cursor: pointer; border-radius: 5px; font-size: 18px;">Diagramm herunterladen</button>
-  </div>
-  <hr>
-`
+          <div class="mt-4">
+            <h3>Ihre ILIAS-Kurse</h3>
+            <div id="courseLinks"></div>
+          </div>
 
-    if (attemptNumber === 1) {
-      // T1 specific content
-      resultHtml += `
-        <p>Basierend auf deinen Ergebnissen wähle nun einen oder mehrere Kompetenzbereiche aus, in denen du dich weiterbilden möchtest. Wir haben für jeden Kompetenzbereich mehrere Mikrofortbildungen entwickelt, die du absolvieren kannst. Die Auswahl der Kompetenzbereiche kannst du anhand verschiedener Motive selbst vornehmen: Möchtest du den Kompetenzbereich mit dem geringsten Score verbessern, oder interessierst du dich besonders für einen Kompetenzbereich bzw. ist ein Thema gerade sehr aktuell bei dir.</p>
-        <p>Schaue dir nun die Kompetenzbereiche an und entscheide dich für 1 bis 2.</p>
-        <p><strong>Welche Strategie/n hast du bei der Auswahl der Kompetenzbereiche genutzt?</strong></p>
-        <textarea id="t1OpenEndedResponse" rows="4" style="width:100%;" required></textarea>
-        <button id="submitT1OpenEndedResponse" class="btn btn-primary">Absenden</button>
+          <div class="mt-4">
+            <button onclick="downloadChart(event)" class="btn btn-secondary">
+              Chart herunterladen
+            </button>
+          </div>
+        </div>
       `
-    } else if (attemptNumber > 1) {
-      // T2 specific content
-      resultHtml += `
-        <p>Jetzt hast du den Vergleich zwischen deiner Kompetenzeinschätzung vor und nach der Absolvierung der ILIAS Kurse. Wenn der helle Balken niedriger ist als der dunklere, bedeutet das, dass du dich nach den ILIAS-Kursen besser einschätzt als zuvor. Ist der helle Balken höher als der dunklere ist es genau umgekehrt. Es ist auch möglich, dass du dich bei beiden Befragungen in gewissen Kompetenzbereichen gleich eingeschätzt hast: dann sind beide Balken gleich hoch.</p>
-        <p><strong>Wie haben sich deine Kompetenzüberzeugungen nun verändert? Beschreibe, was du im Diagramm siehst und teile uns mit, welche Schlüsse du aus deiner Lernerfahrung ziehst.</strong></p>
-        <textarea id="t2OpenEndedResponse" rows="4" style="width:100%;" required></textarea>
-        <button id="submitT2OpenEndedResponse" class="btn btn-primary">Absenden</button>
-      `
-    }
 
-    document.getElementById('surveyForm').innerHTML = resultHtml
+      // Create the competency chart
+      createCompetencyChart1(initialScores, updatedScores, updatedScores2)
 
-    // Hide the progress bar
-    const progressBar = document.getElementById('progressBar')
-    const progressText = document.getElementById('progressText')
-    if (progressBar) progressBar.style.display = 'none'
-    if (progressText) progressText.style.display = 'none'
+      // Show course links
+      showCourseLinks()
 
-    // Create the competency chart
-    if (Object.keys(updatedScores).length > 0) {
-      // Show both initial and updated scores
-      createCompetencyChart1(initialScores, updatedScores)
-    } else {
-      // Show only initial scores
-      createCompetencyChart1(initialScores, {})
-    }
-
-    // Add event listener for chart download
-    const downloadButton = document.getElementById('downloadChart')
-    if (downloadButton) {
-      downloadButton.addEventListener('click', downloadChart)
-    }
-
-    // Add event listeners for response submissions
-    const t1ResponseButton = document.getElementById('submitT1OpenEndedResponse')
-    if (t1ResponseButton) {
-      t1ResponseButton.addEventListener('click', submitT1OpenEndedResponse)
-    }
-
-    const t2ResponseButton = document.getElementById('submitT2OpenEndedResponse')
-    if (t2ResponseButton) {
-      t2ResponseButton.addEventListener('click', submitT2OpenEndedResponse)
-    }
-
-    // Hide navigation buttons for results page
-    hideNavigationButtons()
-  } catch (error) {
-    console.error('Error displaying results:', error)
-  }
+      // Hide navigation buttons
+      hideNavigationButtons()
+    })
+    .catch((error) => {
+      console.error('Error fetching results:', error)
+      alert('Fehler beim Laden der Ergebnisse')
+    })
 }
 
-// Assign showResults to window after its definition
-window.showResults = showResults
-
-// Function to handle T1 open-ended response submission
-function submitT1OpenEndedResponse(event) {
+// Function to handle T3 reflection response submission
+function submitT3ReflectionResponse(event) {
   event.preventDefault()
-  const openEndedResponse = document
-    .getElementById('t1OpenEndedResponse')
-    .value.trim()
-  if (!openEndedResponse) {
-    alert('Bitte füllen Sie das Textfeld aus.')
+  
+  const response = document.getElementById('t3ReflectionResponse').value.trim()
+  if (!response) {
+    alert('Bitte geben Sie Ihre Reflexion ein, bevor Sie fortfahren.')
     return
   }
 
   const userId = sessionStorage.getItem('userId')
-
-  fetch('/api/save-open-ended-response', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userId: userId,
-      key: 't1_strategy',
-      response: openEndedResponse,
-    }),
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok')
-      }
-      return response.json()
-    })
-    .then(() => {
-      // After successful submission, show the course list
-      document.getElementById('surveyForm').innerHTML += `
-        <p>Hier kommst du zu den Kursen der jeweiligen Kompetenzbereiche. Klicke einfach auf den Link und du wirst zu ILIAS weitergeleitet.</p>
-        <ul>
-          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_121177&client_id=ilias_hro" target="_blank">Suchen, Verarbeiten und Aufbewahren</a></li>
-          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122050&client_id=ilias_hro" target="_blank">Analysieren und Reflektieren</a></li>
-          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_120680&client_id=ilias_hro" target="_blank">Kommunikation & Kollaboration</a></li>
-          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122048&client_id=ilias_hro" target="_blank">Problemlösen und Handeln</a></li>
-          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122047&client_id=ilias_hro" target="_blank">Produzieren</a></li>
-          <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122049&client_id=ilias_hro" target="_blank">Schützen und sicher Agieren</a></li>
-        </ul>
-      `
-      // Disable the submit button and textarea after submission
-      document.getElementById('submitT1OpenEndedResponse').disabled = true
-      document.getElementById('t1OpenEndedResponse').disabled = true
-    })
-    .catch((error) => {
-      console.error('Error:', error)
-      alert(
-        'Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.'
-      )
-    })
-}
-
-/**
- * Function to handle T2 open-ended response submission
- */
-function submitT2OpenEndedResponse(event) {
-  event.preventDefault()
-  const openEndedResponse = document
-    .getElementById('t2OpenEndedResponse')
-    .value.trim()
-  if (!openEndedResponse) {
-    alert('Bitte füllen Sie das Textfeld aus.')
-    return
+  const dataToSend = {
+    userId,
+    openEndedResponses: {
+      t3_reflection: response
+    }
   }
 
-  const userId = sessionStorage.getItem('userId')
-
-  fetch('/api/save-open-ended-response', {
+  fetch('/api/save-user-data', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userId: userId,
-      key: 't2_reflection',
-      response: openEndedResponse,
-    }),
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(dataToSend)
   })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok')
-      }
-      return response.json()
-    })
+    .then(response => response.json())
     .then(() => {
-      document.getElementById('t2OpenEndedResponse').value = ''
-      alert('Vielen Dank für Ihre Antwort!')
+      alert('Ihre Reflexion wurde erfolgreich gespeichert.')
     })
-    .catch((error) => {
-      console.error('Error:', error)
-      alert(
-        'Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.'
-      )
+    .catch(error => {
+      console.error('Error saving T3 reflection:', error)
+      alert('Fehler beim Speichern Ihrer Reflexion. Bitte versuchen Sie es erneut.')
     })
 }
+
+// Add to window object for global access
+window.submitT3ReflectionResponse = submitT3ReflectionResponse
 
 // Function to display course links
 function showCourseLinks() {
   const courseLinksHtml = `
-    <p>Nun ist es Zeit, deine digitalen Kompetenzen zu fördern. Hier kommst du zu den Kursen der jeweiligen Kompetenzbereiche. Klicke einfach auf den Link und du wirst zu ILIAS weitergeleitet.</p>
+    <p>Nun ist es Zeit, Ihre digitalen Kompetenzen zu fördern. Hier kommen Sie zu den Kursen der jeweiligen Kompetenzbereiche. Klicken Sie einfach auf den Link und Sie werden zu ILIAS weitergeleitet.</p>
     <ul>
       <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_121177&client_id=ilias_hro" target="_blank">Suchen, Verarbeiten und Aufbewahren</a></li>
       <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122050&client_id=ilias_hro" target="_blank">Analysieren und Reflektieren</a></li>
@@ -1212,7 +1094,7 @@ function showCourseLinks() {
   `
 
   document
-    .getElementById('surveyForm')
+    .getElementById('courseLinks')
     .insertAdjacentHTML('beforeend', courseLinksHtml)
 }
 
@@ -1668,169 +1550,4 @@ function finishDatenschutz() {
     updateProgressBar();
     window.scrollTo(0, 0);
   }
-}
-
-// Modify renderSection to show appropriate navigation
-function renderSection(index) {
-  console.log(`Rendering section ${index}`)
-
-  if (index < -1 || index > surveyData.length) {
-    console.error(`Invalid section index: ${index}`)
-    currentSection = -1
-    index = -1
-  }
-
-  // Get attempt number from session storage
-  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
-  const isT2 = attemptNumber > 1
-
-  if (index === -1) {
-    renderDatenschutzSection()
-    return
-  }
-
-  const section = surveyData[index]
-  console.log(`Section title: ${section.title}`)
-
-  document.getElementById('surveyForm').innerHTML = ''
-
-  let html = `<div class="section"><h2>${section.title}</h2>`
-
-  // Display the introductory text before every category section except 'Persönliche Angaben'
-  if (section.title !== 'Persönliche Angaben') {
-    html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
-  }
-
-  section.questions.forEach((question, qIndex) => {
-    const questionId = `q${index}_${qIndex}`
-    console.log(`Rendering question: ${questionId}`)
-    let savedValue = userData[questionId] || ''
-
-    // Check if this question depends on another question's answer
-    let shouldDisplay = true;
-    if (question.dependsOn) {
-      const dependentQuestionId = question.dependsOn.questionId
-      const dependentValue = userData[dependentQuestionId]
-      console.log('Checking dependency:', {
-        question: question.text,
-        dependsOn: dependentQuestionId,
-        expectedValue: question.dependsOn.value,
-        actualValue: dependentValue
-      });
-      shouldDisplay = dependentValue === question.dependsOn.value;
-    }
-
-    html += `<div class="question" id="question-${questionId}" style="${shouldDisplay ? '' : 'display: none;'}"><p>${question.text}</p>`
-
-    if (question.type === 'radio') {
-      question.options.forEach((option) => {
-        const isTeachingQuestion = questionId === 'q0_2';
-        html += `<label><input type="radio" name="${questionId}" value="${option}" ${
-          savedValue === option ? 'checked' : ''
-        } ${isTeachingQuestion ? 'onchange="handleTeachingStudentChange(this)"' : ''} required> ${option}</label><br>`
-      })
-    } else if (question.type === 'number' && question.text.includes('Jahr')) {
-      html += `<input type="text" id="${questionId}" name="${questionId}" 
-                     value="${savedValue}" 
-                     oninput="validateYear(this)" 
-                     maxlength="4" 
-                     pattern="[0-9]{4}"
-                     required>`
-    } else if (question.type === 'number') {
-      // For semester number input
-      html += `<input type="number" id="${questionId}" name="${questionId}" 
-                     value="${savedValue}" 
-                     min="1" 
-                     max="99"
-                     required>`
-    } else if (question.type === 'scale') {
-      html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`
-      for (let i = 0; i <= 6; i++) {
-        html += `<label class="scale-label">
-                  <input type="radio" name="${questionId}" value="${i}" ${
-          savedValue === i.toString() ? 'checked' : ''
-        } required>
-                  <span class="scale-button" role="radio" aria-checked="${
-                    savedValue === i.toString() ? 'true' : 'false'
-                  }" tabindex="0">${i}</span>
-                  <span class="sr-only">${
-                    i === 0
-                      ? 'gar nicht kompetent'
-                      : i === 6
-                      ? 'ausgesprochen kompetent'
-                      : ''
-                  }</span>
-             </label>`
-      }
-      html += `</div>
-               <div class="scale-labels">
-                 <span>gar nicht kompetent</span>
-                 <span>ausgesprochen kompetent</span>
-               </div>`
-    } else if (question.type === 'dropdown') {
-      html += `<select id="${questionId}" name="${questionId}" required>
-                <option value="" disabled ${
-                  !savedValue ? 'selected' : ''
-                }>Bitte wählen Sie eine Option</option>
-                ${question.options
-                  .map(
-                    (option) =>
-                      `<option value="${option}" ${
-                        savedValue === option ? 'selected' : ''
-                      }>${option}</option>`
-                  )
-                  .join('')}
-             </select>`
-    } else if (question.type === 'text') {
-      html += `<input type="text" id="${questionId}" name="${questionId}" value="${savedValue}" required>`
-    }
-
-    html += `</div>`
-  })
-
-  // After rendering the first section, add the open-ended question for T2
-  if (index === 0 && attemptNumber > 1) {
-    html += `
-      <div class="question">
-        <p>Wie fandest du deine absolvierten Kurse in ILIAS in Bezug auf Inhalt und Struktur? Was hast du für dich mitgenommen? Was war hilfreich für dich?</p>
-        <textarea name="t2_course_feedback" id="t2_course_feedback" rows="4" style="width:100%;" required>${
-          userData['t2_course_feedback'] || ''
-        }</textarea>
-      </div>
-    `
-  }
-
-  html += `</div>`
-  document.getElementById('surveyForm').innerHTML = html
-
-  // Add event listeners for scale buttons
-  document.querySelectorAll('.scale-button').forEach((button) => {
-    button.addEventListener('keydown', handleScaleKeydown)
-  })
-
-  // If we're in the personal info section, add the teaching student change handler
-  if (section.title === 'Persönliche Angaben') {
-    const teachingStudentRadios = document.querySelectorAll('input[name="q0_2"]')
-    teachingStudentRadios.forEach(radio => {
-      radio.addEventListener('change', () => handleTeachingStudentChange(radio))
-    })
-    // Trigger the handler if a value is already selected
-    const selectedRadio = document.querySelector('input[name="q0_2"]:checked')
-    if (selectedRadio) {
-      handleTeachingStudentChange(selectedRadio)
-    }
-  }
-
-  const isLastSection = index === surveyData.length;
-  const navigationHtml = `
-    <div class="navigation-buttons">
-      ${index > 0 ? '<button type="button" class="btn btn-secondary" onclick="previousSection()">Zurück</button>' : ''}
-      <button type="button" class="btn btn-secondary" onclick="saveSectionData(false)">Speichern</button>
-      <button type="button" class="btn btn-primary" onclick="${isLastSection ? 'showResults()' : 'nextSection()'}">${isLastSection ? 'Ergebnisse anzeigen' : 'Weiter'}</button>
-    </div>
-  `;
-
-  html += navigationHtml;
-  document.getElementById('surveyForm').innerHTML = html;
-  updateProgressBar()
 }
