@@ -356,76 +356,62 @@ input[type="date"][readonly] {
     cursor: not-allowed;
 }
 
-/* New styles for Datenschutz section */
+/* Datenschutz Section Styles */
 .datenschutz-section {
-    margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .datenschutz-section h2 {
-    color: #004a99;
-    border-bottom: 2px solid #004a99;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
+  color: #004a99;
+  margin-bottom: 20px;
 }
 
 .datenschutz-content {
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.datenschutz-content h3 {
+  color: #004a99;
+  margin: 20px 0 10px;
+}
+
+.datenschutz-content p {
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.datenschutz-content ul {
+  margin-left: 20px;
+  margin-bottom: 15px;
+}
+
+.datenschutz-content li {
+  margin-bottom: 10px;
 }
 
 .final-inputs {
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-top: 30px;
 }
 
-.final-inputs .question {
-    margin-bottom: 15px;
+.agreement-questions {
+  margin: 20px 0;
 }
 
-.final-inputs .agreement {
-    margin-top: 20px;
+.agreement {
+  margin-bottom: 15px;
 }
 
-.final-inputs .agreement label {
-    display: flex;
-    align-items: center;
+.agreement label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-.final-inputs .agreement input[type="checkbox"] {
-    margin-right: 10px;
-}
-
-@keyframes shake {
-
-    10%,
-    90% {
-        transform: translate3d(-1px, 0, 0);
-    }
-
-    20%,
-    80% {
-        transform: translate3d(2px, 0, 0);
-    }
-
-    30%,
-    50%,
-    70% {
-        transform: translate3d(-4px, 0, 0);
-    }
-
-    40%,
-    60% {
-        transform: translate3d(4px, 0, 0);
-    }
-}
-
-.unanswered {
-    border: 2px solid red;
+.agreement input[type="checkbox"] {
+  margin-top: 4px;
 }
 
 /* Attention Box Styling */

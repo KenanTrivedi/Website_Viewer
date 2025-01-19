@@ -426,7 +426,7 @@ async function handleLogin() {
       sessionStorage.setItem('currentSection', data.currentSection || '0')
       sessionStorage.setItem('startNewAttempt', payload.startNewAttempt)
 
-      window.location.href = 'survey.html'
+      handleLoginSuccess(data.userId)
     } else {
       await Swal.fire({
         icon: 'error',
@@ -450,6 +450,14 @@ async function handleLogin() {
       generateCodeButton.disabled = false
     }
   }
+}
+
+async function handleLoginSuccess(userId) {
+  sessionStorage.setItem('userId', userId);
+  sessionStorage.setItem('isLoggedIn', 'true');
+  
+  // Redirect to survey page
+  window.location.href = 'survey.html';
 }
 
 function setupLogoutFunctionality() {

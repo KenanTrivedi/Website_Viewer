@@ -1,7 +1,7 @@
 // survey.js
 
 // Global Variables
-let currentSection = 0
+let currentSection = -1
 let userData = {}
 let chart1Instance = null
 let initialScores = {}
@@ -53,7 +53,7 @@ if (typeof surveyData === 'undefined') {
 // Event Listener Setup on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function () {
   loadUserData()
-  renderSection(currentSection)
+  initializeSurvey()
   updateProgressBar()
   setupEventListeners()
   checkResumeToken()
@@ -147,7 +147,7 @@ function populatePersonalInfo(form, data) {
 // Reset User Data Function
 function resetUserData() {
   userData = {}
-  currentSection = 0
+  currentSection = -1
   initialScores = {}
   updatedScores = {}
 }
@@ -323,7 +323,7 @@ async function loadUserData(isNewAttempt = false) {
       if (response.status === 404) {
         console.log('User data not found, initializing new user data.')
         userData = {}
-        currentSection = 0
+        currentSection = -1
         initialScores = {}
         updatedScores = {}
       } else if (!response.ok) {
@@ -353,21 +353,21 @@ async function loadUserData(isNewAttempt = false) {
               subjects: userData.q0_4,
               semester: userData.q0_6
             })
-            currentSection = 0
+            currentSection = -1
             updatedScores = {}
           } else {
             userData = {
               ...data.data,
               initialResponses: data.initialResponses || {}
             }
-            currentSection = data.currentSection !== undefined ? data.currentSection : 0
+            currentSection = data.currentSection !== undefined ? data.currentSection : -1
             updatedScores = data.updatedScores || {}
           }
           initialScores = data.initialScores || {}
           console.log('Processed user data:', userData)
         } else {
           userData = {}
-          currentSection = 0
+          currentSection = -1
         }
       }
       renderSection(currentSection)
@@ -417,17 +417,17 @@ function validateYear(input) {
 function renderSection(index) {
   console.log(`Rendering section ${index}`)
 
-  if (index < 0 || index > surveyData.length) {
+  if (index < -1 || index > surveyData.length) {
     console.error(`Invalid section index: ${index}`)
-    currentSection = 0 // Reset to first section
-    index = 0
+    currentSection = -1 // Reset to datenschutz section
+    index = -1
   }
 
   // Get attempt number from session storage
   const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
   const isT2 = attemptNumber > 1
 
-  if (index === surveyData.length) {
+  if (index === -1) {
     renderDatenschutzSection()
     return
   }
@@ -711,7 +711,7 @@ function handleScaleKeydown(event) {
 // Update Progress Bar Function
 function updateProgressBar() {
   const totalSteps = surveyData.length + 1 // Includes Datenschutz section
-  const currentStep = Math.min(currentSection + 1, totalSteps) // Prevent overflow
+  const currentStep = currentSection < 0 ? 1 : currentSection + 2 // Adjust for Datenschutz
   const progress = (currentStep / totalSteps) * 100
   const progressFill = document.getElementById('progressFill')
   const progressText = document.getElementById('progressText')
@@ -1331,7 +1331,7 @@ async function resetSurveyData() {
 
     // Reload the survey to reflect the reset
     resetUserData()
-    currentSection = 0
+    currentSection = -1
     renderSection(currentSection)
     updateProgressBar()
     updateNavigationButtons()
@@ -1573,4 +1573,279 @@ function validateDatenschutz() {
   }
 
   return isValid
+}
+
+// Initialize survey after code generation
+async function initializeSurvey() {
+  currentSection = -1; // -1 represents datenschutz section
+  renderDatenschutzSection();
+  updateProgressBar();
+}
+
+// Modify renderDatenschutzSection to only show Weiter button
+function renderDatenschutzSection() {
+  const datenschutzHtml = `
+    <div class="datenschutz-section">
+      <h2>Datenschutzerklärung</h2>
+      <p>
+        Bevor Sie mit der Befragung beginnen, müssen wir sicher stellen, dass wir Ihre Daten speichern dürfen. Dafür lesen Sie sich bitte die Datenschutzerklärung durch und stimmen Sie dieser durch Ihre digitale Unterschrift zu.
+      </p>
+      <div class="datenschutz-content">
+         <h3>Projektleitung:</h3>
+        <p>Prof.in Dr. Charlott Rubach & Anne-Kathrin Hirsch</p>
+        <p>Sehr geehrte Lehramtsstudierende,</p>
+        <p>
+          die Digitalisierung und Digitalität im Bildungsbereich erhielten in den letzten Jahren große Aufmerksamkeit. Der kompetente Umgang mit digitalen Medien gehört zum Aufgabenbereich von Lehrkräften. Daher ist es bedeutsam, dass Lehramtsstudierende während ihrer Ausbildung auf diesen Umgang vorbereitet werden. Wir interessieren uns im Rahmen dieser Studie „Open-Digi“ dafür, inwieweit die von uns erstellten Lernerfahrungen zur Förderung digitaler Kompetenzen beitragen.
+        </p>
+        <h3>Wer sind wir?</h3>
+        <p>
+          Wir sind Prof. Dr. Charlott Rubach und Anne-Kathrin Hirsch, Bildungsforscherinnen an der Universität Rostock. Unsere Forschungsschwerpunkte sind Digitalisierung, Förderung digitaler Kompetenzen und Gestaltungsmöglichkeiten einer bedarfsorientierten Lehrkräftebildung.
+        </p>
+        <h3>Worum geht es in diesem Projekt?</h3>
+        <p>
+          Ziel des Projektes ist die Untersuchung von effektiven Lernerfahrungen für die Entwicklung digitaler Kompetenzen. Das Projekt besteht aus mehreren Schritten:
+        </p>
+        <ul>
+          <li>Sie füllen die Befragung zum Open-Digi Projekt aus, welcher der Pre-Diagnostik gilt und zirka 10 Minuten dauert. Alle Befragungen thematisieren ausschließlich Aspekte von digitaler Kompetenz.</li>
+          <li>Ihnen werden auf Grundlage der Diagnostik mehrere Vorschläge gemacht, wie sie eigene Kompetenzen weiterentwickeln können.</li>
+          <li>Sie bearbeiten verschiedene Kurse.</li>
+          <li>Sie durchlaufen die Post-Diagnostik direkt nach Bearbeitung der Kurse.</li>
+          <li>Sie machen eine dritte Befragung, 1 Monat nach Bearbeitung der Kurse.</li>
+        </ul>
+        <h3>Was bedeutet die Teilnahme für mich und meine Daten?</h3>
+        <p>
+          Ihre Teilnahme an unserer Studie ist freiwillig. Wenn Sie an der Studie teilnehmen, können Sie die Befragung jederzeit abbrechen. In diesem Falle werden die Daten nicht gespeichert.
+        </p>
+        <p>
+          Die Befragung ist anonym. Das heißt, es werden auch ausschließlich anonymisierte Informationen analysiert und im Rahmen wissenschaftlicher Arbeiten veröffentlicht. Es werden keine Informationen gespeichert, die es uns möglich machen, Sie als Person zu identifizieren. Eine Rücknahme Ihres Einverständnisses und damit Löschung Ihrer Daten, nachdem Sie den Fragebogen ausgefüllt und abgegeben haben, ist demnach nicht möglich. Anonymisiert sind auch Daten, die keine persönliche Information mehr enthalten, bspw. Alter, Geschlecht, Lehramtstyp, Fächer und Hochschulsemester.
+        </p>
+        <p>
+          Wir speichern Ihre Antworten und Ihre Angaben (z. B. Alter und Geschlecht). Diese werden bis zum Abschluss der Untersuchung und maximal 10 Jahre auf den Dienstrechnern der Wissenschaftlerinnen aus dem Projekt gespeichert und danach gelöscht.
+        </p>
+        <p>
+          Es erfolgt keine Weitergabe Ihrer Daten an Dritte außerhalb des Forschungsprojektes.
+        </p>
+        <p>
+          Unter folgendem <a href="datenschutz.html" target="_blank">Link</a> finden Sie ausführliche Hinweise zum Schutz Ihrer Daten.
+        </p>
+      </div>
+      <div class="final-inputs">
+        <div class="question">
+          <label for="datum">Datum</label>
+          <input type="date" id="datum" name="datum" value="${
+            new Date().toISOString().split('T')[0]
+          }" readonly required aria-required="true">
+        </div>
+        <div class="question">
+          <label for="unterschrift">Unterschrift (Bitte tippen Sie Ihren Namen als Unterschrift)</label>
+          <input type="text" id="unterschrift" name="unterschrift" required aria-required="true">
+        </div>
+        <div class="agreement-questions">
+          <div class="agreement">
+            <label>
+              <input type="checkbox" id="datenschutzKenntnis" name="datenschutzKenntnis" required>
+              Mir sind die Datenschutzhinweise zur Befragung zur Kenntnis gegeben worden.
+            </label>
+          </div>
+          <div class="agreement">
+            <label>
+              <input type="checkbox" id="datenschutzVerarbeitung" name="datenschutzVerarbeitung" required>
+              Ich erkläre mich damit einverstanden, dass meine Daten gemäß der Informationen zum Datenschutz verarbeitet und gespeichert werden.
+            </label>
+          </div>
+          <div class="agreement">
+            <label>
+              <input type="checkbox" id="teilnahmeEinverstaendnis" name="teilnahmeEinverstaendnis" required>
+              Hiermit erkläre mich einverstanden, unter den genannten Bedingungen an der Befragung teilzunehmen.
+            </label>
+          </div>
+        </div>
+        <div class="navigation-buttons">
+          <button type="button" id="submitFinal" class="btn btn-primary" onclick="finishDatenschutz()">
+            Weiter <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `
+
+  const surveyForm = document.getElementById('surveyForm')
+  if (surveyForm) {
+    surveyForm.innerHTML = datenschutzHtml
+  }
+}
+
+// New function to handle datenschutz completion
+function finishDatenschutz() {
+  if (validateDatenschutz()) {
+    currentSection = 0;
+    renderSection(currentSection);
+    updateProgressBar();
+    window.scrollTo(0, 0);
+  }
+}
+
+// Modify renderSection to show appropriate navigation
+function renderSection(index) {
+  console.log(`Rendering section ${index}`)
+
+  if (index < -1 || index > surveyData.length) {
+    console.error(`Invalid section index: ${index}`)
+    currentSection = -1
+    index = -1
+  }
+
+  // Get attempt number from session storage
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+  const isT2 = attemptNumber > 1
+
+  if (index === -1) {
+    renderDatenschutzSection()
+    return
+  }
+
+  const section = surveyData[index]
+  console.log(`Section title: ${section.title}`)
+
+  document.getElementById('surveyForm').innerHTML = ''
+
+  let html = `<div class="section"><h2>${section.title}</h2>`
+
+  // Display the introductory text before every category section except 'Persönliche Angaben'
+  if (section.title !== 'Persönliche Angaben') {
+    html += `<p>Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
+  }
+
+  section.questions.forEach((question, qIndex) => {
+    const questionId = `q${index}_${qIndex}`
+    console.log(`Rendering question: ${questionId}`)
+    let savedValue = userData[questionId] || ''
+
+    // Check if this question depends on another question's answer
+    let shouldDisplay = true;
+    if (question.dependsOn) {
+      const dependentQuestionId = question.dependsOn.questionId
+      const dependentValue = userData[dependentQuestionId]
+      console.log('Checking dependency:', {
+        question: question.text,
+        dependsOn: dependentQuestionId,
+        expectedValue: question.dependsOn.value,
+        actualValue: dependentValue
+      });
+      shouldDisplay = dependentValue === question.dependsOn.value;
+    }
+
+    html += `<div class="question" id="question-${questionId}" style="${shouldDisplay ? '' : 'display: none;'}"><p>${question.text}</p>`
+
+    if (question.type === 'radio') {
+      question.options.forEach((option) => {
+        const isTeachingQuestion = questionId === 'q0_2';
+        html += `<label><input type="radio" name="${questionId}" value="${option}" ${
+          savedValue === option ? 'checked' : ''
+        } ${isTeachingQuestion ? 'onchange="handleTeachingStudentChange(this)"' : ''} required> ${option}</label><br>`
+      })
+    } else if (question.type === 'number' && question.text.includes('Jahr')) {
+      html += `<input type="text" id="${questionId}" name="${questionId}" 
+                     value="${savedValue}" 
+                     oninput="validateYear(this)" 
+                     maxlength="4" 
+                     pattern="[0-9]{4}"
+                     required>`
+    } else if (question.type === 'number') {
+      // For semester number input
+      html += `<input type="number" id="${questionId}" name="${questionId}" 
+                     value="${savedValue}" 
+                     min="1" 
+                     max="99"
+                     required>`
+    } else if (question.type === 'scale') {
+      html += `<div class="rating-scale" role="group" aria-label="Kompetenzskala von 0 bis 6">`
+      for (let i = 0; i <= 6; i++) {
+        html += `<label class="scale-label">
+                  <input type="radio" name="${questionId}" value="${i}" ${
+          savedValue === i.toString() ? 'checked' : ''
+        } required>
+                  <span class="scale-button" role="radio" aria-checked="${
+                    savedValue === i.toString() ? 'true' : 'false'
+                  }" tabindex="0">${i}</span>
+                  <span class="sr-only">${
+                    i === 0
+                      ? 'gar nicht kompetent'
+                      : i === 6
+                      ? 'ausgesprochen kompetent'
+                      : ''
+                  }</span>
+             </label>`
+      }
+      html += `</div>
+               <div class="scale-labels">
+                 <span>gar nicht kompetent</span>
+                 <span>ausgesprochen kompetent</span>
+               </div>`
+    } else if (question.type === 'dropdown') {
+      html += `<select id="${questionId}" name="${questionId}" required>
+                <option value="" disabled ${
+                  !savedValue ? 'selected' : ''
+                }>Bitte wählen Sie eine Option</option>
+                ${question.options
+                  .map(
+                    (option) =>
+                      `<option value="${option}" ${
+                        savedValue === option ? 'selected' : ''
+                      }>${option}</option>`
+                  )
+                  .join('')}
+             </select>`
+    } else if (question.type === 'text') {
+      html += `<input type="text" id="${questionId}" name="${questionId}" value="${savedValue}" required>`
+    }
+
+    html += `</div>`
+  })
+
+  // After rendering the first section, add the open-ended question for T2
+  if (index === 0 && attemptNumber > 1) {
+    html += `
+      <div class="question">
+        <p>Wie fandest du deine absolvierten Kurse in ILIAS in Bezug auf Inhalt und Struktur? Was hast du für dich mitgenommen? Was war hilfreich für dich?</p>
+        <textarea name="t2_course_feedback" id="t2_course_feedback" rows="4" style="width:100%;" required>${
+          userData['t2_course_feedback'] || ''
+        }</textarea>
+      </div>
+    `
+  }
+
+  html += `</div>`
+  document.getElementById('surveyForm').innerHTML = html
+
+  // Add event listeners for scale buttons
+  document.querySelectorAll('.scale-button').forEach((button) => {
+    button.addEventListener('keydown', handleScaleKeydown)
+  })
+
+  // If we're in the personal info section, add the teaching student change handler
+  if (section.title === 'Persönliche Angaben') {
+    const teachingStudentRadios = document.querySelectorAll('input[name="q0_2"]')
+    teachingStudentRadios.forEach(radio => {
+      radio.addEventListener('change', () => handleTeachingStudentChange(radio))
+    })
+    // Trigger the handler if a value is already selected
+    const selectedRadio = document.querySelector('input[name="q0_2"]:checked')
+    if (selectedRadio) {
+      handleTeachingStudentChange(selectedRadio)
+    }
+  }
+
+  const isLastSection = index === surveyData.length;
+  const navigationHtml = `
+    <div class="navigation-buttons">
+      ${index > 0 ? '<button type="button" class="btn btn-secondary" onclick="previousSection()">Zurück</button>' : ''}
+      <button type="button" class="btn btn-secondary" onclick="saveSectionData(false)">Speichern</button>
+      <button type="button" class="btn btn-primary" onclick="${isLastSection ? 'showResults()' : 'nextSection()'}">${isLastSection ? 'Ergebnisse anzeigen' : 'Weiter'}</button>
+    </div>
+  `;
+
+  html += navigationHtml;
+  document.getElementById('surveyForm').innerHTML = html;
+  updateProgressBar()
 }
