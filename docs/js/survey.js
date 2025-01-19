@@ -1432,59 +1432,44 @@ window.validateYear = validateYear
 // Handle teaching student radio button changes
 function handleTeachingStudentChange(radio) {
   console.log('handleTeachingStudentChange called with value:', radio.value);
-  
-  // Update the current question's value in userData
-  userData[radio.name] = radio.value;
-
-  // Get all dependent questions
+  // Show/hide dependent questions based on yes/no
   const teachingQuestions = [
-    document.querySelector('#question-q0_3'),  // Lehramt type
-    document.querySelector('#question-q0_4')   // Teaching subjects
+    document.querySelector('#question-q0_3'),
+    document.querySelector('#question-q0_4')
   ];
-  const nonTeachingQuestion = document.querySelector('#question-q0_5');  // Non-teaching program
+  const nonTeachingQuestion = document.querySelector('#question-q0_5');
 
   if (radio.value === 'Ja') {
-    // Show teaching questions, hide non-teaching
     teachingQuestions.forEach(q => {
       if (q) {
         q.style.display = '';
-        // Make inputs required
-        const inputs = q.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => input.required = true);
+        q.querySelectorAll('input, select, textarea').forEach(input => input.required = true);
       }
     });
     if (nonTeachingQuestion) {
       nonTeachingQuestion.style.display = 'none';
-      // Remove required from hidden inputs
-      const inputs = nonTeachingQuestion.querySelectorAll('input, select, textarea');
-      inputs.forEach(input => input.required = false);
-      // Clear the value
-      delete userData['q0_5'];
+      nonTeachingQuestion.querySelectorAll('input, select, textarea').forEach(input => {
+        input.required = false;
+        input.value = '';
+      });
     }
   } else {
-    // Show non-teaching question, hide teaching
     teachingQuestions.forEach(q => {
       if (q) {
         q.style.display = 'none';
-        // Remove required from hidden inputs
-        const inputs = q.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => input.required = false);
+        q.querySelectorAll('input, select, textarea').forEach(input => {
+          input.required = false;
+          input.value = '';
+        });
       }
     });
     if (nonTeachingQuestion) {
       nonTeachingQuestion.style.display = '';
-      // Make inputs required
-      const inputs = nonTeachingQuestion.querySelectorAll('input, select, textarea');
-      inputs.forEach(input => input.required = true);
+      nonTeachingQuestion.querySelectorAll('input, select, textarea').forEach(input => input.required = true);
     }
-    // Clear teaching-related values
-    delete userData['q0_3'];
-    delete userData['q0_4'];
   }
-
-  // Save the current state
+  userData[radio.name] = radio.value;
   saveSectionData(false);
-  console.log('Current userData:', userData);
 }
 
 // Add to window object for global access
