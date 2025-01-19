@@ -330,25 +330,29 @@ async function loadUserData(isNewAttempt = false) {
         throw new Error('Error fetching user data')
       } else {
         const data = await response.json()
-        console.log('Loaded user data:', data)
+        console.log('Raw loaded user data:', data)
 
         // Store attemptNumber in sessionStorage
         const attemptNumber = data.attemptNumber || 1
         sessionStorage.setItem('attemptNumber', attemptNumber.toString())
 
         if (data.data) {
-          if (isNewAttempt) {
-            // For new attempts, use initial responses for teaching subjects and semester
+          if (isNewAttempt || attemptNumber > 1) {
+            // For new attempts or T2, use initial responses for teaching subjects and semester
             userData = {
               q0_0: data.data.q0_0,  // Gender
               q0_1: data.data.q0_1,  // Birth year
               q0_2: data.data.q0_2,  // Teaching student
               q0_3: data.data.q0_3,  // Teaching type
-              q0_4: data.initialResponses?.q0_4 || data.data.q0_4,  // Teaching subjects - use initial response
+              q0_4: data.initialResponses?.q0_4,  // Teaching subjects - use initial response
               q0_5: data.data.q0_5,  // Non-teaching program
-              q0_6: data.initialResponses?.q0_6 || data.data.q0_6,  // Semester - use initial response
+              q0_6: data.initialResponses?.q0_6,  // Semester - use initial response
               initialResponses: data.initialResponses || {}  // Store initial responses for reference
             }
+            console.log('T2/New attempt - Using initial responses:', {
+              subjects: userData.q0_4,
+              semester: userData.q0_6
+            })
             currentSection = 0
             updatedScores = {}
           } else {
@@ -962,17 +966,15 @@ function populateFormFields(form, data, sectionIndex) {
   const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
   const isT2 = attemptNumber > 1
 
+  console.log('Populating form fields. Attempt number:', attemptNumber)
+  console.log('Current data:', data)
+
   section.questions.forEach((question, questionIndex) => {
     const questionId = `q${sectionIndex}_${questionIndex}`
     
-    let value
-    if (isT2 && (questionId === 'q0_4' || questionId === 'q0_6')) {
-      // For T2, use the initial responses for teaching subjects and semester
-      value = data.initialResponses?.[questionId] || data[questionId]
-      console.log(`T2 field ${questionId}:`, value) // Debug log
-    } else {
-      value = data[questionId]
-    }
+    // Get the value - for T2, teaching subjects and semester are already set in userData
+    const value = data[questionId]
+    console.log(`Field ${questionId}:`, value)
 
     if (value !== undefined) {
       const field = form.querySelector(`[name="${questionId}"]`)
@@ -991,7 +993,7 @@ function populateFormFields(form, data, sectionIndex) {
           if (isT2 && (questionId === 'q0_4' || questionId === 'q0_6')) {
             field.readOnly = true
             field.style.backgroundColor = '#f0f0f0'
-            console.log(`Setting ${questionId} as read-only`) // Debug log
+            console.log(`Setting ${questionId} as read-only with value: ${value}`)
           }
         }
       }
