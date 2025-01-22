@@ -20,6 +20,7 @@
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="stylesheet" href="css/survey.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
   <body>
     <header>
@@ -48,16 +49,11 @@
         <form id="surveyForm">
           <!-- Survey content will be dynamically inserted here -->
         </form>
-        <div class="navigation-buttons">
-          <button type="button" id="prevButton" class="btn btn-secondary">
-            <i class="fas fa-chevron-left"></i> Zurück
-          </button>
-          <button type="button" id="saveProgressButton" class="btn btn-primary">
-            <i class="fas fa-save"></i> Fortschritt speichern
-          </button>
-          <button type="button" id="nextButton" class="btn btn-primary">
-            Weiter <i class="fas fa-chevron-right"></i>
-          </button>
+        <!-- Results Section -->
+        <div class="results-section" style="display: none;">
+          <canvas id="competencyChart1"></canvas>
+          <div id="descriptionBox1"></div>
+          <div id="iliasLinks"></div>
         </div>
       </div>
     </main>

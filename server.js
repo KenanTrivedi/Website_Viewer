@@ -206,8 +206,11 @@ app.post("/login", async (req, res) => {
         }
 
         // Increment attemptNumber
+        // Reset section progress for new attempt while preserving personal info
+        userData.currentSection = 1; // Skip personal info section (section 0)
         userData.attemptNumber = (userData.attemptNumber || 1) + 1;
-
+        userData.isComplete = false;
+        
         await userData.save();
       } else {
         // User wants to continue initial survey or resume
@@ -239,6 +242,36 @@ app.post("/login", async (req, res) => {
  * @access  Public
  */
 // In server.js, modify the /api/save-user-data endpoint
+
+// Route to get ILIAS recommendations based on scores
+app.post("/api/get-recommendations", async (req, res) => {
+  const { userId } = req.body;
+  
+  try {
+    const user = await UserData.findOne({ userId });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Get scores for current attempt
+    const scores = user.attemptNumber > 1 ? 
+      user.updatedScores : 
+      user.initialScores;
+
+    // Map scores to ILIAS courses (example implementation)
+    const recommendations = Object.entries(scores).map(([category, score]) => ({
+      category,
+      score,
+      courseLink: `https://ilias.uni-rostock.de/${category}/${Math.floor(score/25)}` // 0-25%, 26-50%, etc.
+    }));
+
+    res.json({ recommendations });
+    
+  } catch (error) {
+    console.error("Recommendation error:", error);
+    res.status(500).json({ error: "Failed to generate recommendations" });
+  }
+});
 
 app.post("/api/save-user-data", async (req, res) => {
   const {

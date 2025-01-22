@@ -218,7 +218,7 @@ async function handleCodeGenerationFormSubmission(event) {
         await Swal.fire({
           icon: 'error',
           title: 'Code bereits vergeben',
-          text: 'Dieser Code existiert bereits. Bitte verwenden Sie stattdessen die Initialen Ihres Vaters für den zweiten Teil des Codes.',
+          text: 'Dieser Code existiert bereits. Bitte verwenden Sie stattdessen die Initialen Ihrer Erziehungsberechtigten für den zweiten Teil des Codes.',
         })
         updateParentFieldForFather()
       } else {
@@ -548,7 +548,6 @@ function saveUserData(userId, data, isComplete = false) {
       return response.json()
     })
     .then((result) => {
-      console.log('Data saved successfully:', result)
       sessionStorage.setItem('surveyData', JSON.stringify(data))
       sessionStorage.setItem(
         'initialScores',
