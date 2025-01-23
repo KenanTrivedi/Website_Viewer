@@ -560,9 +560,9 @@ async function loadUserData(isNewAttempt = false) {
           t2: {},
           meta: {
             attemptNumber: 1,
-            currentSection: -1
-          }
-        }
+            currentSection: -1,
+          },
+        },
       }
     } else if (!response.ok) {
       throw new Error('Failed to load user data')
@@ -574,12 +574,14 @@ async function loadUserData(isNewAttempt = false) {
     userData = data
 
     // For T2, ensure we start at personal section
-    const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+    const attemptNumber = parseInt(
+      sessionStorage.getItem('attemptNumber') || '1'
+    )
     if (attemptNumber > 1) {
       userData.meta = {
         ...userData.meta,
         attemptNumber: 2,
-        currentSection: 0  // Always start T2 at personal section
+        currentSection: 0, // Always start T2 at personal section
       }
       currentSection = 0
       console.log('T2: Starting at personal section')
@@ -588,10 +590,10 @@ async function loadUserData(isNewAttempt = false) {
       if (!userData.t2) {
         userData.t2 = {}
       }
-      
+
       // Copy data from initialResponses for personal section
       if (userData.initialResponses) {
-        Object.keys(userData.initialResponses).forEach(key => {
+        Object.keys(userData.initialResponses).forEach((key) => {
           if (key.startsWith('q0_')) {
             userData.t2[key] = userData.initialResponses[key]
             // Also copy to t1 for compatibility with existing code
@@ -599,17 +601,23 @@ async function loadUserData(isNewAttempt = false) {
             userData.t1[key] = userData.initialResponses[key]
           }
         })
-        console.log('T2: Copied personal info:', JSON.stringify(userData.t2, null, 2))
+        console.log(
+          'T2: Copied personal info:',
+          JSON.stringify(userData.t2, null, 2)
+        )
       } else if (userData.data) {
         // Fallback to data if initialResponses not found
-        Object.keys(userData.data).forEach(key => {
+        Object.keys(userData.data).forEach((key) => {
           if (key.startsWith('q0_')) {
             userData.t2[key] = userData.data[key]
             if (!userData.t1) userData.t1 = {}
             userData.t1[key] = userData.data[key]
           }
         })
-        console.log('T2: Copied from data:', JSON.stringify(userData.t2, null, 2))
+        console.log(
+          'T2: Copied from data:',
+          JSON.stringify(userData.t2, null, 2)
+        )
       } else {
         console.warn('No data found to copy from')
       }
@@ -617,7 +625,7 @@ async function loadUserData(isNewAttempt = false) {
       userData.meta = {
         ...userData.meta,
         attemptNumber: 1,
-        currentSection: isNewAttempt ? -1 : (userData.meta?.currentSection || -1)
+        currentSection: isNewAttempt ? -1 : userData.meta?.currentSection || -1,
       }
       currentSection = userData.meta.currentSection
     }
@@ -627,7 +635,6 @@ async function loadUserData(isNewAttempt = false) {
     renderSection(currentSection)
     updateProgressBar()
     updateNavigationButtons()
-
   } catch (error) {
     console.error('Error loading user data:', error)
     // For new users, just start fresh instead of showing error
@@ -637,8 +644,8 @@ async function loadUserData(isNewAttempt = false) {
         t2: {},
         meta: {
           attemptNumber: 1,
-          currentSection: -1
-        }
+          currentSection: -1,
+        },
       }
       currentSection = -1
       renderSection(currentSection)
@@ -912,7 +919,14 @@ function renderSection(index) {
             const showField = shouldCheck || (!isT2 && isChecked)
             html += `<div class="conditional-field" 
                  data-condition="${option}"
-                 style="display: ${(option === 'Ja' && (isT2 ? t1Value === 'Ja' : shouldCheck)) || (option === 'Nein' && (isT2 ? t1Value === 'Nein' : shouldCheck)) ? 'block' : 'none'}">`
+                 style="display: ${
+                   (option === 'Ja' &&
+                     (isT2 ? t1Value === 'Ja' : shouldCheck)) ||
+                   (option === 'Nein' &&
+                     (isT2 ? t1Value === 'Nein' : shouldCheck))
+                     ? 'block'
+                     : 'none'
+                 }">`
 
             if (option === 'Ja') {
               // Lehramt dropdown
@@ -1752,7 +1766,9 @@ async function startNewSurvey() {
     sessionStorage.setItem('startNewAttempt', 'true')
 
     // For T2, ensure we start at personal section
-    const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+    const attemptNumber = parseInt(
+      sessionStorage.getItem('attemptNumber') || '1'
+    )
     if (attemptNumber > 1) {
       sessionStorage.setItem('currentSection', '0')
     }
@@ -2029,9 +2045,9 @@ async function loadUserData(isNewAttempt = false) {
           t2: {},
           meta: {
             attemptNumber: 1,
-            currentSection: -1
-          }
-        }
+            currentSection: -1,
+          },
+        },
       }
     } else if (!response.ok) {
       throw new Error('Failed to load user data')
@@ -2043,12 +2059,14 @@ async function loadUserData(isNewAttempt = false) {
     userData = data
 
     // For T2, ensure we start at personal section
-    const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+    const attemptNumber = parseInt(
+      sessionStorage.getItem('attemptNumber') || '1'
+    )
     if (attemptNumber > 1) {
       userData.meta = {
         ...userData.meta,
         attemptNumber: 2,
-        currentSection: 0  // Always start T2 at personal section
+        currentSection: 0, // Always start T2 at personal section
       }
       currentSection = 0
       console.log('T2: Starting at personal section')
@@ -2057,10 +2075,10 @@ async function loadUserData(isNewAttempt = false) {
       if (!userData.t2) {
         userData.t2 = {}
       }
-      
+
       // Copy data from initialResponses for personal section
       if (userData.initialResponses) {
-        Object.keys(userData.initialResponses).forEach(key => {
+        Object.keys(userData.initialResponses).forEach((key) => {
           if (key.startsWith('q0_')) {
             userData.t2[key] = userData.initialResponses[key]
             // Also copy to t1 for compatibility with existing code
@@ -2068,17 +2086,23 @@ async function loadUserData(isNewAttempt = false) {
             userData.t1[key] = userData.initialResponses[key]
           }
         })
-        console.log('T2: Copied personal info:', JSON.stringify(userData.t2, null, 2))
+        console.log(
+          'T2: Copied personal info:',
+          JSON.stringify(userData.t2, null, 2)
+        )
       } else if (userData.data) {
         // Fallback to data if initialResponses not found
-        Object.keys(userData.data).forEach(key => {
+        Object.keys(userData.data).forEach((key) => {
           if (key.startsWith('q0_')) {
             userData.t2[key] = userData.data[key]
             if (!userData.t1) userData.t1 = {}
             userData.t1[key] = userData.data[key]
           }
         })
-        console.log('T2: Copied from data:', JSON.stringify(userData.t2, null, 2))
+        console.log(
+          'T2: Copied from data:',
+          JSON.stringify(userData.t2, null, 2)
+        )
       } else {
         console.warn('No data found to copy from')
       }
@@ -2086,7 +2110,7 @@ async function loadUserData(isNewAttempt = false) {
       userData.meta = {
         ...userData.meta,
         attemptNumber: 1,
-        currentSection: isNewAttempt ? -1 : (userData.meta?.currentSection || -1)
+        currentSection: isNewAttempt ? -1 : userData.meta?.currentSection || -1,
       }
       currentSection = userData.meta.currentSection
     }
@@ -2096,7 +2120,6 @@ async function loadUserData(isNewAttempt = false) {
     renderSection(currentSection)
     updateProgressBar()
     updateNavigationButtons()
-
   } catch (error) {
     console.error('Error loading user data:', error)
     // For new users, just start fresh instead of showing error
@@ -2106,8 +2129,8 @@ async function loadUserData(isNewAttempt = false) {
         t2: {},
         meta: {
           attemptNumber: 1,
-          currentSection: -1
-        }
+          currentSection: -1,
+        },
       }
       currentSection = -1
       renderSection(currentSection)
