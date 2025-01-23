@@ -362,12 +362,26 @@ function validateSection() {
   const form = document.getElementById('surveyForm')
   if (!form) return false
   const attemptNumber = userData.meta.attemptNumber
+  const isT2 = attemptNumber > 1
+  const isPersonalSection = currentSection === 0
   let isValid = true
 
   // Reset validation states
   form.querySelectorAll('.question').forEach((q) => {
     q.classList.remove('unanswered')
   })
+
+  // For T2 personal section, only validate the feedback question
+  if (isT2 && isPersonalSection) {
+    const feedback = form.querySelector('[name="t2_course_feedback"]')
+    if (!feedback || !feedback.value.trim()) {
+      isValid = false
+      const container = feedback.closest('.question') || feedback.parentElement
+      container.classList.add('unanswered')
+      alert('Bitte geben Sie Ihr Feedback zu den ILIAS-Kursen ein.')
+    }
+    return isValid
+  }
 
   // Special handling for personal info section
   if (currentSection === 0) {
@@ -526,58 +540,120 @@ function previousSection() {
 }
 
 async function loadUserData(isNewAttempt = false) {
-  const userId = sessionStorage.getItem('userId')
-  if (!userId) {
-    resetUserData()
-    return
-  }
-
   try {
+    const userId = sessionStorage.getItem('userId')
+    if (!userId) {
+      console.error('No userId found')
+      window.location.href = 'login.html'
+      return
+    }
+
     const response = await fetch(`/api/user-data/${userId}`)
+    let data
+
+    // Handle new users (404) and existing users
     if (response.status === 404) {
+      console.log('New user, initializing data')
+      data = {
+        userData: {
+          t1: {},
+          t2: {},
+          meta: {
+            attemptNumber: 1,
+            currentSection: -1
+          }
+        }
+      }
+    } else if (!response.ok) {
+      throw new Error('Failed to load user data')
+    } else {
+      data = await response.json()
+    }
+
+    // Initialize userData with the full response data
+    userData = data
+
+    // For T2, ensure we start at personal section
+    const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+    if (attemptNumber > 1) {
+      userData.meta = {
+        ...userData.meta,
+        attemptNumber: 2,
+        currentSection: 0  // Always start T2 at personal section
+      }
+      currentSection = 0
+      console.log('T2: Starting at personal section')
+
+      // Initialize t2 data structure if needed
+      if (!userData.t2) {
+        userData.t2 = {}
+      }
+      
+      // Copy data from initialResponses for personal section
+      if (userData.initialResponses) {
+        Object.keys(userData.initialResponses).forEach(key => {
+          if (key.startsWith('q0_')) {
+            userData.t2[key] = userData.initialResponses[key]
+            // Also copy to t1 for compatibility with existing code
+            if (!userData.t1) userData.t1 = {}
+            userData.t1[key] = userData.initialResponses[key]
+          }
+        })
+        console.log('T2: Copied personal info:', JSON.stringify(userData.t2, null, 2))
+      } else if (userData.data) {
+        // Fallback to data if initialResponses not found
+        Object.keys(userData.data).forEach(key => {
+          if (key.startsWith('q0_')) {
+            userData.t2[key] = userData.data[key]
+            if (!userData.t1) userData.t1 = {}
+            userData.t1[key] = userData.data[key]
+          }
+        })
+        console.log('T2: Copied from data:', JSON.stringify(userData.t2, null, 2))
+      } else {
+        console.warn('No data found to copy from')
+      }
+    } else {
+      userData.meta = {
+        ...userData.meta,
+        attemptNumber: 1,
+        currentSection: isNewAttempt ? -1 : (userData.meta?.currentSection || -1)
+      }
+      currentSection = userData.meta.currentSection
+    }
+
+    console.log('Current section:', currentSection)
+
+    renderSection(currentSection)
+    updateProgressBar()
+    updateNavigationButtons()
+
+  } catch (error) {
+    console.error('Error loading user data:', error)
+    // For new users, just start fresh instead of showing error
+    if (error.message === 'Failed to load user data') {
       userData = {
         t1: {},
         t2: {},
-        meta: { attemptNumber: 1, currentSection: -1 },
-      }
-    } else {
-      const data = await response.json()
-      userData = {
-        t1: data.initialResponses || {},
-        t2: data.data || {},
         meta: {
-          attemptNumber: data.attemptNumber || 1,
-          currentSection: data.currentSection ?? -1,
-        },
+          attemptNumber: 1,
+          currentSection: -1
+        }
       }
-
-      if (isNewAttempt) {
-        userData.meta.attemptNumber++
-        userData.meta.currentSection = -1 // Force Datenschutz start
-        currentSection = userData.meta.attemptNumber > 1 ? 2 : 0
-        console.log('New attempt started at section:', currentSection)
-
-        // Carry over only personal info from T1
-        userData.t2 = Object.keys(userData.t1).reduce((acc, key) => {
-          if (key.startsWith('q0_')) acc[key] = userData.t1[key]
-          return acc
-        }, {})
-      } else {
-        currentSection = userData.meta.currentSection
-      }
-    }
-
-    // Only render if not on Datenschutz or if explicitly on Datenschutz
-    if (currentSection !== -1 || userData.meta.currentSection === -1) {
+      currentSection = -1
       renderSection(currentSection)
+      updateProgressBar()
+      updateNavigationButtons()
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to load user data. Please try again.',
+      }).then(() => {
+        window.location.href = 'login.html'
+      })
     }
-  } catch (error) {
-    console.error('Error loading data:', error)
-    resetUserData()
   }
-
-  updateNavigationButtons()
-  updateProgressBar()
 }
 
 function validateYear(input) {
@@ -653,11 +729,6 @@ function renderConditionalField(
                  value="${savedValue}"
                  ${isT2 ? 'readonly' : ''}
                  ${section.questions[index].required ? 'required' : ''}>
-          ${
-            isT2
-              ? `<span class="edit-icon" onclick="toggleEdit(this)">✏️</span>`
-              : ''
-          }
         </div>
       </div>
     `
@@ -689,33 +760,12 @@ function renderConditionalField(
   `
 }
 
-// Add this toggle function
-function toggleEdit(icon) {
-  const input = icon.previousElementSibling
-  input.readOnly = !input.readOnly
-  input.style.backgroundColor = input.readOnly ? '#f0f0f0' : '#fff'
-  icon.textContent = input.readOnly ? '✏️' : '🔒'
-  clearTimeout(saveTimeout)
-  saveTimeout = setTimeout(() => saveSectionData(false), 1000)
-}
-
 function renderSection(index) {
   console.log(`Rendering section ${index}`)
   const form = document.getElementById('surveyForm')
   const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
   const isT2 = attemptNumber > 1
   const isPersonalInfoSection = index === 0
-
-  // Handle section progression for T2 attempts
-  if (isT2) {
-    if (currentSection === -1) {
-      // Coming from Datenschutz
-      currentSection = 1 // Skip personal info
-      index = 1
-    } else if (isPersonalInfoSection) {
-      return // Prevent rendering personal info section
-    }
-  }
 
   form.innerHTML = ''
 
@@ -734,11 +784,9 @@ function renderSection(index) {
         <p>
           die Digitalisierung und Digitalität im Bildungsbereich erhielten in den letzten Jahren große Aufmerksamkeit. Der kompetente Umgang mit digitalen Medien gehört zum Aufgabenbereich von Lehrkräften. Daher ist es bedeutsam, dass Lehramtsstudierende während ihrer Ausbildung auf diesen Umgang vorbereitet werden. Wir interessieren uns im Rahmen dieser Studie „Open-Digi“ dafür, inwieweit die von uns erstellten Lernerfahrungen zur Förderung digitaler Kompetenzen beitragen.
         </p>
-        <h3>Wer sind wir?</h3>
-              <p>
+        <p>
           Wir sind Prof. Dr. Charlott Rubach und Anne-Kathrin Hirsch, Bildungsforscherinnen an der Universität Rostock. Unsere Forschungsschwerpunkte sind Digitalisierung, Förderung digitaler Kompetenzen und Gestaltungsmöglichkeiten einer bedarfsorientierten Lehrkräftebildung.
         </p>
-        <h3>Worum geht es in diesem Projekt?</h3>
         <p>
           Ziel des Projektes ist die Untersuchung von effektiven Lernerfahrungen für die Entwicklung digitaler Kompetenzen. Das Projekt besteht aus mehreren Schritten:
               </p>
@@ -749,7 +797,6 @@ function renderSection(index) {
           <li>Sie durchlaufen die Post-Diagnostik direkt nach Bearbeitung der Kurse.</li>
           <li>Sie machen eine dritte Befragung, 1 Monat nach Bearbeitung der Kurse.</li>
         </ul>
-        <h3>Was bedeutet die Teilnahme für mich und meine Daten?</h3>
         <p>
           Ihre Teilnahme an unserer Studie ist freiwillig. Wenn Sie an der Studie teilnehmen, können Sie die Befragung jederzeit abbrechen. In diesem Falle werden die Daten nicht gespeichert.
           </p>
@@ -865,7 +912,7 @@ function renderSection(index) {
             const showField = shouldCheck || (!isT2 && isChecked)
             html += `<div class="conditional-field" 
                  data-condition="${option}"
-                 style="display: ${showField ? 'block' : 'none'}">`
+                 style="display: ${(option === 'Ja' && (isT2 ? t1Value === 'Ja' : shouldCheck)) || (option === 'Nein' && (isT2 ? t1Value === 'Nein' : shouldCheck)) ? 'block' : 'none'}">`
 
             if (option === 'Ja') {
               // Lehramt dropdown
@@ -873,7 +920,7 @@ function renderSection(index) {
               html += `<div class="question">
             <label>${surveyData[0].questions[3].text}</label>
             <select name="q0_3" 
-                    ${isT2 ? 'disabled' : ''} 
+                    ${isT2 ? 'disabled readonly' : ''} 
                     ${surveyData[0].questions[3].required ? 'required' : ''}>
               <option value="" disabled>Bitte wählen</option>
               ${surveyData[0].questions[3].options
@@ -900,13 +947,8 @@ function renderSection(index) {
             <input type="text" 
                    name="q0_4" 
                    value="${facherValue || ''}"
-                   ${isT2 ? 'readonly' : ''}
+                   ${isT2 ? 'readonly disabled' : ''}
                    ${surveyData[0].questions[4].required ? 'required' : ''}>
-            ${
-              isT2
-                ? `<span class="edit-icon" onclick="toggleEdit(this)">✏️</span>`
-                : ''
-            }
           </div>`
             }
 
@@ -918,7 +960,7 @@ function renderSection(index) {
             <input type="text" 
                    name="q0_5" 
                    value="${studienValue || ''}"
-                   ${isT2 ? 'readonly' : ''}
+                   ${isT2 ? 'readonly disabled' : ''}
                    ${surveyData[0].questions[5].required ? 'required' : ''}>
           </div>`
             }
@@ -964,7 +1006,9 @@ function renderSection(index) {
                      : ''
                  }
                  ${
-                   isT2 && isPersonalInfoSection && !isSemesterField
+                   isT2 && isPersonalInfoSection && isSemesterField
+                     ? 'readonly disabled'
+                     : isT2 && isPersonalInfoSection
                      ? 'readonly'
                      : ''
                  }
@@ -1009,12 +1053,28 @@ function renderSection(index) {
 
   // T2 feedback question
   if (isPersonalInfoSection && isT2) {
+    // Make all personal info fields read-only except semester
+    html += `
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          const form = document.getElementById('surveyForm')
+          form.querySelectorAll('input, select, textarea').forEach(el => {
+            if (!el.name.includes('q0_6') && !el.name.includes('t2_course_feedback')) {
+              el.readOnly = true
+              el.disabled = true
+            }
+          })
+        })
+      </script>
+    `
+
+    // Add T2 feedback question
     html += `
       <div class="t2-feedback">
         <p>Wie fandest du deine absolvierten Kurse in ILIAS in Bezug auf Inhalt und Struktur? Was hast du für dich mitgenommen? Was war hilfreich für dich?</p>
         <textarea name="t2_course_feedback" 
                   placeholder="Bitte geben Sie hier Ihr Feedback ein..." 
-                  required>${userData.t2_course_feedback || ''}</textarea>
+                  required>${userData.t2?.t2_course_feedback || ''}</textarea>
       </div>`
   }
 
@@ -1691,6 +1751,12 @@ async function startNewSurvey() {
     // Set 'startNewAttempt' to 'true' in sessionStorage
     sessionStorage.setItem('startNewAttempt', 'true')
 
+    // For T2, ensure we start at personal section
+    const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+    if (attemptNumber > 1) {
+      sessionStorage.setItem('currentSection', '0')
+    }
+
     // Load user data as a new attempt
     await loadUserData(true)
 
@@ -1765,12 +1831,26 @@ function validateSection() {
   const form = document.getElementById('surveyForm')
   if (!form) return false
   const attemptNumber = userData.meta.attemptNumber
+  const isT2 = attemptNumber > 1
+  const isPersonalSection = currentSection === 0
   let isValid = true
 
   // Reset validation states
   form.querySelectorAll('.question').forEach((q) => {
     q.classList.remove('unanswered')
   })
+
+  // For T2 personal section, only validate the feedback question
+  if (isT2 && isPersonalSection) {
+    const feedback = form.querySelector('[name="t2_course_feedback"]')
+    if (!feedback || !feedback.value.trim()) {
+      isValid = false
+      const container = feedback.closest('.question') || feedback.parentElement
+      container.classList.add('unanswered')
+      alert('Bitte geben Sie Ihr Feedback zu den ILIAS-Kursen ein.')
+    }
+    return isValid
+  }
 
   // Special handling for personal info section
   if (currentSection === 0) {
@@ -1913,6 +1993,242 @@ function validateDatenschutz() {
   return true
 }
 
+function previousSection() {
+  // Prevent going back to Datenschutz after completion
+  if (currentSection === 0 && !userData.datenschutz) {
+    currentSection = -1
+    renderSection(currentSection)
+    updateProgressBar()
+  } else if (currentSection > 0) {
+    currentSection--
+    saveSectionData(false)
+    renderSection(currentSection)
+    updateProgressBar()
+    window.scrollTo({ top: 0, behavior: 'smooth' }) // Add this
+  }
+}
+
+async function loadUserData(isNewAttempt = false) {
+  try {
+    const userId = sessionStorage.getItem('userId')
+    if (!userId) {
+      console.error('No userId found')
+      window.location.href = 'login.html'
+      return
+    }
+
+    const response = await fetch(`/api/user-data/${userId}`)
+    let data
+
+    // Handle new users (404) and existing users
+    if (response.status === 404) {
+      console.log('New user, initializing data')
+      data = {
+        userData: {
+          t1: {},
+          t2: {},
+          meta: {
+            attemptNumber: 1,
+            currentSection: -1
+          }
+        }
+      }
+    } else if (!response.ok) {
+      throw new Error('Failed to load user data')
+    } else {
+      data = await response.json()
+    }
+
+    // Initialize userData with the full response data
+    userData = data
+
+    // For T2, ensure we start at personal section
+    const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+    if (attemptNumber > 1) {
+      userData.meta = {
+        ...userData.meta,
+        attemptNumber: 2,
+        currentSection: 0  // Always start T2 at personal section
+      }
+      currentSection = 0
+      console.log('T2: Starting at personal section')
+
+      // Initialize t2 data structure if needed
+      if (!userData.t2) {
+        userData.t2 = {}
+      }
+      
+      // Copy data from initialResponses for personal section
+      if (userData.initialResponses) {
+        Object.keys(userData.initialResponses).forEach(key => {
+          if (key.startsWith('q0_')) {
+            userData.t2[key] = userData.initialResponses[key]
+            // Also copy to t1 for compatibility with existing code
+            if (!userData.t1) userData.t1 = {}
+            userData.t1[key] = userData.initialResponses[key]
+          }
+        })
+        console.log('T2: Copied personal info:', JSON.stringify(userData.t2, null, 2))
+      } else if (userData.data) {
+        // Fallback to data if initialResponses not found
+        Object.keys(userData.data).forEach(key => {
+          if (key.startsWith('q0_')) {
+            userData.t2[key] = userData.data[key]
+            if (!userData.t1) userData.t1 = {}
+            userData.t1[key] = userData.data[key]
+          }
+        })
+        console.log('T2: Copied from data:', JSON.stringify(userData.t2, null, 2))
+      } else {
+        console.warn('No data found to copy from')
+      }
+    } else {
+      userData.meta = {
+        ...userData.meta,
+        attemptNumber: 1,
+        currentSection: isNewAttempt ? -1 : (userData.meta?.currentSection || -1)
+      }
+      currentSection = userData.meta.currentSection
+    }
+
+    console.log('Current section:', currentSection)
+
+    renderSection(currentSection)
+    updateProgressBar()
+    updateNavigationButtons()
+
+  } catch (error) {
+    console.error('Error loading user data:', error)
+    // For new users, just start fresh instead of showing error
+    if (error.message === 'Failed to load user data') {
+      userData = {
+        t1: {},
+        t2: {},
+        meta: {
+          attemptNumber: 1,
+          currentSection: -1
+        }
+      }
+      currentSection = -1
+      renderSection(currentSection)
+      updateProgressBar()
+      updateNavigationButtons()
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to load user data. Please try again.',
+      }).then(() => {
+        window.location.href = 'login.html'
+      })
+    }
+  }
+}
+
+function validateYear(input) {
+  // Remove non-digits and enforce 4 characters
+  input.value = input.value.replace(/\D/g, '').slice(0, 4)
+
+  const currentYear = new Date().getFullYear()
+  const isValid =
+    input.value.length === 4 &&
+    parseInt(input.value) >= 1900 &&
+    parseInt(input.value) <= currentYear
+
+  // Set validation messages
+  if (input.value === '') {
+    input.setCustomValidity('Bitte geben Sie Ihr Geburtsjahr ein.')
+  } else if (!isValid) {
+    input.setCustomValidity(
+      `Geben Sie ein Jahr zwischen 1900 und ${currentYear} ein.`
+    )
+  } else {
+    input.setCustomValidity('')
+  }
+
+  // Visual feedback
+  input.style.borderColor = isValid ? '' : 'red'
+  input.reportValidity()
+}
+
+function handleScaleClick(event) {
+  const button = event.target
+  const radio = button.previousElementSibling
+  if (radio && radio.type === 'radio') {
+    radio.checked = true
+    radio.dispatchEvent(new Event('change'))
+  }
+}
+
+function handleScaleKeydown(event) {
+  if (event.key === ' ' || event.key === 'Enter') {
+    event.preventDefault()
+    const radio = event.target.previousElementSibling
+    if (radio && radio.type === 'radio') {
+      radio.checked = true
+      radio.dispatchEvent(new Event('change'))
+    }
+    event.target.setAttribute('aria-checked', 'true')
+  }
+}
+
+window.handleScaleClick = handleScaleClick
+window.handleScaleKeydown = handleScaleKeydown
+
+// Helper function to render conditional fields
+function renderConditionalField(
+  section,
+  question,
+  index,
+  fieldType,
+  isT2 = false
+) {
+  const questionId = `q${section.questions.indexOf(question)}_${index}`
+  const savedValue =
+    userData.initialResponses?.[questionId] || userData[questionId] || ''
+
+  // Special handling for subjects field
+  if (fieldType === 'Fächer') {
+    return `
+      <div class="conditional-question">
+        <label>${section.questions[index].text}</label>
+        <div class="prefilled-field">
+          <input type="text" 
+                 name="${questionId}" 
+                 value="${savedValue}"
+                 ${isT2 ? 'readonly' : ''}
+                 ${section.questions[index].required ? 'required' : ''}>
+        </div>
+      </div>
+    `
+  }
+
+  // Handling for Lehramt (teaching degree) field
+  if (fieldType === 'Lehramt') {
+    return `
+      <div class="conditional-question">
+        <label>${section.questions[index].text}</label>
+        <input type="text" 
+               name="${questionId}" 
+               value="${savedValue}"
+               ${isT2 ? 'readonly' : ''}
+               ${section.questions[index].required ? 'required' : ''}>
+      </div>
+    `
+  }
+
+  // Default handling
+  return `
+    <div class="conditional-question">
+      <label>${section.questions[index].text}</label>
+      <input type="${section.questions[index].type}" 
+             name="${questionId}" 
+             value="${savedValue}"
+             ${section.questions[index].required ? 'required' : ''}>
+    </div>
+  `
+}
+
 function removeUnansweredMarkers() {
   const unansweredQuestions = document.querySelectorAll('.question.unanswered')
   unansweredQuestions.forEach((question) => {
@@ -2041,12 +2357,6 @@ function handleTeachingStudentChange(radio) {
         if (questionId === 'q0_4') {
           input.readOnly = false
           input.style.backgroundColor = '#fff'
-          if (!input.nextElementSibling?.classList.contains('edit-icon')) {
-            input.insertAdjacentHTML(
-              'afterend',
-              '<span class="edit-icon" onclick="toggleEdit(this)">✏️</span>'
-            )
-          }
         } else {
           input.readOnly = true
           input.style.backgroundColor = '#f0f0f0'
@@ -2118,3 +2428,17 @@ window.onload = function () {
     initializeSections()
   }
 }
+
+// Add CSS for T2 disabled radio buttons
+const styleSheet = document.createElement('style')
+styleSheet.textContent = `
+  .radio-option input[type="radio"]:disabled:checked + .radio-checkmark {
+    background-color: #0066cc;
+    border-color: #0066cc;
+  }
+  .radio-option input[type="radio"]:disabled + .radio-checkmark {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+`
+document.head.appendChild(styleSheet)

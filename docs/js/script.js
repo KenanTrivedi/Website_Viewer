@@ -420,11 +420,25 @@ async function handleLogin() {
     const data = await response.json()
 
     if (response.ok) {
+      // Clear all existing session data
       sessionStorage.clear()
+
+      // Set basic user info
       sessionStorage.setItem('userId', data.userId)
       sessionStorage.setItem('isComplete', data.isComplete)
-      sessionStorage.setItem('currentSection', data.currentSection || '0')
-      sessionStorage.setItem('startNewAttempt', payload.startNewAttempt)
+
+      // For T2 (redo), set attempt number and start at personal section
+      if (selectedOption === 'redo') {
+        sessionStorage.setItem('attemptNumber', '2')
+        sessionStorage.setItem('currentSection', '0')
+        sessionStorage.setItem('startNewAttempt', 'true')
+        console.log('Starting T2 attempt - section:', 0)
+      } else {
+        sessionStorage.setItem('attemptNumber', '1')
+        sessionStorage.setItem('currentSection', data.currentSection || '-1')
+        sessionStorage.setItem('startNewAttempt', payload.startNewAttempt)
+        console.log('Starting T1 attempt - section:', data.currentSection || '-1')
+      }
 
       window.location.href = 'survey.html'
     } else {
