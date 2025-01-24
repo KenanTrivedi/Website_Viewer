@@ -404,11 +404,15 @@ async function handleLogin() {
       code: loginCode,
     }
 
+    // Set startNewAttempt based on the selected option
     if (selectedOption === 'redo') {
       payload.courses = courses
       payload.startNewAttempt = true
     } else if (selectedOption === 'continue') {
       payload.startNewAttempt = false
+    } else if (selectedOption === 'register') {
+      // For new code generation
+      payload.startNewAttempt = true
     }
 
     const response = await fetch('/login', {
@@ -433,11 +437,18 @@ async function handleLogin() {
         sessionStorage.setItem('currentSection', '0')
         sessionStorage.setItem('startNewAttempt', 'true')
         console.log('Starting T2 attempt - section:', 0)
-      } else {
+      } else if (selectedOption === 'register' || payload.startNewAttempt) {
+        // For new code or new attempt, start from beginning
         sessionStorage.setItem('attemptNumber', '1')
-        sessionStorage.setItem('currentSection', data.currentSection || '-1')
-        sessionStorage.setItem('startNewAttempt', payload.startNewAttempt)
-        console.log('Starting T1 attempt - section:', data.currentSection || '-1')
+        sessionStorage.setItem('currentSection', '0')
+        sessionStorage.setItem('startNewAttempt', 'true')
+        console.log('Starting new attempt - section:', 0)
+      } else {
+        // For continuing existing survey
+        sessionStorage.setItem('attemptNumber', '1')
+        sessionStorage.setItem('currentSection', data.currentSection || '0')
+        sessionStorage.setItem('startNewAttempt', 'false')
+        console.log('Continuing attempt - section:', data.currentSection || '0')
       }
 
       window.location.href = 'survey.html'
