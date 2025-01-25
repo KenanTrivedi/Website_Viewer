@@ -1,125 +1,126 @@
 /* survey.css */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f0f4f8;
-    color: #333;
-    margin: 0;
-    padding: 0;
-    line-height: 1.6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f4f8;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
 }
 
 html {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
 .container {
-    max-width: 800px;
-    margin: 40px auto;
-    background-color: #ffffff;
-    padding: 30px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+  max-width: 800px;
+  margin: 40px auto;
+  background-color: #ffffff;
+  padding: 30px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 }
 
 header {
-    background-color: #ffffff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
 .header-content {
-    display: flex;
-    justify-content: space-between;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 25px 35px;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 25px 35px;
+  align-items: center;
 }
 
 .logo-link {
-    display: flex;
-    align-items: center;
-    position: absolute;
-    left: 30px;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  left: 30px;
 }
 
 .logo {
-    height: 40px;
-    width: auto;
+  height: 40px;
+  width: auto;
 }
 
-h1, h2 {
-    color: #004a99;
-    margin: 0;
+h1,
+h2 {
+  color: #004a99;
+  margin: 0;
 }
 
 .user-menu {
-    display: flex;
-    align-items: center;
-    position: absolute;
-    right: 30px;
+  display: flex;
+  align-items: center;
+  position: absolute;
+  right: 30px;
 }
 
 #logoutButton {
-    background-color: #f0f0f0;
-    color: #333;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
+  background-color: #f0f0f0;
+  color: #333;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
 }
 
 #logoutButton:hover {
-    background-color: #e0e0e0;
+  background-color: #e0e0e0;
 }
 
 .progress-container {
-    margin-bottom: 30px;
-    margin-top: 20px;
+  margin-bottom: 30px;
+  margin-top: 20px;
 }
 
 #progressBar {
-    width: 100%;
-    background-color: #e0e0e0;
-    border-radius: 10px;
-    height: 20px;
-    overflow: hidden;
+  width: 100%;
+  background-color: #e0e0e0;
+  border-radius: 10px;
+  height: 20px;
+  overflow: hidden;
 }
 
 #progressFill {
-    width: 0;
-    height: 100%;
-    background-color: #004a99;
-    transition: width 0.3s ease;
+  width: 0;
+  height: 100%;
+  background-color: #004a99;
+  transition: width 0.3s ease;
 }
 
 #progressText {
-    text-align: center;
-    margin-top: 10px;
-    font-weight: bold;
-    color: #004a99;
+  text-align: center;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #004a99;
 }
 
 /* Add these missing styles */
 .scale-button:hover {
-    background-color: #e0e0e0;
+  background-color: #e0e0e0;
 }
 
-input[type="text"]:focus,
+input[type='text']:focus,
 select:focus,
 textarea:focus {
-    outline: none;
-    border-color: #004a99;
-    box-shadow: 0 0 5px rgba(0, 74, 153, 0.5);
+  outline: none;
+  border-color: #004a99;
+  box-shadow: 0 0 5px rgba(0, 74, 153, 0.5);
 }
 
-input[type="date"][readonly] {
-    background-color: #e9ecef;
-    cursor: not-allowed;
+input[type='date'][readonly] {
+  background-color: #e9ecef;
+  cursor: not-allowed;
 }
 .prefilled-field {
   position: relative;
@@ -144,7 +145,7 @@ input[readonly] {
   border-color: #dee2e6;
 }
 
-.conditional-question input[type="text"] {
+.conditional-question input[type='text'] {
   width: 100%;
   padding: 8px;
   margin-top: 5px;
@@ -154,8 +155,8 @@ input[readonly] {
   padding-right: 35px; /* Space for edit icon */
 }
 
-.radio-option input:disabled + .radio-checkmark {
-  opacity: 0.6;
+.radio-option input[type='radio']:disabled + label {
+  opacity: 0.7;
   cursor: not-allowed;
 }
 /* Add to survey.css */
@@ -173,7 +174,7 @@ input[readonly] {
 .conditional-field {
   margin: 15px 0;
   padding: 10px;
-  border-left: 3px solid #004A99;
+  border-left: 3px solid #004a99;
   background: #f8f9fa;
 }
 
@@ -184,13 +185,13 @@ input[readonly] {
 .edit-icon {
   cursor: pointer;
   margin-left: 10px;
-  color: #004A99;
+  color: #004a99;
 }
 input:invalid {
   border-color: red;
-  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+  animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
-input[type="number"] {
+input[type='number'] {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -198,10 +199,23 @@ input[type="number"] {
   margin: 5px 0;
 }
 @keyframes shake {
-  10%, 90% { transform: translateX(-1px); }
-  20%, 80% { transform: translateX(2px); }
-  30%, 50%, 70% { transform: translateX(-4px); }
-  40%, 60% { transform: translateX(4px); }
+  10%,
+  90% {
+    transform: translateX(-1px);
+  }
+  20%,
+  80% {
+    transform: translateX(2px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-4px);
+  }
+  40%,
+  60% {
+    transform: translateX(4px);
+  }
 }
 
 /* T2 Specific Styles */
@@ -214,7 +228,7 @@ input[type="number"] {
 }
 
 .t2-prefilled::after {
-  content: "T1-Daten";
+  content: 'T1-Daten';
   position: absolute;
   right: 10px;
   top: 50%;
@@ -234,7 +248,7 @@ input[type="number"] {
 }
 
 .t2-radio-value {
-  color: #004A99;
+  color: #004a99;
   font-weight: 500;
   margin-left: 8px;
 }
@@ -263,7 +277,7 @@ select[disabled].t2-disabled {
   transition: all 0.3s ease;
 }
 .locked-field::after {
-  content: "T1-Daten";
+  content: 'T1-Daten';
   position: absolute;
   right: 10px;
   top: 50%;
@@ -276,7 +290,13 @@ select[disabled].t2-disabled {
   margin-top: 2rem;
   justify-content: center;
 }
-
+.description-content {
+  transition: all 0.3s ease;
+  margin: 1rem 0;
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+}
 .section {
   background: white;
   padding: 1rem;
@@ -297,41 +317,41 @@ select[disabled].t2-disabled {
   margin-bottom: 30px;
 }
 .user-menu i {
-    margin-right: 10px;
-    color: #004a99;
+  margin-right: 10px;
+  color: #004a99;
 }
 
 .btn-primary:hover {
-    background-color: #003366;
+  background-color: #003366;
 }
 
 .btn-secondary:hover {
-    background-color: #5a6268;
+  background-color: #5a6268;
 }
 
 .section h2 {
-    border-bottom: 2px solid #004a99;
-    padding-bottom: 10px;
-    margin-bottom: 20px;
+  border-bottom: 2px solid #004a99;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
 }
 
 .question {
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .question p {
-    font-weight: bold;
-    margin-bottom: 15px;
+  font-weight: bold;
+  margin-bottom: 15px;
 }
 
 .rating-scale {
-    display: flex;
-    justify-content: space-between;
-    margin: 15px 0;
+  display: flex;
+  justify-content: space-between;
+  margin: 15px 0;
 }
 
 /* Add to survey.css */
@@ -372,92 +392,96 @@ select[disabled].t2-disabled {
   margin: 0 2px; /* Minor spacing adjustment */
 }
 
-.scale-label input[type="radio"] {
+.scale-label input[type='radio'] {
   position: absolute;
   opacity: 0;
   height: 0;
   width: 0;
 }
 
-input[type="radio"]:checked + .scale-button {
-    background-color: #004a99;
-    color: white;
+input[type='radio']:checked + .scale-button {
+  background-color: #004a99;
+  color: white;
 }
 
 .navigation-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: space-between;
-    padding: 15px;
-    background-color: #fff;
-    border-top: 1px solid #eee;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 15px;
+  background-color: #fff;
+  border-top: 1px solid #eee;
+  gap: 10px;
 }
 
 #prevButton {
-    order: 1;
-    margin-right: auto; /* Pushes to far left */
+  order: 1;
+  margin-right: auto; /* Pushes to far left */
 }
 
 #saveProgressButton {
-    order: 2;
-    margin: 0 auto; /* Centers this button */
+  order: 2;
+  margin: 0 auto; /* Centers this button */
 }
 
 #nextButton {
-    order: 3;
-    margin-left: auto; /* Pushes to far right */
+  order: 3;
+  margin-left: auto; /* Pushes to far right */
 }
 
 .btn {
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 180px;
-    flex-shrink: 0;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 180px;
+  flex-shrink: 0;
 }
 
 .btn-primary {
-    background: #004A99;
-    color: white;
-    border: none;
+  background: #004a99;
+  color: white;
+  border: none;
 }
 
 .btn-secondary {
-    background: #6c757d;
-    color: white;
+  background: #6c757d;
+  color: white;
 }
 
 .datenschutz-section .navigation-buttons {
-    justify-content: flex-end;
-    padding: 20px 0 0 0;
-    border-top: none;
+  justify-content: flex-end;
+  padding: 20px 0 0 0;
+  border-top: none;
 }
 
 .unanswered {
-    border: 2px solid #dc3545 !important;
-    animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
-    position: relative;
-    background-color: #fff5f5;
+  border: 2px solid #dc3545 !important;
+  animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  position: relative;
+  background-color: #fff5f5;
 }
 
 .unanswered::after {
-    content: "⚠️ Bitte beantworten";
-    color: #dc3545;
-    font-size: 0.9em;
-    position: absolute;
-    bottom: -25px;
-    left: 0;
+  content: '⚠️ Bitte beantworten';
+  color: #dc3545;
+  font-size: 0.9em;
+  position: absolute;
+  bottom: -25px;
+  left: 0;
 }
 
 /* Enhanced validation states */
-input:invalid, textarea:invalid, select:invalid {
+input:invalid,
+textarea:invalid,
+select:invalid {
   border-color: #dc3545;
   background-color: #fff5f5;
 }
 
-input:invalid:focus, textarea:invalid:focus, select:invalid:focus {
+input:invalid:focus,
+textarea:invalid:focus,
+select:invalid:focus {
   box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
 }
 
@@ -486,64 +510,84 @@ input:invalid:focus, textarea:invalid:focus, select:invalid:focus {
 }
 
 @keyframes shake {
-    10%, 90% { transform: translate3d(-1px, 0, 0); }
-    20%, 80% { transform: translate3d(2px, 0, 0); }
-    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-    40%, 60% { transform: translate3d(4px, 0, 0); }
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
 }
 
-select, input[type="text"], input[type="date"], textarea {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-size: 16px;
+select,
+input[type='text'],
+input[type='date'],
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 16px;
 }
 
 select {
-    appearance: none;
-    background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-    background-repeat: no-repeat;
-    background-position: 98% 50%;
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+  background-repeat: no-repeat;
+  background-position: 98% 50%;
 }
 
 .datenschutz-section {
-    margin-bottom: 40px;
+  margin-bottom: 40px;
 }
 
 .datenschutz-content {
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .final-inputs {
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .attention-box {
-    background-color: #fff3cd;
-    border: 1px solid #ffeeba;
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 5px;
-    color: #856404;
-    display: flex;
-    align-items: center;
-    font-size: 16px;
-    animation: fadeIn 1s ease-in-out;
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  color: #856404;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  animation: fadeIn 1s ease-in-out;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 #iliasLinks {
@@ -560,7 +604,7 @@ select {
   padding: 2rem;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .course-links {
@@ -586,7 +630,7 @@ select {
 
 .course-links li a:hover {
   transform: translateY(-2px);
-  background: #004A99;
+  background: #004a99;
   color: white;
   text-decoration: none;
 }
@@ -597,7 +641,7 @@ select {
   margin: 5px 0;
   background: #fff;
   border-radius: 4px;
-  color: #004A99;
+  color: #004a99;
   text-decoration: none;
   transition: background 0.2s ease;
 }
@@ -607,19 +651,19 @@ select {
 }
 
 @media (max-width: 768px) {
-    .container {
-        margin: 20px;
-        padding: 20px;
-    }
-    .rating-scale {
+  .container {
+    margin: 20px;
+    padding: 20px;
+  }
+  .rating-scale {
     display: flex;
     justify-content: space-between;
     margin: 15px 0;
     gap: 5px; /* Ensure consistent spacing */
-    }
-    .navigation-buttons {
-        flex-direction: column;
-    }
+  }
+  .navigation-buttons {
+    flex-direction: column;
+  }
 }
 
 /* Validation styling */
@@ -630,13 +674,13 @@ select {
   background-color: rgba(255, 68, 68, 0.05);
 }
 
-.unanswered input[type="checkbox"] {
+.unanswered input[type='checkbox'] {
   outline: 2px solid #ff4444;
 }
 
-.unanswered input[type="text"],
-.unanswered input[type="email"],
-.unanswered input[type="number"],
+.unanswered input[type='text'],
+.unanswered input[type='email'],
+.unanswered input[type='number'],
 .unanswered textarea,
 .unanswered select {
   border-color: #ff4444 !important;
