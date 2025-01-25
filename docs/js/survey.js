@@ -3,118 +3,118 @@
 // ===== Global Initializations & Constants =====
 
 // Global Variables
-let currentSection = -1;
-let userData = null;
-let chart1Instance = null;
-let initialScores = {};
-let updatedScores = {};
-let userDataInitial = {};
-let userDataUpdated = {};
-let isInitializing = false;
+let currentSection = -1
+let userData = null
+let chart1Instance = null
+let initialScores = {}
+let updatedScores = {}
+let userDataInitial = {}
+let userDataUpdated = {}
+let isInitializing = false
 
 // Constants
 const labelMap = {
-  "Suchen, Verarbeiten und Aufbewahren": "Suchen",
-  "Kommunikation und Kollaborieren": "Kommunizieren",
-  "Produzieren und Präsentieren": "Produzieren",
-  "Schützen und sicher Agieren": "Schützen",
-  "Problemlösen und Handeln": "Problemlösen",
-  "Analysieren und Reflektieren": "Analysieren",
-};
+  'Suchen, Verarbeiten und Aufbewahren': 'Suchen',
+  'Kommunikation und Kollaborieren': 'Kommunizieren',
+  'Produzieren und Präsentieren': 'Produzieren',
+  'Schützen und sicher Agieren': 'Schützen',
+  'Problemlösen und Handeln': 'Problemlösen',
+  'Analysieren und Reflektieren': 'Analysieren',
+}
 
 const colorMap = {
-  "Suchen, Verarbeiten und Aufbewahren": "#00BF63", // Green
-  "Kommunikation und Kollaborieren": "#0CC0DF", // Blue
-  "Produzieren und Präsentieren": "#FF6D5F", // Red
-  "Schützen und sicher Agieren": "#8C52FF", // Purple
-  "Problemlösen und Handeln": "#E884C4", // Pink
-  "Analysieren und Reflektieren": "#FFD473", // Yellow
-};
+  'Suchen, Verarbeiten und Aufbewahren': '#00BF63', // Green
+  'Kommunikation und Kollaborieren': '#0CC0DF', // Blue
+  'Produzieren und Präsentieren': '#FF6D5F', // Red
+  'Schützen und sicher Agieren': '#8C52FF', // Purple
+  'Problemlösen und Handeln': '#E884C4', // Pink
+  'Analysieren und Reflektieren': '#FFD473', // Yellow
+}
 
 const competencyDescriptions = {
-  "Suchen, Verarbeiten und Aufbewahren":
-    "Umfasst das Wissen, die Motivation und Fähigkeiten, gezielt nach digitalen Daten und Inhalten zu suchen, diese effektiv zu organisieren, zu speichern und abzurufen.",
-  "Kommunikation und Kollaborieren":
-    "Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen, dabei die Verhaltensnormen in digitalen Umgebungen zu beachten und digitale Technologien zur gesellschaftlichen Teilhabe und Selbstermächtigung zu nutzen.",
-  "Produzieren und Präsentieren":
-    "Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Inhalte in verschiedenen Formaten zu erstellen, zu bearbeiten und zu integrieren, dabei Urheberrecht und Lizenzen zu berücksichtigen, sowie das Programmieren digitaler Produkte.",
-  "Schützen und sicher Agieren":
-    "Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Geräte und Inhalte zu schützen, Gesundheits- und Umweltgefahren bei der Nutzung digitaler Technologien zu vermeiden, und persönliche Daten, Identität sowie Privatsphäre in digitalen Umgebungen verantwortungsvoll zu schützen.",
-  "Problemlösen und Handeln":
-    "Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen und kreative technische Lösungen für spezifische Bedürfnisse zu finden. Zudem gehört zum Kompetenzbereich informatisches Denken, also das strategische Lösen komplexer Probleme in digitalen Umgebungen und die kontinuierliche Weiterentwicklung der eigenen digitalen Kompetenzen.",
-  "Analysieren und Reflektieren":
-    "Umfasst das Wissen, die Motivation und Fähigkeiten, die Auswirkungen und Verbreitung digitaler Medien und Inhalte zu analysieren, deren Glaubwürdigkeit und Zuverlässigkeit kritisch zu bewerten sowie Geschäftsaktivitäten in digitalen Umgebungen zu identifizieren und angemessen darauf zu reagieren.",
-};
+  'Suchen, Verarbeiten und Aufbewahren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, gezielt nach digitalen Daten und Inhalten zu suchen, diese effektiv zu organisieren, zu speichern und abzurufen.',
+  'Kommunikation und Kollaborieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, mithilfe digitaler Technologien effektiv zu interagieren, zu kollaborieren und Informationen auszutauschen, dabei die Verhaltensnormen in digitalen Umgebungen zu beachten und digitale Technologien zur gesellschaftlichen Teilhabe und Selbstermächtigung zu nutzen.',
+  'Produzieren und Präsentieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Inhalte in verschiedenen Formaten zu erstellen, zu bearbeiten und zu integrieren, dabei Urheberrecht und Lizenzen zu berücksichtigen, sowie das Programmieren digitaler Produkte.',
+  'Schützen und sicher Agieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, digitale Geräte und Inhalte zu schützen, Gesundheits- und Umweltgefahren bei der Nutzung digitaler Technologien zu vermeiden, und persönliche Daten, Identität sowie Privatsphäre in digitalen Umgebungen verantwortungsvoll zu schützen.',
+  'Problemlösen und Handeln':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, technische Probleme zu erkennen und zu lösen und kreative technische Lösungen für spezifische Bedürfnisse zu finden. Zudem gehört zum Kompetenzbereich informatisches Denken, also das strategische Lösen komplexer Probleme in digitalen Umgebungen und die kontinuierliche Weiterentwicklung der eigenen digitalen Kompetenzen.',
+  'Analysieren und Reflektieren':
+    'Umfasst das Wissen, die Motivation und Fähigkeiten, die Auswirkungen und Verbreitung digitaler Medien und Inhalte zu analysieren, deren Glaubwürdigkeit und Zuverlässigkeit kritisch zu bewerten sowie Geschäftsaktivitäten in digitalen Umgebungen zu identifizieren und angemessen darauf zu reagieren.',
+}
 
 // Event Listener Setup on DOMContentLoaded
-document.addEventListener("DOMContentLoaded", function () {
-  loadUserData();
-  renderSection(currentSection);
-  updateProgressBar();
-  setupEventListeners();
-  checkResumeToken();
-});
+document.addEventListener('DOMContentLoaded', function () {
+  loadUserData()
+  renderSection(currentSection)
+  updateProgressBar()
+  setupEventListeners()
+  checkResumeToken()
+})
 
 // ===== Application Setup & Flow Control =====
 function initializeSections() {
   // Check if survey was completed
-  if (sessionStorage.getItem("surveyCompleted") === "true") {
-    showResults();
-    return;
+  if (sessionStorage.getItem('surveyCompleted') === 'true') {
+    showResults()
+    return
   }
 
   // Start with Datenschutz page
-  currentSection = -1;
-  renderSection(currentSection);
-  updateNavigationButtons();
+  currentSection = -1
+  renderSection(currentSection)
+  updateNavigationButtons()
 }
 
 function setupEventListeners() {
-  const prevButton = document.getElementById("prevButton");
-  const nextButton = document.getElementById("nextButton");
-  const logoutButton = document.getElementById("logoutButton");
-  const saveProgressButton = document.getElementById("saveProgressButton");
-  const surveyForm = document.getElementById("surveyForm");
+  const prevButton = document.getElementById('prevButton')
+  const nextButton = document.getElementById('nextButton')
+  const logoutButton = document.getElementById('logoutButton')
+  const saveProgressButton = document.getElementById('saveProgressButton')
+  const surveyForm = document.getElementById('surveyForm')
 
   if (prevButton) {
-    prevButton.addEventListener("click", previousSection);
+    prevButton.addEventListener('click', previousSection)
   }
 
   if (nextButton) {
-    nextButton.addEventListener("click", nextSection);
+    nextButton.addEventListener('click', nextSection)
   }
 
   if (logoutButton) {
-    logoutButton.addEventListener("click", logout);
+    logoutButton.addEventListener('click', logout)
   }
 
   if (saveProgressButton) {
-    saveProgressButton.addEventListener("click", saveAndResumeLater);
+    saveProgressButton.addEventListener('click', saveAndResumeLater)
   }
 
   if (surveyForm) {
     // Auto-save on input change
-    surveyForm.addEventListener("input", function () {
-      saveSectionData(false);
-    });
+    surveyForm.addEventListener('input', function () {
+      saveSectionData(false)
+    })
   }
 }
 
 function checkResumeToken() {
-  const resumeToken = localStorage.getItem("surveyResumeToken");
+  const resumeToken = localStorage.getItem('surveyResumeToken')
   if (resumeToken) {
     try {
-      const decoded = JSON.parse(atob(resumeToken));
-      if (decoded.userId === sessionStorage.getItem("userId")) {
+      const decoded = JSON.parse(atob(resumeToken))
+      if (decoded.userId === sessionStorage.getItem('userId')) {
         // Force Datenschutz for new attempts
         if (userData.meta.attemptNumber > 1 && !userData.datenschutz) {
-          currentSection = -1;
+          currentSection = -1
         }
-        renderSection(currentSection);
-        localStorage.removeItem("surveyResumeToken");
+        renderSection(currentSection)
+        localStorage.removeItem('surveyResumeToken')
       }
     } catch (error) {
-      console.error("Invalid token:", error);
+      console.error('Invalid token:', error)
     }
   }
 }
@@ -122,154 +122,159 @@ function checkResumeToken() {
 function nextSection() {
   if (currentSection === -1) {
     // Validate Datenschutz with enhanced checks
-    const form = document.getElementById("surveyForm");
-    let isValid = true;
+    const form = document.getElementById('surveyForm')
+    let isValid = true
 
     // Validate all fields including hidden ones
-    isValid = validateSection(true);
+    isValid = validateSection(true)
 
     // Additional check for visible validity
-    if (!form.checkValidity()) isValid = false;
+    if (!form.checkValidity()) isValid = false
 
     if (isValid && validateDatenschutz()) {
-      saveSectionData(false);
-      currentSection = 0; // Move to personal info
-      renderSection(currentSection);
-      updateProgressBar();
+      saveSectionData(false)
+      currentSection = 0 // Move to personal info
+      renderSection(currentSection)
+      updateProgressBar()
       // Scroll to top after transition
       setTimeout(() => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }, 300); // Increased timeout for better reliability
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }, 300) // Increased timeout for better reliability
     } else {
-      const firstError = markUnansweredQuestions();
+      const firstError = markUnansweredQuestions()
       if (firstError) {
-        firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     }
   } else if (currentSection < surveyData.length - 1) {
-    const form = document.getElementById("surveyForm");
-    let isValid = true;
+    const form = document.getElementById('surveyForm')
+    let isValid = true
 
     // Validate all fields including hidden ones
-    isValid = validateSection(true);
+    isValid = validateSection(true)
 
     // Additional check for visible validity
-    if (!form.checkValidity()) isValid = false;
+    if (!form.checkValidity()) isValid = false
 
     if (isValid) {
-      currentSection++;
-      saveSectionData(false);
-      renderSection(currentSection);
-      updateProgressBar();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      currentSection++
+      saveSectionData(false)
+      renderSection(currentSection)
+      updateProgressBar()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
-      const firstError = markUnansweredQuestions();
+      const firstError = markUnansweredQuestions()
       if (firstError) {
-        firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     }
   } else {
-    finishSurvey();
+    finishSurvey()
   }
 }
 
 function previousSection() {
   // Save current section data before moving back
-  saveSectionData(false);
+  saveSectionData(false)
 
   // Prevent going back to Datenschutz after completion
   if (currentSection === 0 && !userData.datenschutz) {
-    currentSection = -1;
+    currentSection = -1
   } else if (currentSection > 0) {
-    currentSection--;
+    currentSection--
   }
 
   // Render the previous section
-  renderSection(currentSection);
+  renderSection(currentSection)
 
   // Make sure to populate the form with saved data
-  const form = document.getElementById("surveyForm");
+  const form = document.getElementById('surveyForm')
   if (form) {
-    const attemptNumber = parseInt(sessionStorage.getItem("attemptNumber") || "1");
-    const isT2 = attemptNumber > 1;
-    
+    const attemptNumber = parseInt(
+      sessionStorage.getItem('attemptNumber') || '1'
+    )
+    const isT2 = attemptNumber > 1
+
     // Get responses based on whether we're in T1 or T2
-    let responses;
+    let responses
     if (isT2) {
       responses = {
-        ...(userData?.t2 || {}),  // T2 specific data
-        ...(userData?.t1 || {}),  // Fallback to T1 data
-        ...(userData?.initialResponses?.data || {})  // Initial data
-      };
+        ...(userData?.t2 || {}), // T2 specific data
+        ...(userData?.t1 || {}), // Fallback to T1 data
+        ...(userData?.initialResponses?.data || {}), // Initial data
+      }
     } else {
       responses = {
         ...(userData?.data || {}),
         ...(userData?.initialResponses?.data || {}),
-        ...(userData || {})
-      };
+        ...(userData || {}),
+      }
     }
-    
-    console.log("Loading saved responses for section", currentSection, ":", responses);
-    populateFormFields(form, responses, currentSection);
+
+    console.log(
+      'Loading saved responses for section',
+      currentSection,
+      ':',
+      responses
+    )
+    populateFormFields(form, responses, currentSection)
   }
 
   // Update UI
-  updateProgressBar();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  updateProgressBar()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function updateProgressBar() {
-  const attemptNumber = parseInt(
-    sessionStorage.getItem("attemptNumber") || "1"
-  );
-  const totalSections = surveyData.length + (attemptNumber > 1 ? 0 : 1); // +1 Datenschutz only for T1
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+  const totalSections = surveyData.length + (attemptNumber > 1 ? 0 : 1) // +1 Datenschutz only for T1
 
   // Skip progress update if we're on results page
-  if (sessionStorage.getItem("surveyCompleted") === "true") {
-    return;
+  if (sessionStorage.getItem('surveyCompleted') === 'true') {
+    return
   }
 
   const currentStep =
     currentSection === -1
       ? 1
       : attemptNumber > 1
-        ? currentSection + 1
-        : currentSection + 2;
-  const progress = (currentStep / totalSections) * 100;
+      ? currentSection + 1
+      : currentSection + 2
+  const progress = (currentStep / totalSections) * 100
 
-  const progressFill = document.getElementById("progressFill");
-  const progressText = document.getElementById("progressText");
+  const progressFill = document.getElementById('progressFill')
+  const progressText = document.getElementById('progressText')
 
   if (progressFill) {
-    progressFill.style.width = `${progress}%`;
-    progressFill.setAttribute("aria-valuenow", currentStep);
-    progressFill.setAttribute("aria-valuemax", totalSections);
+    progressFill.style.width = `${progress}%`
+    progressFill.setAttribute('aria-valuenow', currentStep)
+    progressFill.setAttribute('aria-valuemax', totalSections)
   }
 
   if (progressText) {
-    progressText.textContent = `Schritt ${currentStep} von ${totalSections}`;
+    progressText.textContent = `Schritt ${currentStep} von ${totalSections}`
   }
 }
 
 function updateNavigationButtons() {
   // First, ensure we have a container
-  const container = document.querySelector(".container");
-  if (!container) return;
+  const container = document.querySelector('.container')
+  if (!container) return
 
   // Always remove any existing navigation buttons first
-  const existingNav = container.querySelector(".navigation-buttons");
+  const existingNav = container.querySelector('.navigation-buttons')
   if (existingNav) {
-    existingNav.remove();
+    existingNav.remove()
   }
 
   // Don't show any buttons if survey is completed (results page)
-  if (sessionStorage.getItem("surveyCompleted") === "true") {
-    return;
+  if (sessionStorage.getItem('surveyCompleted') === 'true') {
+    return
   }
 
   // Create new navigation buttons container
-  const navigationButtons = document.createElement("div");
-  navigationButtons.className = "navigation-buttons";
+  const navigationButtons = document.createElement('div')
+  navigationButtons.className = 'navigation-buttons'
 
   // On Datenschutz page (currentSection === -1), show only Weiter button
   if (currentSection === -1) {
@@ -277,7 +282,7 @@ function updateNavigationButtons() {
       <button type="button" id="nextButton" class="btn btn-primary">
         Weiter <i class="fas fa-chevron-right"></i>
       </button>
-    `;
+    `
   } else {
     // On all other pages, show all three buttons
     navigationButtons.innerHTML = `
@@ -290,191 +295,191 @@ function updateNavigationButtons() {
       <button type="button" id="nextButton" class="btn btn-primary">
         Weiter <i class="fas fa-chevron-right"></i>
       </button>
-    `;
+    `
   }
 
   // Append the buttons to container
-  container.appendChild(navigationButtons);
+  container.appendChild(navigationButtons)
 
   // Add event listeners to the newly created buttons
-  const prevButton = document.getElementById("prevButton");
-  const nextButton = document.getElementById("nextButton");
-  const saveButton = document.getElementById("saveProgressButton");
+  const prevButton = document.getElementById('prevButton')
+  const nextButton = document.getElementById('nextButton')
+  const saveButton = document.getElementById('saveProgressButton')
 
   // Only add event listeners if buttons exist
-  if (prevButton) prevButton.addEventListener("click", previousSection);
-  if (nextButton) nextButton.addEventListener("click", nextSection);
-  if (saveButton) saveButton.addEventListener("click", saveAndResumeLater);
+  if (prevButton) prevButton.addEventListener('click', previousSection)
+  if (nextButton) nextButton.addEventListener('click', nextSection)
+  if (saveButton) saveButton.addEventListener('click', saveAndResumeLater)
 }
 
 async function startNewSurvey() {
-  const userId = sessionStorage.getItem("userId");
+  const userId = sessionStorage.getItem('userId')
   if (!userId) {
-    alert("Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.");
-    return;
+    alert('Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.')
+    return
   }
 
   try {
-    const response = await fetch("/api/reset-user-data", {
-      method: "POST",
+    const response = await fetch('/api/reset-user-data', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({ userId }),
-    });
+    })
 
     if (!response.ok) {
-      throw new Error("Fehler beim Zurücksetzen der Umfrage.");
+      throw new Error('Fehler beim Zurücksetzen der Umfrage.')
     }
 
     // Set 'startNewAttempt' to 'true' in sessionStorage
-    sessionStorage.setItem("startNewAttempt", "true");
+    sessionStorage.setItem('startNewAttempt', 'true')
 
     // For T2, ensure we start at personal section
     const attemptNumber = parseInt(
-      sessionStorage.getItem("attemptNumber") || "1"
-    );
+      sessionStorage.getItem('attemptNumber') || '1'
+    )
     if (attemptNumber > 1) {
-      sessionStorage.setItem("currentSection", "0");
+      sessionStorage.setItem('currentSection', '0')
     }
 
     // Load user data as a new attempt
-    await loadUserData(true);
+    await loadUserData(true)
 
     alert(
-      "Ihre Umfrage wurde erfolgreich zurückgesetzt. Sie können jetzt eine neue Umfrage starten."
-    );
+      'Ihre Umfrage wurde erfolgreich zurückgesetzt. Sie können jetzt eine neue Umfrage starten.'
+    )
   } catch (error) {
-    console.error("Fehler beim Zurücksetzen der Umfrage:", error);
+    console.error('Fehler beim Zurücksetzen der Umfrage:', error)
     alert(
-      "Fehler beim Zurücksetzen der Umfrage. Bitte versuchen Sie es erneut."
-    );
+      'Fehler beim Zurücksetzen der Umfrage. Bitte versuchen Sie es erneut.'
+    )
   }
 }
 
 async function resetSurveyData() {
-  const userId = sessionStorage.getItem("userId");
+  const userId = sessionStorage.getItem('userId')
   if (!userId) {
-    alert("Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.");
-    return;
+    alert('Benutzer-ID nicht gefunden. Bitte melden Sie sich erneut an.')
+    return
   }
 
   try {
-    const response = await fetch("/api/reset-user-data", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const response = await fetch('/api/reset-user-data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId }),
-    });
+    })
 
     if (!response.ok) {
-      throw new Error("Fehler beim Zurücksetzen der Umfrage.");
+      throw new Error('Fehler beim Zurücksetzen der Umfrage.')
     }
 
     alert(
-      "Ihre Umfrage wurde erfolgreich zurückgesetzt. Sie können jetzt eine neue Umfrage starten."
-    );
+      'Ihre Umfrage wurde erfolgreich zurückgesetzt. Sie können jetzt eine neue Umfrage starten.'
+    )
 
     // Reload the survey to reflect the reset
-    resetUserData();
-    currentSection = 0;
-    renderSection(currentSection);
-    updateProgressBar();
-    updateNavigationButtons();
+    resetUserData()
+    currentSection = 0
+    renderSection(currentSection)
+    updateProgressBar()
+    updateNavigationButtons()
   } catch (error) {
-    console.error("Fehler beim Zurücksetzen der Umfrage:", error);
+    console.error('Fehler beim Zurücksetzen der Umfrage:', error)
     alert(
-      "Fehler beim Zurücksetzen der Umfrage. Bitte versuchen Sie es erneut."
-    );
+      'Fehler beim Zurücksetzen der Umfrage. Bitte versuchen Sie es erneut.'
+    )
   }
 }
 
 function logout() {
   // Clear all session data
-  sessionStorage.clear();
-  localStorage.removeItem("surveyResumeToken");
+  sessionStorage.clear()
+  localStorage.removeItem('surveyResumeToken')
 
   // Reset all global variables
-  userData = null;
-  currentSection = 0;
-  initialScores = {};
-  updatedScores = {};
+  userData = null
+  currentSection = 0
+  initialScores = {}
+  updatedScores = {}
 
-  window.location.href = "login.html";
+  window.location.href = 'login.html'
 }
 
 window.onload = function () {
   // Check if this is a new attempt
-  const isNewAttempt = sessionStorage.getItem('startNewAttempt') === 'true';
-  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1');
-  
+  const isNewAttempt = sessionStorage.getItem('startNewAttempt') === 'true'
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+
   console.log('Loading survey with:', {
     isNewAttempt,
     attemptNumber,
-    userId: sessionStorage.getItem('userId')
-  });
+    userId: sessionStorage.getItem('userId'),
+  })
 
   if (isNewAttempt) {
-    console.log('Starting new attempt, resetting state');
+    console.log('Starting new attempt, resetting state')
     // Reset all state for new attempt
-    userData = null;
-    currentSection = -1; // Start at Datenschutz section
-    initialScores = {};
-    updatedScores = {};
+    userData = null
+    currentSection = -1 // Start at Datenschutz section
+    initialScores = {}
+    updatedScores = {}
   }
 
   // Check if survey was completed
-  const isCompleted = sessionStorage.getItem("surveyCompleted") === "true";
-  const userId = sessionStorage.getItem("userId");
+  const isCompleted = sessionStorage.getItem('surveyCompleted') === 'true'
+  const userId = sessionStorage.getItem('userId')
 
   if (isCompleted && userId) {
     // Ensure the survey form is cleared before showing results
-    const form = document.getElementById("surveyForm");
-    if (form) form.innerHTML = "";
+    const form = document.getElementById('surveyForm')
+    if (form) form.innerHTML = ''
 
     fetch(`/api/user-data/${userId}`)
       .then((response) => {
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          throw new Error(`HTTP error! status: ${response.status}`)
         }
-        return response.json();
+        return response.json()
       })
       .then((data) => {
         if (!data) {
-          throw new Error("No data received");
+          throw new Error('No data received')
         }
-        userData = data;
-        showResults();
+        userData = data
+        showResults()
       })
       .catch((error) => {
-        console.error("Error loading completed survey:", error);
+        console.error('Error loading completed survey:', error)
         // On error, start from beginning
-        sessionStorage.removeItem("surveyCompleted");
-        currentSection = -1; // Start at Datenschutz section
-        initializeSections();
-      });
+        sessionStorage.removeItem('surveyCompleted')
+        currentSection = -1 // Start at Datenschutz section
+        initializeSections()
+      })
   } else {
     // Load user data with the new attempt flag
-    loadUserData(isNewAttempt);
+    loadUserData(isNewAttempt)
   }
-};
+}
 
 function hideNavigationButtons() {
-  const navContainer = document.querySelector(".navigation-buttons");
+  const navContainer = document.querySelector('.navigation-buttons')
   if (navContainer) {
-    navContainer.style.display = "none";
+    navContainer.style.display = 'none'
   }
   // Also hide individual buttons if they exist
-  const prevButton = document.getElementById("prevButton");
-  const nextButton = document.getElementById("nextButton");
-  const saveButton = document.getElementById("saveProgressButton");
-  if (prevButton) prevButton.style.display = "none";
-  if (nextButton) nextButton.style.display = "none";
-  if (saveButton) saveButton.style.display = "none";
+  const prevButton = document.getElementById('prevButton')
+  const nextButton = document.getElementById('nextButton')
+  const saveButton = document.getElementById('saveProgressButton')
+  if (prevButton) prevButton.style.display = 'none'
+  if (nextButton) nextButton.style.display = 'none'
+  if (saveButton) saveButton.style.display = 'none'
 }
 
 // ===== Data Management & Lifecycle =====
-if (typeof surveyData === "undefined") {
-  console.error("surveyData ist nicht definiert...");
+if (typeof surveyData === 'undefined') {
+  console.error('surveyData ist nicht definiert...')
 }
 
 function resetUserData() {
@@ -485,37 +490,40 @@ function resetUserData() {
       attemptNumber: 1,
       currentSection: -1,
     },
-  };
-  initialScores = {};
-  updatedScores = {};
+  }
+  initialScores = {}
+  updatedScores = {}
 }
 
 async function loadUserData(isNewAttempt = false) {
   try {
     // Prevent double initialization
     if (isInitializing) {
-      console.log("Already initializing, skipping duplicate call");
-      return;
+      console.log('Already initializing, skipping duplicate call')
+      return
     }
-    isInitializing = true;
+    isInitializing = true
 
-    const userId = sessionStorage.getItem("userId");
+    const userId = sessionStorage.getItem('userId')
     if (!userId) {
-      console.error("No userId found");
-      window.location.href = "login.html";
-      return;
+      console.error('No userId found')
+      window.location.href = 'login.html'
+      return
     }
 
-    console.log("Loading user data for userId:", userId);
-    console.log("Is new attempt:", isNewAttempt);
-    console.log("Current attempt number:", sessionStorage.getItem("attemptNumber"));
+    console.log('Loading user data for userId:', userId)
+    console.log('Is new attempt:', isNewAttempt)
+    console.log(
+      'Current attempt number:',
+      sessionStorage.getItem('attemptNumber')
+    )
 
     try {
-      const response = await fetch(`/api/user-data/${userId}`);
-      let data;
-      
+      const response = await fetch(`/api/user-data/${userId}`)
+      let data
+
       if (response.status === 404) {
-        console.log("New user, initializing data");
+        console.log('New user, initializing data')
         data = {
           t1: {},
           t2: {},
@@ -527,48 +535,49 @@ async function loadUserData(isNewAttempt = false) {
           isComplete: false,
           courses: [],
           datenschutzConsent: false,
-          unterschrift: "",
+          unterschrift: '',
           initialResponses: { data: {} },
           updatedResponses: {},
           initialScores: {},
-          updatedScores: {}
-        };
+          updatedScores: {},
+        }
       } else if (!response.ok) {
-        throw new Error("Failed to load user data");
+        throw new Error('Failed to load user data')
       } else {
-        data = await response.json();
-        console.log("Loaded existing data from server:", data);
+        data = await response.json()
+        console.log('Loaded existing data from server:', data)
       }
 
       // For T2, ensure we preserve T1 data even on new attempt
-      const attemptNumber = parseInt(sessionStorage.getItem("attemptNumber") || "1");
+      const attemptNumber = parseInt(
+        sessionStorage.getItem('attemptNumber') || '1'
+      )
       if (attemptNumber > 1) {
-        console.log("T2: Preserving T1 data");
-        
+        console.log('T2: Preserving T1 data')
+
         // Special check for birth year
-        const birthYear = data.initialResponses?.data?.q0_1 || 
-                         data.t1?.q0_1 || 
-                         data.data?.q0_1;
-                         
-        console.log("Found birth year:", birthYear);
-        
+        const birthYear =
+          data.initialResponses?.data?.q0_1 || data.t1?.q0_1 || data.data?.q0_1
+
+        console.log('Found birth year:', birthYear)
+
         // Preserve T1 data even if it's a new attempt
         const preservedData = {
           t1: {
             ...data.t1,
-            q0_1: birthYear  // Ensure birth year is preserved
+            q0_1: birthYear, // Ensure birth year is preserved
           },
           initialResponses: {
             data: {
               ...data.initialResponses?.data,
-              q0_1: birthYear  // Ensure birth year is preserved
-            }
+              q0_1: birthYear, // Ensure birth year is preserved
+            },
           },
           data: {
             ...data.data,
-            q0_1: birthYear  // Ensure birth year is preserved
-          }
-        };
+            q0_1: birthYear, // Ensure birth year is preserved
+          },
+        }
 
         if (isNewAttempt) {
           // Reset T2-specific data while keeping T1 data
@@ -577,17 +586,17 @@ async function loadUserData(isNewAttempt = false) {
             t2: {},
             meta: {
               attemptNumber: 2,
-              currentSection: 0
+              currentSection: 0,
             },
             // Preserve T1 data including birth year
             t1: preservedData.t1,
             initialResponses: preservedData.initialResponses,
-            data: preservedData.data
-          };
+            data: preservedData.data,
+          }
         }
       }
 
-      console.log("Processing data:", data);
+      console.log('Processing data:', data)
 
       // Initialize the data structure
       userData = {
@@ -595,137 +604,142 @@ async function loadUserData(isNewAttempt = false) {
         t2: data.t2 || {},
         meta: {
           attemptNumber: attemptNumber,
-          currentSection: attemptNumber > 1 ? 0 : (isNewAttempt ? -1 : (data.meta?.currentSection || -1)),
-          ...data.meta
+          currentSection:
+            attemptNumber > 1
+              ? 0
+              : isNewAttempt
+              ? -1
+              : data.meta?.currentSection || -1,
+          ...data.meta,
         },
         data: {
           ...data.data,
-          ...(data.initialResponses?.data || {})
+          ...(data.initialResponses?.data || {}),
         },
         initialResponses: {
           data: {
             ...data.initialResponses?.data,
-            ...data.data
-          }
+            ...data.data,
+          },
         },
         isComplete: data.isComplete || false,
         courses: data.courses || [],
         datenschutzConsent: data.datenschutzConsent || false,
-        unterschrift: data.unterschrift || "",
+        unterschrift: data.unterschrift || '',
         updatedResponses: data.updatedResponses || {},
         initialScores: data.initialScores || {},
-        updatedScores: data.updatedScores || {}
-      };
+        updatedScores: data.updatedScores || {},
+      }
 
       if (attemptNumber > 1) {
-        console.log("T2: Setting up T2 data");
-        
+        console.log('T2: Setting up T2 data')
+
         // Copy all q0_ fields from T1 to T2
         const copyPersonalInfo = (source) => {
-          if (!source) return;
+          if (!source) return
           Object.entries(source).forEach(([key, value]) => {
-            if (key.startsWith("q0_")) {
-              console.log(`Copying ${key} with value:`, value);
+            if (key.startsWith('q0_')) {
+              console.log(`Copying ${key} with value:`, value)
               // Special handling for birth year to ensure it's copied
-              if (key === "q0_1") {
-                console.log("Copying birth year:", value);
+              if (key === 'q0_1') {
+                console.log('Copying birth year:', value)
               }
-              userData.t1[key] = value;
-              userData.t2[key] = value;
-              userData.initialResponses.data[key] = value;
-              userData.data[key] = value;
+              userData.t1[key] = value
+              userData.t2[key] = value
+              userData.initialResponses.data[key] = value
+              userData.data[key] = value
             }
-          });
-        };
+          })
+        }
 
         // Try all possible data sources
-        console.log("T2: Copying personal info from various sources");
-        copyPersonalInfo(data.initialResponses?.data);
-        copyPersonalInfo(data.data);
-        copyPersonalInfo(data.t1);
-        
-        console.log("T2: Final data state:", {
+        console.log('T2: Copying personal info from various sources')
+        copyPersonalInfo(data.initialResponses?.data)
+        copyPersonalInfo(data.data)
+        copyPersonalInfo(data.t1)
+
+        console.log('T2: Final data state:', {
           t1: userData.t1,
           t2: userData.t2,
           initialResponses: userData.initialResponses,
-          data: userData.data
-        });
+          data: userData.data,
+        })
 
         // Double-check birth year was copied
-        console.log("Final birth year value:", {
+        console.log('Final birth year value:', {
           t1: userData.t1.q0_1,
           t2: userData.t2.q0_1,
           initialResponses: userData.initialResponses.data.q0_1,
-          data: userData.data.q0_1
-        });
+          data: userData.data.q0_1,
+        })
       }
 
-      currentSection = userData.meta.currentSection;
-      console.log("Final current section:", currentSection);
-      console.log("Final user data state:", userData);
-      
-      renderSection(currentSection);
-      updateProgressBar();
-      updateNavigationButtons();
+      currentSection = userData.meta.currentSection
+      console.log('Final current section:', currentSection)
+      console.log('Final user data state:', userData)
+
+      renderSection(currentSection)
+      updateProgressBar()
+      updateNavigationButtons()
     } catch (error) {
-      console.error("Error in user data handling:", error);
+      console.error('Error in user data handling:', error)
       userData = {
         t1: {},
         t2: {},
         meta: {
           attemptNumber: 1,
-          currentSection: -1
+          currentSection: -1,
         },
         data: {},
-        initialResponses: { data: {} }
-      };
-      currentSection = -1;
-      renderSection(currentSection);
-      updateProgressBar();
-      updateNavigationButtons();
+        initialResponses: { data: {} },
+      }
+      currentSection = -1
+      renderSection(currentSection)
+      updateProgressBar()
+      updateNavigationButtons()
     }
   } catch (error) {
-    console.error("Fatal error in loadUserData:", error);
+    console.error('Fatal error in loadUserData:', error)
     Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Failed to load user data. Please try again.",
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to load user data. Please try again.',
     }).then(() => {
-      window.location.href = "login.html";
-    });
+      window.location.href = 'login.html'
+    })
   } finally {
-    isInitializing = false;
+    isInitializing = false
   }
 }
 
 function saveSectionData(isComplete = false) {
-  removeUnansweredMarkers();
-  const userId = sessionStorage.getItem("userId");
+  removeUnansweredMarkers()
+  const userId = sessionStorage.getItem('userId')
   const attemptNumber =
-    parseInt(sessionStorage.getItem("attemptNumber"), 10) || 1;
+    parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
   if (!userId) {
-    console.error("No userId found");
-    return Promise.reject(new Error("No userId found"));
+    console.error('No userId found')
+    return Promise.reject(new Error('No userId found'))
   }
 
   // Handle Datenschutz section separately
   if (currentSection === -1) {
     userData.datenschutz = {
       kenntnis:
-        document.getElementById("datenschutzKenntnis")?.checked || false,
+        document.getElementById('datenschutzKenntnis')?.checked || false,
       verarbeitung:
-        document.getElementById("datenschutzVerarbeitung")?.checked || false,
+        document.getElementById('datenschutzVerarbeitung')?.checked || false,
       einverstaendnis:
-        document.getElementById("teilnahmeEinverstaendnis")?.checked || false,
-      unterschrift: document.getElementById("unterschrift")?.value.trim() || "",
+        document.getElementById('teilnahmeEinverstaendnis')?.checked || false,
+      unterschrift: document.getElementById('unterschrift')?.value.trim() || '',
       datum:
-        document.getElementById("datum")?.value ||
-        new Date().toISOString().split("T")[0],
-    };
+        document.getElementById('datum')?.value ||
+        new Date().toISOString().split('T')[0],
+    }
   } else {
     // Handle regular form data
-    const formData = new FormData(document.getElementById("surveyForm"));
+    const formData = new FormData(document.getElementById('surveyForm'))
 
     // For T2 personal info section, preserve T1 data except semester
     if (attemptNumber > 1 && currentSection === 0) {
@@ -734,18 +748,18 @@ function saveSectionData(isComplete = false) {
         ...Object.fromEntries(formData.entries()),
         // Preserve T1 personal info except semester
         ...Object.keys(userData.t1).reduce((acc, key) => {
-          if (key.startsWith("q0_") && key !== "q0_6")
-            acc[key] = userData.t1[key];
-          return acc;
+          if (key.startsWith('q0_') && key !== 'q0_6')
+            acc[key] = userData.t1[key]
+          return acc
         }, {}),
-      };
+      }
     } else {
       // Regular data handling for other sections
       for (const [key, value] of formData.entries()) {
         if (attemptNumber > 1) {
-          userData.t2[key] = value;
+          userData.t2[key] = value
         } else {
-          userData[key] = value;
+          userData[key] = value
         }
       }
     }
@@ -755,7 +769,7 @@ function saveSectionData(isComplete = false) {
   const categoryScores =
     currentSection === -1
       ? {}
-      : calculateCategoryScores(attemptNumber > 1 ? userData.t2 : userData);
+      : calculateCategoryScores(attemptNumber > 1 ? userData.t2 : userData)
 
   // Prepare data payload
   const dataToSend = {
@@ -770,552 +784,549 @@ function saveSectionData(isComplete = false) {
       attemptNumber: attemptNumber,
       currentSection: currentSection,
     },
-  };
+  }
 
   // Handle open-ended responses
-  const t1Response = document.getElementById("t1OpenEndedResponse");
-  const t2Response = document.getElementById("t2OpenEndedResponse");
-  const t2Feedback = document.querySelector('[name="t2_course_feedback"]');
+  const t1Response = document.getElementById('t1OpenEndedResponse')
+  const t2Response = document.getElementById('t2OpenEndedResponse')
+  const t2Feedback = document.querySelector('[name="t2_course_feedback"]')
 
   if (t1Response?.value?.trim()) {
-    dataToSend.openEndedResponses.t1_strategy = t1Response.value.trim();
+    dataToSend.openEndedResponses.t1_strategy = t1Response.value.trim()
   }
   if (t2Response?.value?.trim()) {
-    dataToSend.openEndedResponses.t2_reflection = t2Response.value.trim();
+    dataToSend.openEndedResponses.t2_reflection = t2Response.value.trim()
   }
   if (t2Feedback?.value?.trim() && attemptNumber > 1) {
-    dataToSend.openEndedResponses.t2_course_feedback = t2Feedback.value.trim();
+    dataToSend.openEndedResponses.t2_course_feedback = t2Feedback.value.trim()
   }
 
-  return fetch("/api/save-user-data", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+  return fetch('/api/save-user-data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(dataToSend),
   })
     .then(async (response) => {
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Server error");
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Server error')
       }
-      return response.json();
+      return response.json()
     })
     .then((result) => {
       // Update local score storage
       if (result.initialScores) {
         sessionStorage.setItem(
-          "initialScores",
+          'initialScores',
           JSON.stringify(result.initialScores)
-        );
-        initialScores = result.initialScores;
+        )
+        initialScores = result.initialScores
       }
       if (result.updatedScores) {
         sessionStorage.setItem(
-          "updatedScores",
+          'updatedScores',
           JSON.stringify(result.updatedScores)
-        );
-        updatedScores = result.updatedScores;
+        )
+        updatedScores = result.updatedScores
       }
 
       // Handle completion
       if (isComplete && currentSection !== -1) {
         if (attemptNumber === 1) {
-          sessionStorage.setItem("hasInitialScores", "true");
+          sessionStorage.setItem('hasInitialScores', 'true')
         }
       }
       // Clear previous ILIAS links before showing new ones
-      const iliasLinks = document.getElementById("iliasLinks");
-      if (iliasLinks) iliasLinks.innerHTML = "";
+      const iliasLinks = document.getElementById('iliasLinks')
+      if (iliasLinks) iliasLinks.innerHTML = ''
 
-      return result;
-    });
+      return result
+    })
 }
 
 async function finishSurvey() {
   // Validate only the final survey section (no Datenschutz handling)
   if (validateSection()) {
     try {
-      const result = await saveSectionData(true); // Force complete flag and wait for save
+      const result = await saveSectionData(true) // Force complete flag and wait for save
       if (result) {
-        showResults();
+        showResults()
       } else {
-        throw new Error("Failed to save survey data");
+        throw new Error('Failed to save survey data')
       }
     } catch (error) {
-      console.error("Error saving survey data:", error);
+      console.error('Error saving survey data:', error)
       alert(
-        "Es gab einen Fehler beim Speichern. Bitte versuchen Sie es erneut."
-      );
+        'Es gab einen Fehler beim Speichern. Bitte versuchen Sie es erneut.'
+      )
     }
   } else {
-    const firstError = markUnansweredQuestions();
+    const firstError = markUnansweredQuestions()
     if (firstError) {
-      firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+      firstError.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }
 }
 
 function submitT1OpenEndedResponse(event) {
-  event.preventDefault();
+  event.preventDefault()
   const openEndedResponse = document
-    .getElementById("t1OpenEndedResponse")
-    .value.trim();
+    .getElementById('t1OpenEndedResponse')
+    .value.trim()
 
   if (!openEndedResponse) {
-    alert("Bitte füllen Sie das Textfeld aus.");
-    return;
+    alert('Bitte füllen Sie das Textfeld aus.')
+    return
   }
 
-  const userId = sessionStorage.getItem("userId");
+  const userId = sessionStorage.getItem('userId')
 
-  fetch("/api/save-open-ended-response", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+  fetch('/api/save-open-ended-response', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       userId: userId,
-      key: "t1_strategy",
+      key: 't1_strategy',
       response: openEndedResponse,
     }),
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        throw new Error('Network response was not ok')
       }
-      return response.json();
+      return response.json()
     })
     .then(() => {
       // Store the response in userData
       if (!userData.openEndedResponses) {
-        userData.openEndedResponses = {};
+        userData.openEndedResponses = {}
       }
-      userData.openEndedResponses.t1_strategy = openEndedResponse;
+      userData.openEndedResponses.t1_strategy = openEndedResponse
 
       // Get the existing chart canvas
-      const existingChart = document.getElementById("competencyChart1");
-      const chartContainer = existingChart.parentElement;
+      const existingChart = document.getElementById('competencyChart1')
+      const chartContainer = existingChart.parentElement
       const chartData = {
         initialScores: JSON.parse(
-          sessionStorage.getItem("initialScores") || "{}"
+          sessionStorage.getItem('initialScores') || '{}'
         ),
         updatedScores: JSON.parse(
-          sessionStorage.getItem("updatedScores") || "{}"
+          sessionStorage.getItem('updatedScores') || '{}'
         ),
-      };
+      }
 
       // Disable inputs
-      document.getElementById("submitT1OpenEndedResponse").disabled = true;
-      document.getElementById("t1OpenEndedResponse").disabled = true;
+      document.getElementById('submitT1OpenEndedResponse').disabled = true
+      document.getElementById('t1OpenEndedResponse').disabled = true
 
       // Show course links
-      showCourseLinks();
+      showCourseLinks()
 
       // Recreate the chart to ensure it's visible
-      createCompetencyChart1(chartData.initialScores, chartData.updatedScores);
+      createCompetencyChart1(chartData.initialScores, chartData.updatedScores)
     })
     .catch((error) => {
-      console.error("Error:", error);
+      console.error('Error:', error)
       alert(
-        "Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut."
-      );
-    });
+        'Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.'
+      )
+    })
 }
 
 function submitT2OpenEndedResponse(event) {
-  event.preventDefault();
+  event.preventDefault()
   const openEndedResponse = document
-    .getElementById("t2OpenEndedResponse")
-    .value.trim();
+    .getElementById('t2OpenEndedResponse')
+    .value.trim()
   if (!openEndedResponse) {
-    alert("Bitte füllen Sie das Textfeld aus.");
-    return;
+    alert('Bitte füllen Sie das Textfeld aus.')
+    return
   }
 
-  const userId = sessionStorage.getItem("userId");
+  const userId = sessionStorage.getItem('userId')
 
-  fetch("/api/save-open-ended-response", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+  fetch('/api/save-open-ended-response', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       userId: userId,
-      key: "t2_reflection",
+      key: 't2_reflection',
       response: openEndedResponse,
     }),
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        throw new Error('Network response was not ok')
       }
-      return response.json();
+      return response.json()
     })
     .then(() => {
-      document.getElementById("t2OpenEndedResponse").value = "";
-      alert("Vielen Dank für Ihre Antwort!");
+      document.getElementById('t2OpenEndedResponse').value = ''
+      alert('Vielen Dank für Ihre Antwort!')
     })
     .catch((error) => {
-      console.error("Error:", error);
+      console.error('Error:', error)
       alert(
-        "Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut."
-      );
-    });
+        'Es gab einen Fehler beim Speichern Ihrer Antwort. Bitte versuchen Sie es erneut.'
+      )
+    })
 }
 
 function saveAndResumeLater() {
   const resumeToken = btoa(
     JSON.stringify({
-      userId: sessionStorage.getItem("userId"),
+      userId: sessionStorage.getItem('userId'),
       section: currentSection,
     })
-  );
-  localStorage.setItem("surveyResumeToken", resumeToken);
-  alert("Ihr Fortschritt wurde gespeichert. Sie können später fortfahren.");
+  )
+  localStorage.setItem('surveyResumeToken', resumeToken)
+  alert('Ihr Fortschritt wurde gespeichert. Sie können später fortfahren.')
 }
 
 // ===== Form Operations & Validation =====
 function populatePersonalInfo(form, data) {
   surveyData.forEach((section, sectionIndex) => {
-    if (section.title === "Persönliche Angaben") {
+    if (section.title === 'Persönliche Angaben') {
       section.questions.forEach((question, questionIndex) => {
-        const questionId = `q${sectionIndex}_${questionIndex}`;
-        const value = data[questionId];
+        const questionId = `q${sectionIndex}_${questionIndex}`
+        const value = data[questionId]
         if (value !== undefined) {
-          const field = form.querySelector(`[name="${questionId}"]`);
+          const field = form.querySelector(`[name="${questionId}"]`)
           if (field) {
-            if (field.type === "radio") {
+            if (field.type === 'radio') {
               const radioButton = form.querySelector(
                 `[name="${questionId}"][value="${value}"]`
-              );
-              if (radioButton) radioButton.checked = true;
-            } else if (field.type === "date") {
-              field.value = value; // Already set to today's date and read-only
+              )
+              if (radioButton) radioButton.checked = true
+            } else if (field.type === 'date') {
+              field.value = value // Already set to today's date and read-only
             } else {
-              field.value = value;
+              field.value = value
             }
           }
         }
-      });
+      })
     }
-  });
+  })
 }
 
 function populateFormFields(form, data, sectionIndex) {
-  const attemptNumber = parseInt(
-    sessionStorage.getItem("attemptNumber") || "1"
-  );
-  const isT2 = attemptNumber > 1;
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+  const isT2 = attemptNumber > 1
 
-  console.log("PopulateFormFields called with:", {
+  console.log('PopulateFormFields called with:', {
     sectionIndex,
     isT2,
-    data: data
-  });
+    data: data,
+  })
 
   // Helper function to find value in nested structure
   const findValue = (questionId) => {
-    let value;
-    
+    let value
+
     // Special handling for birth year (q0_1)
-    if (questionId === "q0_1") {
-      console.log("Looking for birth year in:", {
+    if (questionId === 'q0_1') {
+      console.log('Looking for birth year in:', {
         initialResponsesData: data?.initialResponses?.data?.[questionId],
         t1Data: data?.t1?.[questionId],
         rootData: data?.data?.[questionId],
-        allData: data
-      });
+        allData: data,
+      })
     }
-    
+
     // For T2, look in these locations in order
     if (isT2) {
-      value = data?.initialResponses?.data?.[questionId] ||  // First try initialResponses.data
-             data?.t1?.[questionId] ||                       // Then try t1
-             data?.data?.[questionId] ||                     // Then try data
-             "";                                             // Default empty string
-             
-      if (questionId === "q0_1") {
-        console.log("Found birth year value:", value);
+      value =
+        data?.initialResponses?.data?.[questionId] || // First try initialResponses.data
+        data?.t1?.[questionId] || // Then try t1
+        data?.data?.[questionId] || // Then try data
+        '' // Default empty string
+
+      if (questionId === 'q0_1') {
+        console.log('Found birth year value:', value)
       }
     } else {
-      value = data?.data?.[questionId] || 
-              data?.[questionId] || 
-              "";
+      value = data?.data?.[questionId] || data?.[questionId] || ''
     }
 
-    return value;
-  };
+    return value
+  }
 
-  const section = surveyData[sectionIndex];
+  const section = surveyData[sectionIndex]
   section.questions.forEach((question, questionIndex) => {
-    const questionId = `q${sectionIndex}_${questionIndex}`;
-    const value = findValue(questionId);
+    const questionId = `q${sectionIndex}_${questionIndex}`
+    const value = findValue(questionId)
 
     console.log(`Processing ${questionId}:`, {
       value,
       question,
-      isT2
-    });
+      isT2,
+    })
 
     if (value !== undefined && value !== null) {
-      const fields = form.querySelectorAll(`[name="${questionId}"]`);
-      
-      console.log(`Found ${fields.length} fields for ${questionId}`);
-      
-      fields.forEach(field => {
+      const fields = form.querySelectorAll(`[name="${questionId}"]`)
+
+      console.log(`Found ${fields.length} fields for ${questionId}`)
+
+      fields.forEach((field) => {
         if (!field) {
-          console.log(`Field not found for ${questionId}`);
-          return;
+          console.log(`Field not found for ${questionId}`)
+          return
         }
 
         // Special handling for birth year field
-        if (questionId === "q0_1") {
-          console.log("Setting birth year field:", {
+        if (questionId === 'q0_1') {
+          console.log('Setting birth year field:', {
             field,
             value,
-            type: field.type
-          });
+            type: field.type,
+          })
         }
 
         // Handle different field types
-        if (field.type === "radio") {
+        if (field.type === 'radio') {
           if (field.value === value.toString()) {
-            field.checked = true;
+            field.checked = true
             if (isT2) {
-              field.disabled = true;
-              const hiddenInput = document.createElement("input");
-              hiddenInput.type = "hidden";
-              hiddenInput.name = questionId;
-              hiddenInput.value = value;
-              field.parentNode.insertBefore(hiddenInput, field.nextSibling);
+              field.disabled = true
+              const hiddenInput = document.createElement('input')
+              hiddenInput.type = 'hidden'
+              hiddenInput.name = questionId
+              hiddenInput.value = value
+              field.parentNode.insertBefore(hiddenInput, field.nextSibling)
             }
           }
-        } else if (field.tagName === "SELECT") {
-          field.value = value;
+        } else if (field.tagName === 'SELECT') {
+          field.value = value
           if (isT2) {
-            field.disabled = true;
-            const hiddenInput = document.createElement("input");
-            hiddenInput.type = "hidden";
-            hiddenInput.name = questionId;
-            hiddenInput.value = value;
-            field.parentNode.insertBefore(hiddenInput, field.nextSibling);
+            field.disabled = true
+            const hiddenInput = document.createElement('input')
+            hiddenInput.type = 'hidden'
+            hiddenInput.name = questionId
+            hiddenInput.value = value
+            field.parentNode.insertBefore(hiddenInput, field.nextSibling)
           }
         } else {
-          field.value = value;
+          field.value = value
           if (isT2) {
-            field.readOnly = true;
-            const hiddenInput = document.createElement("input");
-            hiddenInput.type = "hidden";
-            hiddenInput.name = questionId;
-            hiddenInput.value = value;
-            field.parentNode.insertBefore(hiddenInput, field.nextSibling);
+            field.readOnly = true
+            const hiddenInput = document.createElement('input')
+            hiddenInput.type = 'hidden'
+            hiddenInput.name = questionId
+            hiddenInput.value = value
+            field.parentNode.insertBefore(hiddenInput, field.nextSibling)
           }
         }
 
         // Apply T2 styling for disabled fields
         if (isT2) {
-          field.style.backgroundColor = "#f0f0f0";
-          field.style.cursor = "not-allowed";
+          field.style.backgroundColor = '#f0f0f0'
+          field.style.cursor = 'not-allowed'
         }
-      });
+      })
     }
-  });
+  })
 
   // Handle T2 course feedback if present
   if (isT2 && sectionIndex === 0) {
-    const feedbackValue = data?.openEndedResponses?.t2_course_feedback || "";
-    const feedbackField = form.querySelector('[name="t2_course_feedback"]');
+    const feedbackValue = data?.openEndedResponses?.t2_course_feedback || ''
+    const feedbackField = form.querySelector('[name="t2_course_feedback"]')
     if (feedbackField) {
-      feedbackField.value = feedbackValue;
+      feedbackField.value = feedbackValue
     }
   }
 }
 
 function validateSection() {
-  const form = document.getElementById("surveyForm");
-  if (!form) return false;
-  const attemptNumber = userData.meta.attemptNumber;
-  const isT2 = attemptNumber > 1;
-  const isPersonalSection = currentSection === 0;
-  let isValid = true;
+  const form = document.getElementById('surveyForm')
+  if (!form) return false
+  const attemptNumber = userData.meta.attemptNumber
+  const isT2 = attemptNumber > 1
+  const isPersonalSection = currentSection === 0
+  let isValid = true
 
   // Reset validation states
-  form.querySelectorAll(".question").forEach((q) => {
-    q.classList.remove("unanswered");
-  });
+  form.querySelectorAll('.question').forEach((q) => {
+    q.classList.remove('unanswered')
+  })
 
   // For T2 personal section, only validate the feedback question
   if (isT2 && isPersonalSection) {
-    const feedback = form.querySelector('[name="t2_course_feedback"]');
+    const feedback = form.querySelector('[name="t2_course_feedback"]')
     if (!feedback || !feedback.value.trim()) {
-      isValid = false;
-      const container = feedback.closest(".question") || feedback.parentElement;
-      container.classList.add("unanswered");
-      alert("Bitte geben Sie Ihr Feedback zu den ILIAS-Kursen ein.");
+      isValid = false
+      const container = feedback.closest('.question') || feedback.parentElement
+      container.classList.add('unanswered')
+      alert('Bitte geben Sie Ihr Feedback zu den ILIAS-Kursen ein.')
     }
-    return isValid;
+    return isValid
   }
 
   // Special handling for personal info section
   if (currentSection === 0) {
     // Handle hidden T2 fields
-    const isT2 = attemptNumber > 1;
+    const isT2 = attemptNumber > 1
 
     // Validate Lehramt dropdown
     const lehramtField = isT2
       ? form.querySelector('input[type="hidden"][name="q0_3"]')
-      : form.querySelector('[name="q0_3"]');
+      : form.querySelector('[name="q0_3"]')
 
     if (
       lehramtField &&
       lehramtField.offsetParent &&
-      lehramtField.value === ""
+      lehramtField.value === ''
     ) {
-      isValid = false;
-      const container = lehramtField.closest(".question") || form;
-      container.classList.add("unanswered");
+      isValid = false
+      const container = lehramtField.closest('.question') || form
+      container.classList.add('unanswered')
     }
 
     // Validate birth year
-    const birthYearField = form.querySelector('[name="q0_1"]');
+    const birthYearField = form.querySelector('[name="q0_1"]')
     if (birthYearField) {
-      validateYear(birthYearField); // Force validation
+      validateYear(birthYearField) // Force validation
       if (!birthYearField.checkValidity()) {
-        isValid = false;
-        birthYearField.closest(".question").classList.add("unanswered");
+        isValid = false
+        birthYearField.closest('.question').classList.add('unanswered')
       }
     }
 
     // Validate Fächer/Studien field
-    const studienField = form.querySelector('[name="q0_4"], [name="q0_5"]');
+    const studienField = form.querySelector('[name="q0_4"], [name="q0_5"]')
     if (
       studienField &&
       studienField.offsetParent &&
       !studienField.value.trim()
     ) {
-      isValid = false;
-      studienField.closest(".question").classList.add("unanswered");
+      isValid = false
+      studienField.closest('.question').classList.add('unanswered')
     }
   }
 
   // Generic validation for all required fields
-  let requiredFields = [];
-  form.querySelectorAll("[required]").forEach((field) => {
+  let requiredFields = []
+  form.querySelectorAll('[required]').forEach((field) => {
     // Skip hidden fields that have visible counterparts
     if (
-      field.type === "hidden" &&
+      field.type === 'hidden' &&
       form.querySelector(`[name="${field.name}"]:not([type="hidden"])`)
     )
-      return;
+      return
 
-    requiredFields.push(field);
-  });
+    requiredFields.push(field)
+  })
 
   requiredFields.forEach((field) => {
     if (
       field.offsetParent && // Only validate visible fields
-      ((field.type === "radio" &&
+      ((field.type === 'radio' &&
         !form.querySelector(`[name="${field.name}"]:checked`)) ||
-        (field.type === "checkbox" && !field.checked) ||
-        (field.type !== "radio" &&
-          field.type !== "checkbox" &&
+        (field.type === 'checkbox' && !field.checked) ||
+        (field.type !== 'radio' &&
+          field.type !== 'checkbox' &&
           !field.value.trim()))
     ) {
-      isValid = false;
-      const container = field.closest(".question") || field.parentElement;
-      container.classList.add("unanswered");
+      isValid = false
+      const container = field.closest('.question') || field.parentElement
+      container.classList.add('unanswered')
     }
-  });
+  })
 
   if (!isValid) {
-    const firstError = form.querySelector(".unanswered");
+    const firstError = form.querySelector('.unanswered')
     if (firstError) {
-      firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+      firstError.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
-    alert("Bitte füllen Sie alle Pflichtfelder aus.");
+    alert('Bitte füllen Sie alle Pflichtfelder aus.')
   }
 
-  return isValid;
+  return isValid
 }
 
 function validateDatenschutz() {
   const elements = [
     {
-      el: document.getElementById("datenschutzKenntnis"),
-      label: "Datenschutzkenntnis",
+      el: document.getElementById('datenschutzKenntnis'),
+      label: 'Datenschutzkenntnis',
     },
     {
-      el: document.getElementById("datenschutzVerarbeitung"),
-      label: "Datenverarbeitung",
+      el: document.getElementById('datenschutzVerarbeitung'),
+      label: 'Datenverarbeitung',
     },
     {
-      el: document.getElementById("teilnahmeEinverstaendnis"),
-      label: "Teilnahmeeinverständnis",
+      el: document.getElementById('teilnahmeEinverstaendnis'),
+      label: 'Teilnahmeeinverständnis',
     },
-    { el: document.getElementById("unterschrift"), label: "Unterschrift" },
-  ];
+    { el: document.getElementById('unterschrift'), label: 'Unterschrift' },
+  ]
 
-  let isValid = true;
+  let isValid = true
 
   // Remove any existing error styling
   elements.forEach(({ el }) => {
     if (el?.parentElement) {
-      el.parentElement.classList.remove("unanswered");
+      el.parentElement.classList.remove('unanswered')
     }
-  });
+  })
 
   elements.forEach(({ el, label }) => {
     if (!el) {
-      console.error(`Element not found: ${label}`);
-      isValid = false;
-      return;
+      console.error(`Element not found: ${label}`)
+      isValid = false
+      return
     }
 
     const isFieldValid =
-      el.type === "checkbox" ? el.checked : el.value.trim() !== "";
+      el.type === 'checkbox' ? el.checked : el.value.trim() !== ''
     if (!isFieldValid) {
-      isValid = false;
+      isValid = false
       if (el.parentElement) {
-        el.parentElement.classList.add("unanswered");
+        el.parentElement.classList.add('unanswered')
       }
     }
-  });
+  })
 
   // Validate signature length
-  const signature = document.getElementById("unterschrift")?.value.trim();
+  const signature = document.getElementById('unterschrift')?.value.trim()
   if (signature && signature.length < 3) {
-    isValid = false;
-    const signatureEl = document.getElementById("unterschrift");
+    isValid = false
+    const signatureEl = document.getElementById('unterschrift')
     if (signatureEl?.parentElement) {
-      signatureEl.parentElement.classList.add("unanswered");
+      signatureEl.parentElement.classList.add('unanswered')
     }
   }
 
   if (!isValid) {
-    return false;
+    return false
   }
-  return true;
+  return true
 }
 
 function validateYear(input) {
   // Remove non-digits and enforce 4 characters
-  input.value = input.value.replace(/\D/g, "").slice(0, 4);
+  input.value = input.value.replace(/\D/g, '').slice(0, 4)
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear()
   const isValid =
     input.value.length === 4 &&
     parseInt(input.value) >= 1900 &&
-    parseInt(input.value) <= currentYear;
+    parseInt(input.value) <= currentYear
 
   // Set validation messages
-  if (input.value === "") {
-    input.setCustomValidity("Bitte geben Sie Ihr Geburtsjahr ein.");
+  if (input.value === '') {
+    input.setCustomValidity('Bitte geben Sie Ihr Geburtsjahr ein.')
   } else if (!isValid) {
     input.setCustomValidity(
       `Geben Sie ein Jahr zwischen 1900 und ${currentYear} ein.`
-    );
+    )
   } else {
-    input.setCustomValidity("");
+    input.setCustomValidity('')
   }
 
   // Visual feedback
-  input.style.borderColor = isValid ? "" : "red";
-  input.reportValidity();
+  input.style.borderColor = isValid ? '' : 'red'
+  input.reportValidity()
 }
 
 function renderConditionalField(
@@ -1325,12 +1336,12 @@ function renderConditionalField(
   fieldType,
   isT2 = false
 ) {
-  const questionId = `q${section.questions.indexOf(question)}_${index}`;
+  const questionId = `q${section.questions.indexOf(question)}_${index}`
   const savedValue =
-    userData.initialResponses?.[questionId] || userData[questionId] || "";
+    userData.initialResponses?.[questionId] || userData[questionId] || ''
 
   // Special handling for subjects field
-  if (fieldType === "Fächer") {
+  if (fieldType === 'Fächer') {
     return `
       <div class="conditional-question">
         <label>${section.questions[index].text}</label>
@@ -1338,25 +1349,25 @@ function renderConditionalField(
           <input type="text" 
                  name="${questionId}" 
                  value="${savedValue}"
-                 ${isT2 ? "readonly" : ""}
-                 ${section.questions[index].required ? "required" : ""}>
+                 ${isT2 ? 'readonly' : ''}
+                 ${section.questions[index].required ? 'required' : ''}>
         </div>
       </div>
-    `;
+    `
   }
 
   // Handling for Lehramt (teaching degree) field
-  if (fieldType === "Lehramt") {
+  if (fieldType === 'Lehramt') {
     return `
       <div class="conditional-question">
         <label>${section.questions[index].text}</label>
         <input type="text" 
                name="${questionId}" 
                value="${savedValue}"
-               ${isT2 ? "readonly" : ""}
-               ${section.questions[index].required ? "required" : ""}>
+               ${isT2 ? 'readonly' : ''}
+               ${section.questions[index].required ? 'required' : ''}>
       </div>
-    `;
+    `
   }
 
   // Default handling
@@ -1366,21 +1377,19 @@ function renderConditionalField(
       <input type="${section.questions[index].type}" 
              name="${questionId}" 
              value="${savedValue}"
-             ${section.questions[index].required ? "required" : ""}>
+             ${section.questions[index].required ? 'required' : ''}>
     </div>
-  `;
+  `
 }
 
 function renderSection(index) {
-  console.log(`Rendering section ${index}`);
-  const form = document.getElementById("surveyForm");
-  const attemptNumber = parseInt(
-    sessionStorage.getItem("attemptNumber") || "1"
-  );
-  const isT2 = attemptNumber > 1;
-  const isPersonalInfoSection = index === 0;
+  console.log(`Rendering section ${index}`)
+  const form = document.getElementById('surveyForm')
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+  const isT2 = attemptNumber > 1
+  const isPersonalInfoSection = index === 0
 
-  form.innerHTML = "";
+  form.innerHTML = ''
 
   if (index === -1) {
     // Datenschutz page
@@ -1430,7 +1439,7 @@ function renderSection(index) {
           <div class="question">
             <label for="datum">Datum</label>
             <input type="date" id="datum" name="datum" 
-                  value="${new Date().toISOString().split("T")[0]}" 
+                  value="${new Date().toISOString().split('T')[0]}" 
                   readonly required>
           </div>
           <div class="question">
@@ -1460,211 +1469,211 @@ function renderSection(index) {
           </div>
         </div>
       </div>
-    </div>`;
-    return;
+    </div>`
+    return
   }
 
   if (index < 0 || index >= surveyData.length) {
-    console.error(`Invalid section index: ${index}`);
-    currentSection = -1;
-    renderSection(currentSection);
-    return;
+    console.error(`Invalid section index: ${index}`)
+    currentSection = -1
+    renderSection(currentSection)
+    return
   }
 
-  const section = surveyData[index];
-  let html = `<div class="section"><h2>${section.title}</h2>`;
+  const section = surveyData[index]
+  let html = `<div class="section"><h2>${section.title}</h2>`
 
-  if (section.title !== "Persönliche Angaben") {
-    html += `<p class="section-instruction">Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`;
+  if (section.title !== 'Persönliche Angaben') {
+    html += `<p class="section-instruction">Wie kompetent fühlen Sie sich in der Ausführung der folgenden Aktivitäten...</p>`
   }
 
   section.questions.forEach((question, qIndex) => {
-    const questionId = `q${index}_${qIndex}`;
-    let savedValue = userData[questionId] || "";
+    const questionId = `q${index}_${qIndex}`
+    let savedValue = userData[questionId] || ''
 
     // Handle question dependencies
     if (question.dependsOn) {
-      const parentValue = userData[question.dependsOn.questionId];
-      if (parentValue !== question.dependsOn.value) return;
+      const parentValue = userData[question.dependsOn.questionId]
+      if (parentValue !== question.dependsOn.value) return
     }
 
-    html += `<div class="question" id="${questionId}-container">`;
-    html += `<p>${question.text}</p>`;
+    html += `<div class="question" id="${questionId}-container">`
+    html += `<p>${question.text}</p>`
 
     switch (question.type) {
-      case "radio":
-        html += `<div class="radio-group" id="${questionId}-container">`;
+      case 'radio':
+        html += `<div class="radio-group" id="${questionId}-container">`
         question.options.forEach((option) => {
-          const isChecked = savedValue === option;
-          const isT2 = attemptNumber > 1;
-          const t1Value = userData.t1?.[questionId]; // Get T1 value for T2 attempts
+          const isChecked = savedValue === option
+          const isT2 = attemptNumber > 1
+          const t1Value = userData.t1?.[questionId] // Get T1 value for T2 attempts
 
           // Determine if we should use T1 value for T2 rendering
-          const shouldCheck = isT2 ? option === t1Value : isChecked;
+          const shouldCheck = isT2 ? option === t1Value : isChecked
 
           html += `<div class="radio-option">
         <label>
           <input type="radio" 
                  name="${questionId}" 
                  value="${option}"
-                 ${shouldCheck ? "checked" : ""}
-                 ${question.required ? "required" : ""}
-                 ${isT2 ? "disabled" : ""}
+                 ${shouldCheck ? 'checked' : ''}
+                 ${question.required ? 'required' : ''}
+                 ${isT2 ? 'disabled' : ''}
                  onchange="handleTeachingStudentChange(this)">
           <span class="radio-checkmark"></span>
           ${option}
-        </label>`;
+        </label>`
 
-          if (questionId === "q0_2") {
-            const showField = shouldCheck || (!isT2 && isChecked);
+          if (questionId === 'q0_2') {
+            const showField = shouldCheck || (!isT2 && isChecked)
             html += `<div class="conditional-field" 
                  data-condition="${option}"
                  style="display: ${
-                   (option === "Ja" &&
-                     (isT2 ? t1Value === "Ja" : shouldCheck)) ||
-                   (option === "Nein" &&
-                     (isT2 ? t1Value === "Nein" : shouldCheck))
-                     ? "block"
-                     : "none"
-                 }">`;
+                   (option === 'Ja' &&
+                     (isT2 ? t1Value === 'Ja' : shouldCheck)) ||
+                   (option === 'Nein' &&
+                     (isT2 ? t1Value === 'Nein' : shouldCheck))
+                     ? 'block'
+                     : 'none'
+                 }">`
 
-            if (option === "Ja") {
+            if (option === 'Ja') {
               // Lehramt dropdown
-              const lehramtValue = isT2 ? userData.t1?.q0_3 : userData.q0_3;
+              const lehramtValue = isT2 ? userData.t1?.q0_3 : userData.q0_3
               html += `<div class="question">
             <label>${surveyData[0].questions[3].text}</label>
             <select name="q0_3" 
-                    ${isT2 ? "disabled readonly" : ""} 
-                    ${surveyData[0].questions[3].required ? "required" : ""}>
+                    ${isT2 ? 'disabled readonly' : ''} 
+                    ${surveyData[0].questions[3].required ? 'required' : ''}>
               <option value="" disabled>Bitte wählen</option>
               ${surveyData[0].questions[3].options
                 .map(
                   (opt) => `
                 <option value="${opt}" ${
-                  lehramtValue === opt ? "selected" : ""
-                }>${opt}</option>
+                    lehramtValue === opt ? 'selected' : ''
+                  }>${opt}</option>
               `
                 )
-                .join("")}
+                .join('')}
             </select>
             ${
               isT2
                 ? `<input type="hidden" name="q0_3" value="${lehramtValue}">`
-                : ""
+                : ''
             }
-          </div>`;
+          </div>`
 
               // Fächer field
-              const facherValue = isT2 ? userData.t1?.q0_4 : userData.q0_4;
+              const facherValue = isT2 ? userData.t1?.q0_4 : userData.q0_4
               html += `<div class="question">
             <label>${surveyData[0].questions[4].text}</label>
             <input type="text" 
                    name="q0_4" 
-                   value="${facherValue || ""}"
-                   ${isT2 ? "readonly disabled" : ""}
-                   ${surveyData[0].questions[4].required ? "required" : ""}>
-          </div>`;
+                   value="${facherValue || ''}"
+                   ${isT2 ? 'readonly disabled' : ''}
+                   ${surveyData[0].questions[4].required ? 'required' : ''}>
+          </div>`
             }
 
-            if (option === "Nein") {
+            if (option === 'Nein') {
               // Studienprogramm field
-              const studienValue = isT2 ? userData.t1?.q0_5 : userData.q0_5;
+              const studienValue = isT2 ? userData.t1?.q0_5 : userData.q0_5
               html += `<div class="question">
             <label>${surveyData[0].questions[5].text}</label>
             <input type="text" 
                    name="q0_5" 
-                   value="${studienValue || ""}"
-                   ${isT2 ? "readonly disabled" : ""}
-                   ${surveyData[0].questions[5].required ? "required" : ""}>
-          </div>`;
+                   value="${studienValue || ''}"
+                   ${isT2 ? 'readonly disabled' : ''}
+                   ${surveyData[0].questions[5].required ? 'required' : ''}>
+          </div>`
             }
-            html += `</div>`; // Close conditional-field
+            html += `</div>` // Close conditional-field
           }
-          html += `</div>`; // Close radio-option
-        });
-        html += `</div>`; // Close radio-group
-        break;
+          html += `</div>` // Close radio-option
+        })
+        html += `</div>` // Close radio-group
+        break
 
-      case "dropdown":
+      case 'dropdown':
         const dropdownValue =
-          isT2 && isPersonalInfoSection ? userData.t1[questionId] : savedValue;
+          isT2 && isPersonalInfoSection ? userData.t1[questionId] : savedValue
         html += `<select name="${questionId}" 
-                        ${question.required ? "required" : ""}
-                        ${isT2 && isPersonalInfoSection ? "disabled" : ""}>`;
+                        ${question.required ? 'required' : ''}
+                        ${isT2 && isPersonalInfoSection ? 'disabled' : ''}>`
         html += `<option value="" disabled ${
-          !dropdownValue ? "selected" : ""
-        }>Bitte wählen</option>`;
+          !dropdownValue ? 'selected' : ''
+        }>Bitte wählen</option>`
         question.options.forEach((option) => {
           html += `<option value="${option}" ${
-            dropdownValue === option ? "selected" : ""
-          }>${option}</option>`;
-        });
-        html += `</select>`;
+            dropdownValue === option ? 'selected' : ''
+          }>${option}</option>`
+        })
+        html += `</select>`
         if (isT2 && isPersonalInfoSection) {
-          html += `<input type="hidden" name="${questionId}" value="${dropdownValue}">`;
+          html += `<input type="hidden" name="${questionId}" value="${dropdownValue}">`
         }
-        break;
+        break
 
-      case "number":
+      case 'number':
         const numberValue =
-          isT2 && isPersonalInfoSection ? userData.t1[questionId] : savedValue;
-        const isSemesterField = question.text.includes("Fachsemester");
+          isT2 && isPersonalInfoSection ? userData.t1[questionId] : savedValue
+        const isSemesterField = question.text.includes('Fachsemester')
         html += `
-          <input type="${question.text.includes("Jahr") ? "text" : "number"}" 
+          <input type="${question.text.includes('Jahr') ? 'text' : 'number'}" 
                  name="${questionId}" 
-                 value="${numberValue || ""}"
+                 value="${numberValue || ''}"
                  min="${question.min || 1}"
                  max="${question.max || 99}"
                  ${
-                   question.text.includes("Jahr")
+                   question.text.includes('Jahr')
                      ? 'oninput="validateYear(this)"'
-                     : ""
+                     : ''
                  }
                  ${
                    isT2 && isPersonalInfoSection && isSemesterField
-                     ? "readonly disabled"
+                     ? 'readonly disabled'
                      : isT2 && isPersonalInfoSection
-                       ? "readonly"
-                       : ""
+                     ? 'readonly'
+                     : ''
                  }
-                 ${question.required ? "required" : ""}
-                 placeholder="${question.placeholder || ""}">`;
-        break;
+                 ${question.required ? 'required' : ''}
+                 placeholder="${question.placeholder || ''}">`
+        break
 
-      case "text":
+      case 'text':
         const textValue =
-          isT2 && isPersonalInfoSection ? userData.t1[questionId] : savedValue;
+          isT2 && isPersonalInfoSection ? userData.t1[questionId] : savedValue
         html += `<input type="text" 
                        name="${questionId}" 
-                       value="${textValue || ""}"
-                       ${question.required ? "required" : ""}
-                       ${isT2 && isPersonalInfoSection ? "readonly" : ""}>`;
-        break;
+                       value="${textValue || ''}"
+                       ${question.required ? 'required' : ''}
+                       ${isT2 && isPersonalInfoSection ? 'readonly' : ''}>`
+        break
 
-      case "scale":
-        html += `<div class="rating-scale">`;
+      case 'scale':
+        html += `<div class="rating-scale">`
         for (let i = 0; i <= 6; i++) {
-          const isChecked = savedValue === i.toString();
+          const isChecked = savedValue === i.toString()
           html += `
             <label class="scale-label">
               <input type="radio" 
                      name="${questionId}" 
                      value="${i}" 
-                     ${isChecked ? "checked" : ""}
-                     ${question.required ? "required" : ""}>
+                     ${isChecked ? 'checked' : ''}
+                     ${question.required ? 'required' : ''}>
               <span class="scale-button">${i}</span>
-            </label>`;
+            </label>`
         }
         html += `</div>
                 <div class="scale-labels">
                   <span>gar nicht kompetent</span>
                   <span>ausgesprochen kompetent</span>
-                </div>`;
-        break;
+                </div>`
+        break
     }
 
-    html += `</div>`; // Close question div
-  });
+    html += `</div>` // Close question div
+  })
 
   // T2 feedback question
   if (isPersonalInfoSection && isT2) {
@@ -1681,7 +1690,7 @@ function renderSection(index) {
           })
         })
       </script>
-    `;
+    `
 
     // Add T2 feedback question
     html += `
@@ -1689,77 +1698,77 @@ function renderSection(index) {
         <p>Wie fandest du deine absolvierten Kurse in ILIAS in Bezug auf Inhalt und Struktur? Was hast du für dich mitgenommen? Was war hilfreich für dich?</p>
         <textarea name="t2_course_feedback" 
                   placeholder="Bitte geben Sie hier Ihr Feedback ein..." 
-                  required>${userData.t2?.t2_course_feedback || ""}</textarea>
-      </div>`;
+                  required>${userData.t2?.t2_course_feedback || ''}</textarea>
+      </div>`
   }
 
-  html += `</div>`; // Close section div
-  form.innerHTML = html;
+  html += `</div>` // Close section div
+  form.innerHTML = html
 
   // Initialize scale buttons
-  document.querySelectorAll(".scale-button").forEach((button) => {
-    button.addEventListener("click", handleScaleClick);
-    button.addEventListener("keydown", handleScaleKeydown);
-  });
+  document.querySelectorAll('.scale-button').forEach((button) => {
+    button.addEventListener('click', handleScaleClick)
+    button.addEventListener('keydown', handleScaleKeydown)
+  })
 
   // Handle teaching student fields
   if (isPersonalInfoSection) {
-    const teachingRadio = document.querySelector('input[name="q0_2"]:checked');
-    if (teachingRadio) handleTeachingStudentChange(teachingRadio);
+    const teachingRadio = document.querySelector('input[name="q0_2"]:checked')
+    if (teachingRadio) handleTeachingStudentChange(teachingRadio)
   }
 
   // Update navigation buttons after form content is rendered
-  updateNavigationButtons();
+  updateNavigationButtons()
 }
 
 function markUnansweredQuestions() {
-  const form = document.getElementById("surveyForm");
-  if (!form) return null;
+  const form = document.getElementById('surveyForm')
+  if (!form) return null
 
-  const requiredFields = form.querySelectorAll("[required]");
-  let firstUnanswered = null;
+  const requiredFields = form.querySelectorAll('[required]')
+  let firstUnanswered = null
 
   requiredFields.forEach((field) => {
-    const questionDiv = field.closest(".question") || field.parentElement;
-    if (!questionDiv) return;
+    const questionDiv = field.closest('.question') || field.parentElement
+    if (!questionDiv) return
 
     const isUnanswered =
-      (field.type === "radio" &&
+      (field.type === 'radio' &&
         !form.querySelector(`[name="${field.name}"]:checked`)) ||
-      (field.type === "checkbox" && !field.checked) ||
-      (field.type !== "radio" &&
-        field.type !== "checkbox" &&
-        !field.value.trim());
+      (field.type === 'checkbox' && !field.checked) ||
+      (field.type !== 'radio' &&
+        field.type !== 'checkbox' &&
+        !field.value.trim())
 
     if (isUnanswered) {
-      questionDiv.classList.add("unanswered");
+      questionDiv.classList.add('unanswered')
       questionDiv.style.animation =
-        "shake 0.82s cubic-bezier(.36,.07,.19,.97) both";
+        'shake 0.82s cubic-bezier(.36,.07,.19,.97) both'
       if (!firstUnanswered) {
-        firstUnanswered = questionDiv;
+        firstUnanswered = questionDiv
       }
     } else {
-      questionDiv.classList.remove("unanswered");
-      questionDiv.style.animation = "";
+      questionDiv.classList.remove('unanswered')
+      questionDiv.style.animation = ''
     }
-  });
+  })
 
   if (firstUnanswered) {
-    firstUnanswered.scrollIntoView({ behavior: "smooth", block: "center" });
+    firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 
-  return firstUnanswered;
+  return firstUnanswered
 }
 
 function removeUnansweredMarkers() {
-  const unansweredQuestions = document.querySelectorAll(".question.unanswered");
+  const unansweredQuestions = document.querySelectorAll('.question.unanswered')
   unansweredQuestions.forEach((question) => {
-    question.classList.remove("unanswered");
-  });
+    question.classList.remove('unanswered')
+  })
 }
 
 // Add CSS for T2 disabled radio buttons
-const styleSheet = document.createElement("style");
+const styleSheet = document.createElement('style')
 styleSheet.textContent = `
   .radio-option input[type="radio"]:disabled:checked + .radio-checkmark {
     background-color: #0066cc;
@@ -1769,206 +1778,204 @@ styleSheet.textContent = `
     opacity: 0.7;
     cursor: not-allowed;
   }
-`;
-document.head.appendChild(styleSheet);
+`
+document.head.appendChild(styleSheet)
 
 // ===== User Interactions =====
 function handleScaleClick(event) {
-  const button = event.target;
-  const radio = button.previousElementSibling;
-  if (radio && radio.type === "radio") {
-    radio.checked = true;
-    radio.dispatchEvent(new Event("change"));
+  const button = event.target
+  const radio = button.previousElementSibling
+  if (radio && radio.type === 'radio') {
+    radio.checked = true
+    radio.dispatchEvent(new Event('change'))
   }
 }
 
 function handleScaleKeydown(event) {
-  if (event.key === " " || event.key === "Enter") {
-    event.preventDefault();
-    const radio = event.target.previousElementSibling;
-    if (radio && radio.type === "radio") {
-      radio.checked = true;
-      radio.dispatchEvent(new Event("change"));
+  if (event.key === ' ' || event.key === 'Enter') {
+    event.preventDefault()
+    const radio = event.target.previousElementSibling
+    if (radio && radio.type === 'radio') {
+      radio.checked = true
+      radio.dispatchEvent(new Event('change'))
     }
-    event.target.setAttribute("aria-checked", "true");
+    event.target.setAttribute('aria-checked', 'true')
   }
 }
 
 function handleTeachingStudentChange(radio) {
-  const container = radio.closest(".radio-group");
-  const selectedValue = radio.value;
-  const attemptNumber = parseInt(
-    sessionStorage.getItem("attemptNumber") || "1"
-  );
-  const isT2 = attemptNumber > 1;
-  const form = document.getElementById("surveyForm");
+  const container = radio.closest('.radio-group')
+  const selectedValue = radio.value
+  const attemptNumber = parseInt(sessionStorage.getItem('attemptNumber') || '1')
+  const isT2 = attemptNumber > 1
+  const form = document.getElementById('surveyForm')
 
   // Hide all conditional fields and reset inputs
-  container.querySelectorAll(".conditional-field").forEach((field) => {
-    field.style.display = "none";
+  container.querySelectorAll('.conditional-field').forEach((field) => {
+    field.style.display = 'none'
 
     // Only clear values for T1 attempts
     if (!isT2) {
-      field.querySelectorAll("input, select").forEach((input) => {
-        if (input.type !== "radio" && input.type !== "checkbox") {
-          input.value = "";
+      field.querySelectorAll('input, select').forEach((input) => {
+        if (input.type !== 'radio' && input.type !== 'checkbox') {
+          input.value = ''
         }
-        input.required = false;
-      });
+        input.required = false
+      })
     }
-  });
+  })
 
   // Show target conditional field
   const targetField = container.querySelector(
     `.conditional-field[data-condition="${selectedValue}"]`
-  );
+  )
 
   if (targetField) {
-    targetField.style.display = "block";
+    targetField.style.display = 'block'
 
     // T2 specific handling
     if (isT2) {
-      targetField.querySelectorAll("input, select").forEach((input) => {
-        const questionId = input.name;
-        const t1Value = userData.t1[questionId] || "";
+      targetField.querySelectorAll('input, select').forEach((input) => {
+        const questionId = input.name
+        const t1Value = userData.t1[questionId] || ''
 
         // Preserve T1 values
-        if (input.type === "radio" || input.type === "checkbox") {
-          input.checked = input.value === t1Value;
+        if (input.type === 'radio' || input.type === 'checkbox') {
+          input.checked = input.value === t1Value
         } else {
-          input.value = t1Value;
+          input.value = t1Value
         }
 
         // Special handling for Fächer (q0_4)
-        if (questionId === "q0_4") {
-          input.readOnly = false;
-          input.style.backgroundColor = "#fff";
+        if (questionId === 'q0_4') {
+          input.readOnly = false
+          input.style.backgroundColor = '#fff'
         } else {
-          input.readOnly = true;
-          input.style.backgroundColor = "#f0f0f0";
+          input.readOnly = true
+          input.style.backgroundColor = '#f0f0f0'
         }
 
         // Handle dropdown preservation
-        if (input.tagName === "SELECT") {
-          input.disabled = true;
+        if (input.tagName === 'SELECT') {
+          input.disabled = true
           if (!input.nextElementSibling?.name === questionId) {
             input.insertAdjacentHTML(
-              "afterend",
+              'afterend',
               `<input type="hidden" name="${questionId}" value="${t1Value}">`
-            );
+            )
           }
         }
-      });
+      })
     }
     // T1 handling
     else {
-      targetField.querySelectorAll("input, select").forEach((input) => {
-        input.required = true;
-        input.disabled = false;
-        input.readOnly = false;
-        input.style.backgroundColor = "";
-      });
+      targetField.querySelectorAll('input, select').forEach((input) => {
+        input.required = true
+        input.disabled = false
+        input.readOnly = false
+        input.style.backgroundColor = ''
+      })
     }
   }
 
   // Trigger validation and auto-save for T1
   if (!isT2) {
-    form.reportValidity();
-    setTimeout(() => saveSectionData(false), 300);
+    form.reportValidity()
+    setTimeout(() => saveSectionData(false), 300)
   }
 }
 
 // ===== Global Handlers =====
-window.handleScaleClick = handleScaleClick;
-window.handleScaleKeydown = handleScaleKeydown;
-window.submitFinalData = submitFinalData;
-window.showResults = showResults;
+window.handleScaleClick = handleScaleClick
+window.handleScaleKeydown = handleScaleKeydown
+window.submitFinalData = submitFinalData
+window.showResults = showResults
 
 // ===== Results & Visualization =====
 function calculateCategoryScores(data) {
-  const categoryScores = {};
-  const maxScorePerQuestion = 6; // Assuming a scale of 0-6
+  const categoryScores = {}
+  const maxScorePerQuestion = 6 // Assuming a scale of 0-6
 
   surveyData.forEach((section, sectionIndex) => {
     if (
-      section.title !== "Persönliche Angaben" &&
-      section.title !== "Abschluss"
+      section.title !== 'Persönliche Angaben' &&
+      section.title !== 'Abschluss'
     ) {
-      let totalScore = 0;
-      let questionCount = 0;
+      let totalScore = 0
+      let questionCount = 0
 
       section.questions.forEach((question, questionIndex) => {
-        const questionId = `q${sectionIndex}_${questionIndex}`;
-        if (data[questionId] && question.type === "scale") {
-          const score = parseInt(data[questionId], 10);
+        const questionId = `q${sectionIndex}_${questionIndex}`
+        if (data[questionId] && question.type === 'scale') {
+          const score = parseInt(data[questionId], 10)
           if (!isNaN(score)) {
-            totalScore += score;
-            questionCount++;
+            totalScore += score
+            questionCount++
           }
         }
-      });
+      })
 
       if (questionCount > 0) {
         categoryScores[section.title] = Math.round(
           (totalScore / (questionCount * maxScorePerQuestion)) * 100
-        );
+        )
       } else {
-        categoryScores[section.title] = 0;
+        categoryScores[section.title] = 0
       }
     }
-  });
+  })
 
-  return categoryScores;
+  return categoryScores
 }
 
 function createCompetencyChart1(initialScores, updatedScores) {
-  const canvas = document.getElementById("competencyChart1");
-  const descriptionBox = document.getElementById("descriptionBox1");
+  const canvas = document.getElementById('competencyChart1')
+  const descriptionBox = document.getElementById('descriptionBox1')
   if (!canvas || !descriptionBox) {
-    console.error("Chart canvas or description box not found");
-    return;
+    console.error('Chart canvas or description box not found')
+    return
   }
 
   // Clear any existing chart instance
   if (window.competencyChart1 instanceof Chart) {
-    window.competencyChart1.destroy();
+    window.competencyChart1.destroy()
   }
 
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext('2d')
 
   // Determine all unique labels from initial and updated scores
   const allLabels = new Set([
     ...Object.keys(initialScores),
     ...Object.keys(updatedScores),
-  ]);
-  const fullLabels = Array.from(allLabels);
-  const labels = fullLabels.map((key) => labelMap[key] || key);
-  let currentHoveredIndex = -1;
+  ])
+  const fullLabels = Array.from(allLabels)
+  const labels = fullLabels.map((key) => labelMap[key] || key)
+  let currentHoveredIndex = -1
 
   const datasets = [
     {
-      label: "Initial Score",
+      label: 'Initial Score',
       data: fullLabels.map((label) => initialScores[label] || 0),
       backgroundColor: fullLabels.map((label) =>
-        getLighterColor(colorMap[label] || "#999999")
+        getLighterColor(colorMap[label] || '#999999')
       ),
-      borderColor: fullLabels.map((label) => colorMap[label] || "#999999"),
+      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderWidth: 1,
     },
-  ];
+  ]
 
   if (Object.keys(updatedScores).length > 0) {
     datasets.push({
-      label: "Updated Score",
+      label: 'Updated Score',
       data: fullLabels.map((label) => updatedScores[label] || 0),
-      backgroundColor: fullLabels.map((label) => colorMap[label] || "#999999"),
-      borderColor: fullLabels.map((label) => colorMap[label] || "#999999"),
+      backgroundColor: fullLabels.map((label) => colorMap[label] || '#999999'),
+      borderColor: fullLabels.map((label) => colorMap[label] || '#999999'),
       borderWidth: 1,
-    });
+    })
   }
 
   window.competencyChart1 = new Chart(ctx, {
-    type: "bar",
+    type: 'bar',
     data: {
       labels: labels,
       datasets: datasets,
@@ -1982,7 +1989,7 @@ function createCompetencyChart1(initialScores, updatedScores) {
           max: 100,
           title: {
             display: true,
-            text: "Score (%)",
+            text: 'Score (%)',
           },
         },
         x: {
@@ -2000,9 +2007,9 @@ function createCompetencyChart1(initialScores, updatedScores) {
         tooltip: {
           callbacks: {
             title: (tooltipItems) => {
-              const index = tooltipItems[0].dataIndex;
-              const fullLabel = fullLabels[index];
-              return fullLabel || tooltipItems[0].label;
+              const index = tooltipItems[0].dataIndex
+              const fullLabel = fullLabels[index]
+              return fullLabel || tooltipItems[0].label
             },
             label: (context) =>
               `${context.dataset.label}: ${context.parsed.y}%`,
@@ -2011,63 +2018,63 @@ function createCompetencyChart1(initialScores, updatedScores) {
       },
       onHover: (event, activeElements) => {
         if (activeElements.length > 0) {
-          const dataIndex = activeElements[0].index;
+          const dataIndex = activeElements[0].index
           if (dataIndex !== currentHoveredIndex) {
-            currentHoveredIndex = dataIndex;
-            const fullCompetency = fullLabels[dataIndex];
+            currentHoveredIndex = dataIndex
+            const fullCompetency = fullLabels[dataIndex]
             updateDescriptionBox(
               descriptionBox,
               fullCompetency,
               competencyDescriptions[fullCompetency]
-            );
+            )
           }
         } else {
           // Do not clear the description box when not hovering
         }
       },
     },
-  });
+  })
 
-  window.competencyChart1.update();
+  window.competencyChart1.update()
 
   // Initialize the description box with the first competency
   if (fullLabels.length > 0) {
-    const firstCompetency = fullLabels[0];
+    const firstCompetency = fullLabels[0]
     updateDescriptionBox(
       descriptionBox,
       firstCompetency,
       competencyDescriptions[firstCompetency]
-    );
+    )
   }
 
   // Fix the size of the description box
-  descriptionBox.style.minHeight = "150px"; // Adjust as needed
+  descriptionBox.style.minHeight = '150px' // Adjust as needed
 }
 
 async function showResults() {
-  const userId = sessionStorage.getItem("userId");
+  const userId = sessionStorage.getItem('userId')
   if (!userId) {
-    console.error("No userId found in sessionStorage.");
-    return;
+    console.error('No userId found in sessionStorage.')
+    return
   }
 
   // Set completion flag
-  sessionStorage.setItem("surveyCompleted", "true");
+  sessionStorage.setItem('surveyCompleted', 'true')
 
   try {
-    const response = await fetch(`/api/user-data/${userId}`);
-    if (!response.ok) throw new Error("Failed to fetch user data");
-    const data = await response.json();
+    const response = await fetch(`/api/user-data/${userId}`)
+    if (!response.ok) throw new Error('Failed to fetch user data')
+    const data = await response.json()
 
-    initialScores = data.initialScores || {};
-    updatedScores = data.updatedScores || {};
+    initialScores = data.initialScores || {}
+    updatedScores = data.updatedScores || {}
     const attemptNumber =
-      parseInt(sessionStorage.getItem("attemptNumber"), 10) || 1;
+      parseInt(sessionStorage.getItem('attemptNumber'), 10) || 1
 
     // Calculate competency score using updatedScores if available, otherwise use initialScores
     const scoreData =
-      Object.keys(updatedScores).length > 0 ? updatedScores : initialScores;
-    const score = calculateCompetenzScore(scoreData);
+      Object.keys(updatedScores).length > 0 ? updatedScores : initialScores
+    const score = calculateCompetenzScore(scoreData)
 
     // Generate HTML for results
     let resultHtml = `
@@ -2076,8 +2083,8 @@ async function showResults() {
       <h3>Kompetenzdiagramm</h3>
       <p>Das folgende Diagramm zeigt Ihre Scores in verschiedenen Kompetenzbereichen.${
         Object.keys(updatedScores).length > 0
-          ? " Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der aktuellen Befragung (T2) darstellen."
-          : " Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung."
+          ? ' Die helleren Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung (T1), während die dunkleren Balken Ihre Ergebnisse nach der aktuellen Befragung (T2) darstellen.'
+          : ' Die Balken repräsentieren Ihre Ergebnisse nach der ersten Befragung.'
       }</p>
       <div class="attention-box">
         <span class="info-icon">ℹ️</span>
@@ -2092,7 +2099,7 @@ async function showResults() {
           Diagramm herunterladen
         </button>
       </div>
-      <hr>`;
+      <hr>`
 
     if (attemptNumber === 1) {
       resultHtml += `
@@ -2100,52 +2107,52 @@ async function showResults() {
         <p>Schaue dir nun die Kompetenzbereiche an und entscheide dich für 1 bis 2.</p>
         <p><strong>Welche Strategie/n hast du bei der Auswahl der Kompetenzbereiche genutzt?</strong></p>
         <textarea id="t1OpenEndedResponse" rows="4" style="width:100%;" required></textarea>
-        <button id="submitT1OpenEndedResponse" class="btn btn-primary">Absenden</button>`;
+        <button id="submitT1OpenEndedResponse" class="btn btn-primary">Absenden</button>`
     } else if (attemptNumber > 1) {
       resultHtml += `
         <p>Jetzt hast du den Vergleich zwischen deiner Kompetenzeinschätzung vor und nach der Absolvierung der ILIAS Kurse. Wenn der helle Balken niedriger ist als der dunklere, bedeutet das, dass du dich nach den ILIAS-Kursen besser einschätzt als zuvor. Ist der helle Balken höher als der dunklere ist es genau umgekehrt. Es ist auch möglich, dass du dich bei beiden Befragungen in gewissen Kompetenzbereichen gleich eingeschätzt hast: dann sind beide Balken gleich hoch.</p>
         <p><strong>Wie haben sich deine Kompetenzüberzeugungen nun verändert? Beschreibe, was du im Diagramm siehst und teile uns mit, welche Schlüsse du aus deiner Lernerfahrung ziehst.</strong></p>
         <textarea id="t2OpenEndedResponse" rows="4" style="width:100%;" required></textarea>
-        <button id="submitT2OpenEndedResponse" class="btn btn-primary">Absenden</button>`;
+        <button id="submitT2OpenEndedResponse" class="btn btn-primary">Absenden</button>`
     }
 
-    document.getElementById("surveyForm").innerHTML = resultHtml;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById('surveyForm').innerHTML = resultHtml
+    window.scrollTo({ top: 0, behavior: 'smooth' })
 
     // Hide progress elements
-    document.getElementById("progressBar").style.display = "none";
-    document.getElementById("progressText").style.display = "none";
+    document.getElementById('progressBar').style.display = 'none'
+    document.getElementById('progressText').style.display = 'none'
 
     // Initialize chart
     if (Object.keys(updatedScores).length > 0) {
-      createCompetencyChart1(initialScores, updatedScores);
+      createCompetencyChart1(initialScores, updatedScores)
     } else {
-      createCompetencyChart1(initialScores, {});
+      createCompetencyChart1(initialScores, {})
     }
 
     // Add chart download handler
     document
-      .getElementById("downloadChart")
-      .addEventListener("click", downloadChart);
+      .getElementById('downloadChart')
+      .addEventListener('click', downloadChart)
 
     // Add response submission handlers
     if (attemptNumber === 1) {
       document
-        .getElementById("submitT1OpenEndedResponse")
-        .addEventListener("click", submitT1OpenEndedResponse);
+        .getElementById('submitT1OpenEndedResponse')
+        .addEventListener('click', submitT1OpenEndedResponse)
     } else {
       document
-        .getElementById("submitT2OpenEndedResponse")
-        .addEventListener("click", submitT2OpenEndedResponse);
+        .getElementById('submitT2OpenEndedResponse')
+        .addEventListener('click', submitT2OpenEndedResponse)
     }
 
     // Hide navigation buttons
-    hideNavigationButtons();
+    hideNavigationButtons()
   } catch (error) {
-    console.error("Error displaying results:", error);
+    console.error('Error displaying results:', error)
     alert(
-      "Es gab einen Fehler beim Laden der Ergebnisse. Bitte versuchen Sie es später erneut."
-    );
+      'Es gab einen Fehler beim Laden der Ergebnisse. Bitte versuchen Sie es später erneut.'
+    )
   }
 }
 
@@ -2162,85 +2169,85 @@ function showCourseLinks() {
         <li><a href="https://ilias.uni-rostock.de/goto.php?target=crs_122051&client_id=ilias_hro" target="_blank">Schützen und sicher Agieren</a></li>
       </ul>
     </div>
-  `;
+  `
 
   // Insert after the submit button
   const submitButton =
-    document.getElementById("submitT1OpenEndedResponse") ||
-    document.getElementById("submitT2OpenEndedResponse");
+    document.getElementById('submitT1OpenEndedResponse') ||
+    document.getElementById('submitT2OpenEndedResponse')
   if (submitButton) {
-    submitButton.insertAdjacentHTML("afterend", courseLinksHtml);
+    submitButton.insertAdjacentHTML('afterend', courseLinksHtml)
   } else {
-    console.error("Submit button not found, cannot insert course links.");
+    console.error('Submit button not found, cannot insert course links.')
   }
 }
 
 function calculateCompetenzScore(scores) {
-  const scoreValues = Object.values(scores);
-  if (scoreValues.length === 0) return 0;
-  const total = scoreValues.reduce((acc, val) => acc + val, 0);
-  return Math.round(total / scoreValues.length);
+  const scoreValues = Object.values(scores)
+  if (scoreValues.length === 0) return 0
+  const total = scoreValues.reduce((acc, val) => acc + val, 0)
+  return Math.round(total / scoreValues.length)
 }
 
 function getLighterColor(hexColor) {
-  if (!hexColor || hexColor.length !== 7 || hexColor[0] !== "#") {
-    return "#cccccc"; // Return a default color if invalid
+  if (!hexColor || hexColor.length !== 7 || hexColor[0] !== '#') {
+    return '#cccccc' // Return a default color if invalid
   }
-  let r = parseInt(hexColor.slice(1, 3), 16);
-  let g = parseInt(hexColor.slice(3, 5), 16);
-  let b = parseInt(hexColor.slice(5, 7), 16);
+  let r = parseInt(hexColor.slice(1, 3), 16)
+  let g = parseInt(hexColor.slice(3, 5), 16)
+  let b = parseInt(hexColor.slice(5, 7), 16)
 
   // Make the color significantly lighter
-  r = Math.min(255, r + Math.floor((255 - r) * 0.7));
-  g = Math.min(255, g + Math.floor((255 - g) * 0.7));
-  b = Math.min(255, b + Math.floor((255 - b) * 0.7));
+  r = Math.min(255, r + Math.floor((255 - r) * 0.7))
+  g = Math.min(255, g + Math.floor((255 - g) * 0.7))
+  b = Math.min(255, b + Math.floor((255 - b) * 0.7))
 
-  return `#${r.toString(16).padStart(2, "0")}${g
+  return `#${r.toString(16).padStart(2, '0')}${g
     .toString(16)
-    .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+    .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 
 function getContrastColor(hexColor) {
-  const r = parseInt(hexColor.slice(1, 3), 16);
-  const g = parseInt(hexColor.slice(3, 5), 16);
-  const b = parseInt(hexColor.slice(5, 7), 16);
-  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq >= 128 ? "black" : "white";
+  const r = parseInt(hexColor.slice(1, 3), 16)
+  const g = parseInt(hexColor.slice(3, 5), 16)
+  const b = parseInt(hexColor.slice(5, 7), 16)
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000
+  return yiq >= 128 ? 'black' : 'white'
 }
 
 function updateDescriptionBox(descriptionBox, fullCompetency, description) {
-  const competency = labelMap[fullCompetency] || fullCompetency;
-  const color = colorMap[fullCompetency] || "#999999";
-  const lighterColor = getLighterColor(color);
+  const competency = labelMap[fullCompetency] || fullCompetency
+  const color = colorMap[fullCompetency] || '#999999'
+  const lighterColor = getLighterColor(color)
 
   descriptionBox.innerHTML = `
     <h3>${fullCompetency}</h3>
-    <p>${description || "Beschreibung nicht verfügbar."}</p>
-  `;
-  descriptionBox.style.backgroundColor = lighterColor;
-  descriptionBox.style.padding = "15px";
-  descriptionBox.style.borderRadius = "5px";
-  descriptionBox.style.border = `2px solid ${color}`;
-  descriptionBox.style.color = getContrastColor(lighterColor);
+    <p>${description || 'Beschreibung nicht verfügbar.'}</p>
+  `
+  descriptionBox.style.backgroundColor = lighterColor
+  descriptionBox.style.padding = '15px'
+  descriptionBox.style.borderRadius = '5px'
+  descriptionBox.style.border = `2px solid ${color}`
+  descriptionBox.style.color = getContrastColor(lighterColor)
 }
 
 function downloadChart(event) {
-  event.preventDefault();
-  const canvas1 = document.getElementById("competencyChart1");
+  event.preventDefault()
+  const canvas1 = document.getElementById('competencyChart1')
   if (canvas1) {
-    const link = document.createElement("a");
-    link.download = "kompetenz-diagramm.png";
-    link.href = canvas1.toDataURL();
-    link.click();
+    const link = document.createElement('a')
+    link.download = 'kompetenz-diagramm.png'
+    link.href = canvas1.toDataURL()
+    link.click()
   }
 }
 
 function submitFinalData(event) {
-  event.preventDefault();
+  event.preventDefault()
   if (validateDatenschutz()) {
-    saveSectionData(true);
-    showResults();
+    saveSectionData(true)
+    showResults()
   } else {
-    return false;
+    return false
   }
 }
