@@ -1,0 +1,58 @@
+# To better understand this file read this:
+# https://docs.ionos.space/docs/github-actions-customization/
+
+name: "Deploy Now: Execute Build"
+
+on:
+  workflow_call:
+    inputs:
+      site-url:
+        required: true
+        type: string
+      branch-id:
+        required: true
+        type: string
+
+env:
+  DEPLOYMENT_FOLDER: ./
+
+jobs:
+# Please do not rename this job
+  build-project:
+    name: build Website_Viewer
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: v20.x
+
+      - name: Build Node assets
+        env:
+          CI: true
+          DASHBOARD_PASSWORD: opendigi2024
+          DASHBOARD_USER_ID: open-digi
+          JWT_SECRET: eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTcyMzkxNjU0NCwiaWF0IjoxNzIzOTE2NTQ0fQ.xyhYwInbreOHJxL9lrEN-zd8TD2PVvtSvtzNI72ahWg
+          MONGODB_URI: mongodb+srv://kenanlion4:Krishna%402000@cluster0.w29yr5m.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+          SITE_URL: ${{ inputs.site-url }}
+        run: |
+          npm install
+          node server.min.js
+
+# Please do not touch the following action
+      - name: Store deployment content
+        uses: ionos-deploy-now/artifact-action@v1
+        with:
+          api-key: ${{ secrets.IONOS_API_KEY }}
+          service-host: api-eu.ionos.space
+          project-id: 0b8df4e8-ae18-49f4-aab1-402e69a6302c
+          branch-id: ${{ inputs.branch-id }}
+          version: ${{ github.sha }}
+          folder: ${{ env.DEPLOYMENT_FOLDER }}
+          config-file: .deploy-now/Website_Viewer/config.yaml
+          action: upload
