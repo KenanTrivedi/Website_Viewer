@@ -19,7 +19,7 @@ env:
 jobs:
 # Please do not rename this job
   build-project:
-    name: build Website_Viewer
+    name: build open-digi
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -54,5 +54,5 @@ jobs:
           branch-id: ${{ inputs.branch-id }}
           version: ${{ github.sha }}
           folder: ${{ env.DEPLOYMENT_FOLDER }}
-          config-file: .deploy-now/Website_Viewer/config.yaml
+          config-file: .deploy-now/open-digi/config.yaml
           action: upload
