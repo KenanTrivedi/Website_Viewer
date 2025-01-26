@@ -1,13 +1,12 @@
-// Global variables
 let users = []
 let questionIds = [
-  'q0_0',  // Gender
-  'q0_1',  // Birth year
-  'q0_2',  // Teaching student
-  'q0_3',  // Teaching type
-  'q0_4',  // Teaching subjects
-  'q0_5',  // Non-teaching study program
-  'q0_6',  // Semester
+  'q0_0',
+  'q0_1',
+  'q0_2',
+  'q0_3',
+  'q0_4',
+  'q0_5',
+  'q0_6',
   'q1_0',
   'q1_1',
   'q1_2',
@@ -48,14 +47,9 @@ let questionIds = [
   'q6_4',
   'q6_5',
 ]
-let currentUser = null
-let chart = null
 let currentPage = 1
-let startDate = null
-let endDate = null
 const usersPerPage = 100
 
-// Constants (Extracted from survey.js)
 const labelMap = {
   'Suchen, Verarbeiten und Aufbewahren': 'Suchen',
   'Kommunikation und Kollaborieren': 'Kommunizieren',
@@ -66,88 +60,44 @@ const labelMap = {
 }
 
 const colorMap = {
-  'Suchen': '#00BF63', // Green
-  'Kommunizieren': '#0CC0DF', // Blue
-  'Produzieren': '#FF6D5F', // Red
-  'Schützen': '#8C52FF', // Purple
-  'Problemlösen': '#E884C4', // Pink
-  'Analysieren': '#FFD473', // Yellow
-}
-
-function getInitialResponse(user, questionId) {
-  return user.initialResponses?.[questionId] || ''
-}
-
-function getLatestResponse(user, questionId) {
-  return user.updatedResponses?.[questionId] || ''
-}
-
-function escapeHtml(unsafe) {
-  if (unsafe === null || unsafe === undefined) return ''
-  return unsafe
-    .toString()
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
-}
-
-function getLighterColor(hexColor) {
-  if (!hexColor || hexColor.length !== 7 || hexColor[0] !== '#') {
-    return '#cccccc' // Return a default color if invalid
-  }
-  let r = parseInt(hexColor.slice(1, 3), 16)
-  let g = parseInt(hexColor.slice(3, 5), 16)
-  let b = parseInt(hexColor.slice(5, 7), 16)
-
-  // Make the color significantly lighter
-  r = Math.min(255, r + Math.floor((255 - r) * 0.7))
-  g = Math.min(255, g + Math.floor((255 - g) * 0.7))
-  b = Math.min(255, b + Math.floor((255 - b) * 0.7))
-
-  return `#${r.toString(16).padStart(2, '0')}${g
-    .toString(16)
-    .padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
-}
-
-function getAuthToken() {
-  return localStorage.getItem('dashboardToken')
+  Suchen: '#00BF63',
+  Kommunizieren: '#0CC0DF',
+  Produzieren: '#FF6D5F',
+  Schützen: '#8C52FF',
+  Problemlösen: '#E884C4',
+  Analysieren: '#FFD473',
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
   try {
-    // Initialize datepicker
+    // Initialize Flatpickr for date range
     flatpickr('#dateRange', {
       mode: 'range',
       dateFormat: 'd/m/Y',
-      onClose: function (selectedDates, dateStr, instance) {
-        if (selectedDates.length == 2) {
-          startDate = selectedDates[0]
-          endDate = selectedDates[1]
-        }
-      },
       disableMobile: true,
+      onClose: function (selectedDates) {
+        // We don't have to do anything special here; we'll filter on apply
+      },
     })
 
-    // Setup event listeners
     const searchInput = document.getElementById('userSearch')
     if (searchInput) {
-      searchInput.addEventListener('input', function () {
+      searchInput.addEventListener('input', () => {
         currentPage = 1
         renderTable()
       })
     }
 
-    // Setup event listeners for checkboxes
     const tbody = document.querySelector('#userTable tbody')
-    tbody.addEventListener('change', function (event) {
-      if (event.target.classList.contains('user-select')) {
-        updateVisualization()
-      }
-    })
+    if (tbody) {
+      tbody.addEventListener('change', (event) => {
+        if (event.target.classList.contains('user-select')) {
+          // We do NOT auto-update the chart or open the sidebar
+          // The user must click "toggleVisualization" for changes to be seen
+        }
+      })
+    }
 
-    // Setup event listener for export buttons
     const exportSelectedButton = document.getElementById('exportSelected')
     if (exportSelectedButton) {
       exportSelectedButton.addEventListener('click', exportSelectedData)
@@ -155,36 +105,45 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     const exportAllButton = document.getElementById('exportAll')
     if (exportAllButton) {
-      exportAllButton.addEventListener('click', function() {
-        // Select all checkboxes
-        document.querySelectorAll('.user-select').forEach(checkbox => {
-          checkbox.checked = true;
-        });
-        exportSelectedData();
+      exportAllButton.addEventListener('click', () => {
+        document.querySelectorAll('.user-select').forEach((checkbox) => {
+          checkbox.checked = true
+        })
+        exportSelectedData()
       })
     }
 
-    // Setup event listeners for visualization
-    const toggleVisualizationButton = document.getElementById('toggleVisualization')
+    // Visualization toggling
+    const toggleVisualizationButton = document.getElementById(
+      'toggleVisualization'
+    )
     const visualizationSidebar = document.getElementById('visualizationSidebar')
-    const closeVisualizationButton = document.getElementById('closeVisualization')
+    const closeVisualizationButton =
+      document.getElementById('closeVisualization')
     const overlay = document.getElementById('visualizationOverlay')
-
-    function closeVisualization() {
-      visualizationSidebar.classList.remove('active')
-      overlay.classList.remove('active')
-      toggleVisualizationButton.innerHTML = '<i class="fas fa-chart-line me-2"></i>Show Visualization'
-    }
 
     function openVisualization() {
       visualizationSidebar.classList.add('active')
       overlay.classList.add('active')
-      toggleVisualizationButton.innerHTML = '<i class="fas fa-chart-line me-2"></i>Hide Visualization'
+      toggleVisualizationButton.innerHTML =
+        '<i class="fas fa-chart-line me-2"></i>Hide Visualization'
       updateVisualization()
     }
 
-    if (toggleVisualizationButton && visualizationSidebar && closeVisualizationButton && overlay) {
-      toggleVisualizationButton.addEventListener('click', function() {
+    function closeVisualization() {
+      visualizationSidebar.classList.remove('active')
+      overlay.classList.remove('active')
+      toggleVisualizationButton.innerHTML =
+        '<i class="fas fa-chart-line me-2"></i>Show Visualization'
+    }
+
+    if (
+      toggleVisualizationButton &&
+      closeVisualizationButton &&
+      overlay &&
+      visualizationSidebar
+    ) {
+      toggleVisualizationButton.addEventListener('click', () => {
         if (visualizationSidebar.classList.contains('active')) {
           closeVisualization()
         } else {
@@ -196,312 +155,382 @@ document.addEventListener('DOMContentLoaded', async function () {
       overlay.addEventListener('click', closeVisualization)
     }
 
-    // Fetch initial data
+    // Buttons for date filter
+    const applyDateFilterBtn = document.getElementById('applyDateFilter')
+    if (applyDateFilterBtn) {
+      applyDateFilterBtn.addEventListener('click', () => {
+        currentPage = 1
+        renderTable()
+      })
+    }
+
+    const clearDateFilterBtn = document.getElementById('clearDateFilter')
+    if (clearDateFilterBtn) {
+      clearDateFilterBtn.addEventListener('click', () => {
+        const dateRangePicker = document.getElementById('dateRange')
+        if (dateRangePicker && dateRangePicker._flatpickr) {
+          dateRangePicker._flatpickr.clear()
+        }
+        currentPage = 1
+        renderTable()
+      })
+    }
+
+    // Finally fetch the data
     await fetchData()
-  } catch (error) {
-    console.error('Error initializing dashboard:', error)
+  } catch (err) {
+    console.error('Error initializing dashboard:', err)
     showError('Failed to initialize dashboard. Please refresh the page.')
   }
 })
 
+function getAuthToken() {
+  return localStorage.getItem('dashboardToken') || ''
+}
+
 async function fetchData() {
   try {
-    const response = await fetch('/api/dashboard-data', {
+    const res = await fetch('/api/dashboard-data', {
       headers: {
         Authorization: `Bearer ${getAuthToken()}`,
       },
     })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+    if (!res.ok) {
+      throw new Error('Failed to fetch data: ' + res.status)
     }
+    const data = await res.json()
 
-    const data = await response.json()
     if (!Array.isArray(data.users) || !Array.isArray(data.questionIds)) {
-      throw new Error('Invalid data structure received from server')
+      throw new Error('Invalid data structure from server')
     }
 
     questionIds = data.questionIds
-    users = data.users.map((user) => ({
-      ...user,
-      userCode: user.userCode || user.userId,
-      gender: user.gender || '',
-      birthYear: user.birthYear || '',
-      data: user.data || { responses: {} },
-      initialScores: user.initialScores || {},
-      updatedScores: user.updatedScores || {},
-    }))
-    console.log('Processed users:', users)
+    users = data.users.map((u) => {
+      return {
+        ...u,
+        userCode: u.userCode || u.userId,
+        // For T1, T2, T3 we rely on initialScores, updatedScores, followUpScores
+        t1Scores: u.initialScores || {},
+        t2Scores: u.updatedScores || {},
+        t3Scores: u.followUpScores || {},
+        // We'll store the times if provided
+        t1SubmissionTime: u.t1SubmissionTime || '', // If your server provides these
+        t2SubmissionTime: u.t2SubmissionTime || '',
+        t3SubmissionTime: u.t3SubmissionTime || '',
+      }
+    })
 
-    // Initialize the table after data is loaded
     renderTable()
-  } catch (error) {
-    console.error('Error fetching data:', error)
+  } catch (err) {
+    console.error('Error fetching data:', err)
     showError('Failed to load user data. Please try again later.')
   }
 }
 
 function renderTable() {
-  try {
-    const filteredUsers = filterUsers()
-    const startIndex = (currentPage - 1) * usersPerPage
-    const endIndex = startIndex + usersPerPage
-    const usersToDisplay = filteredUsers.slice(startIndex, endIndex)
+  const thead = document.querySelector('#userTable thead tr')
+  const tbody = document.querySelector('#userTable tbody')
+  if (!thead || !tbody) return
 
-    const thead = document.querySelector('#userTable thead tr')
-    const tbody = document.querySelector('#userTable tbody')
+  const filtered = filterUsers()
+  const startIndex = (currentPage - 1) * usersPerPage
+  const endIndex = startIndex + usersPerPage
+  const displaySet = filtered.slice(startIndex, endIndex)
 
-    if (!thead || !tbody) {
-      console.error('Table elements not found')
-      return
-    }
-
-    // Generate table header
-    thead.innerHTML = `
-      <th>Select</th>
-      <th>Code</th>
-      <th>Versuch</th>
-      <th>Geschlecht</th>
-      <th>Geburtsjahr</th>
-      <th>Lehramt?</th>
-      <th>Art Lehramt</th>
-      <th>Studienfächer</th>
-      <th>Studiengang</th>
-      <th>Semester</th>
-      <th>Kurse</th>
-      <th>Feedback</th>
-      <th>Strategie</th>
-      <th>Reflexion</th>
-      <th>Erste Abgabe</th>
-      <th>Letzte Abgabe</th>
-      ${['q1_0', 'q1_1', 'q1_2', 'q1_3', 'q1_4', 'q1_5', 
-         'q2_0', 'q2_1', 'q2_2', 'q2_3', 'q2_4', 'q2_5', 'q2_6',
-         'q3_0', 'q3_1', 'q3_2', 'q3_3', 'q3_4', 'q3_5', 'q3_6',
-         'q4_0', 'q4_1', 'q4_2', 'q4_3', 'q4_4', 'q4_5',
-         'q5_0', 'q5_1', 'q5_2', 'q5_3', 'q5_4', 'q5_5', 'q5_6',
-         'q6_0', 'q6_1', 'q6_2', 'q6_3', 'q6_4', 'q6_5'
-        ].map(id => `
-          <th>${id}_T1</th>
-          <th>${id}_T2</th>
-        `).join('')}
-    `
-
-    // Clear and prepare tbody
-    tbody.innerHTML = ''
-
-    // Generate rows for each user
-    usersToDisplay.forEach((user) => {
-      const tr = document.createElement('tr')
-      tr.innerHTML = `
-        <td><input type="checkbox" class="user-select" /></td>
-        <td>${escapeHtml(user.userCode || '')}</td>
-        <td>${user.attemptNumber || ''}</td>
-        <td>${escapeHtml(user.data?.q0_0 || user.initialResponses?.q0_0 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_1 || user.initialResponses?.q0_1 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_2 || user.initialResponses?.q0_2 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_3 || user.initialResponses?.q0_3 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_4 || user.initialResponses?.q0_4 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_5 || user.initialResponses?.q0_5 || '')}</td>
-        <td>${escapeHtml(user.data?.q0_6 || user.initialResponses?.q0_6 || '')}</td>
-        <td>${escapeHtml((user.courses || []).join(', '))}</td>
-        <td>${escapeHtml(user.data?.t2_course_feedback || user.openEndedResponses?.attempt2_course_feedback || '')}</td>
-        <td>${escapeHtml(user.openEndedResponses?.t1_strategy || '')}</td>
-        <td>${escapeHtml(user.openEndedResponses?.t2_reflection || '')}</td>
-        <td>${user.firstSubmissionTime ? new Date(user.firstSubmissionTime).toLocaleString() : ''}</td>
-        <td>${user.latestSubmissionTime ? new Date(user.latestSubmissionTime).toLocaleString() : ''}</td>
-        ${['q1_0', 'q1_1', 'q1_2', 'q1_3', 'q1_4', 'q1_5', 
-           'q2_0', 'q2_1', 'q2_2', 'q2_3', 'q2_4', 'q2_5', 'q2_6',
-           'q3_0', 'q3_1', 'q3_2', 'q3_3', 'q3_4', 'q3_5', 'q3_6',
-           'q4_0', 'q4_1', 'q4_2', 'q4_3', 'q4_4', 'q4_5',
-           'q5_0', 'q5_1', 'q5_2', 'q5_3', 'q5_4', 'q5_5', 'q5_6',
-           'q6_0', 'q6_1', 'q6_2', 'q6_3', 'q6_4', 'q6_5'
-          ].map(id => `
-            <td>${escapeHtml(user.initialResponses?.[id] || '')}</td>
-            <td>${escapeHtml(user.updatedResponses?.[id] || '')}</td>
-          `).join('')}
+  // We'll add T1, T2, T3 columns specifically
+  thead.innerHTML = `
+    <th>Select</th>
+    <th>Code</th>
+    <th>Versuch</th>
+    <th>Geschlecht</th>
+    <th>Geburtsjahr</th>
+    <th>Lehramt?</th>
+    <th>Art Lehramt</th>
+    <th>Studienfächer</th>
+    <th>Studiengang</th>
+    <th>Semester</th>
+    <th>Kurse</th>
+    <th>Feedback</th>
+    <th>Strategie</th>
+    <th>Reflexion</th>
+    <th>T1 Zeitpunkt</th>
+    <th>T2 Zeitpunkt</th>
+    <th>T3 Zeitpunkt</th>
+    ${questionIds
+      .map(
+        (id) => `
+        <th>${id} (T1)</th>
+        <th>${id} (T2)</th>
+        <th>${id} (T3)</th>
       `
-      tbody.appendChild(tr)
-    })
+      )
+      .join('')}
+  `
 
-    updatePagination(filteredUsers.length)
-  } catch (error) {
-    console.error('Error rendering table:', error)
-    showError('Failed to display user data. Please refresh the page.')
-  }
+  tbody.innerHTML = ''
+  displaySet.forEach((u) => {
+    const row = document.createElement('tr')
+    row.innerHTML = `
+      <td><input type="checkbox" class="user-select" /></td>
+      <td>${escapeHtml(u.userCode || '')}</td>
+      <td>${u.attemptNumber || ''}</td>
+      <td>${escapeHtml(u.data?.q0_0 || '')}</td>
+      <td>${escapeHtml(u.data?.q0_1 || '')}</td>
+      <td>${escapeHtml(u.data?.q0_2 || '')}</td>
+      <td>${escapeHtml(u.data?.q0_3 || '')}</td>
+      <td>${escapeHtml(u.data?.q0_4 || '')}</td>
+      <td>${escapeHtml(u.data?.q0_5 || '')}</td>
+      <td>${escapeHtml(u.data?.q0_6 || '')}</td>
+      <td>${escapeHtml((u.courses || []).join(', '))}</td>
+      <td>${escapeHtml(
+        u.openEndedResponses?.attempt2_course_feedback || ''
+      )}</td>
+      <td>${escapeHtml(u.openEndedResponses?.t1_strategy || '')}</td>
+      <td>${escapeHtml(u.openEndedResponses?.t2_reflection || '')}</td>
+      <td>${
+        u.t1SubmissionTime ? new Date(u.t1SubmissionTime).toLocaleString() : ''
+      }</td>
+      <td>${
+        u.t2SubmissionTime ? new Date(u.t2SubmissionTime).toLocaleString() : ''
+      }</td>
+      <td>${
+        u.t3SubmissionTime ? new Date(u.t3SubmissionTime).toLocaleString() : ''
+      }</td>
+      ${questionIds
+        .map((id) => {
+          return `
+            <td>${escapeHtml(u.initialResponses?.[id] || '')}</td>
+            <td>${escapeHtml(u.updatedResponses?.[id] || '')}</td>
+            <td>${escapeHtml(u.followUpResponses?.[id] || '')}</td>
+          `
+        })
+        .join('')}
+    `
+    tbody.appendChild(row)
+  })
+
+  updatePagination(filtered.length)
 }
 
 function filterUsers() {
-  const searchInput = document.getElementById('userSearch')
-  const searchTerm = searchInput ? searchInput.value.toLowerCase() : ''
-  const dateRange = getSelectedDateRange()
+  const searchTerm = (
+    document.getElementById('userSearch')?.value || ''
+  ).toLowerCase()
 
-  return users.filter(user => {
-    const matchesSearch = !searchTerm || [
-      user.userCode,
-      user.attemptNumber?.toString(),
-      user.data?.q0_0, // Geschlecht
-      user.data?.q0_1, // Geburtsjahr
-      user.data?.q0_2, // Teaching student
-      user.data?.q0_3, // Teaching type
-      user.data?.q0_4, // Teaching subjects
-      user.data?.q0_5, // Non-teaching study program
-      user.data?.q0_6, // Semester
-      (user.courses || []).join(', '),
-      user.data?.t2_course_feedback || user.openEndedResponses?.attempt2_course_feedback,
-      user.openEndedResponses?.t1_strategy,
-      user.openEndedResponses?.t2_reflection
-    ].some(field => field?.toString().toLowerCase().includes(searchTerm))
+  const dateRangePicker = document.getElementById('dateRange')?._flatpickr
+  let start = null
+  let end = null
+  if (dateRangePicker && dateRangePicker.selectedDates.length === 2) {
+    start = dateRangePicker.selectedDates[0]
+    end = dateRangePicker.selectedDates[1]
+    start.setHours(0, 0, 0, 0)
+    end.setHours(23, 59, 59, 999)
+  }
 
-    return matchesSearch && (!dateRange.start || filterByDateRange(user))
+  return users.filter((u) => {
+    // Filter by date
+    if (start && end) {
+      // We'll check T1 as initial
+      const t1 = u.t1SubmissionTime ? new Date(u.t1SubmissionTime) : null
+      if (t1) {
+        t1.setHours(0, 0, 0, 0)
+        if (t1 < start || t1 > end) return false
+      } else {
+        // If user has no T1, we skip them
+        return false
+      }
+    }
+
+    // Filter by search
+    if (searchTerm) {
+      const fieldsToCheck = [
+        u.userCode,
+        u.attemptNumber,
+        u.data?.q0_0,
+        u.data?.q0_1,
+        u.data?.q0_2,
+        u.data?.q0_3,
+        u.data?.q0_4,
+        u.data?.q0_5,
+        u.data?.q0_6,
+        (u.courses || []).join(', '),
+        u.openEndedResponses?.attempt2_course_feedback,
+        u.openEndedResponses?.t1_strategy,
+        u.openEndedResponses?.t2_reflection,
+      ]
+      const combinedString = fieldsToCheck.join(' ').toLowerCase()
+      if (!combinedString.includes(searchTerm)) return false
+    }
+    return true
   })
 }
 
-function getSelectedDateRange() {
-  const dateRangePicker = document.getElementById('dateRange')
-  if (!dateRangePicker || !dateRangePicker._flatpickr) {
-    return { start: null, end: null }
-  }
-  const selectedDates = dateRangePicker._flatpickr.selectedDates
-  return {
-    start: selectedDates[0] || null,
-    end: selectedDates[1] || null
+function showError(msg) {
+  const errorEl = document.getElementById('errorMessage')
+  if (errorEl) {
+    errorEl.textContent = msg
+    errorEl.style.display = 'block'
+    setTimeout(() => {
+      errorEl.style.display = 'none'
+    }, 5000)
+  } else {
+    console.error(msg)
   }
 }
 
-function filterByDateRange(user) {
-  const dateRange = getSelectedDateRange()
-  if (!dateRange.start || !dateRange.end) {
-    return true
-  }
+function updatePagination(totalCount) {
+  const paginationEl = document.getElementById('pagination')
+  if (!paginationEl) return
 
-  const submissionDate = user.firstSubmissionTime ? new Date(user.firstSubmissionTime) : null
-  if (!submissionDate) {
-    return false
-  }
-
-  // Reset hours, minutes, seconds, and milliseconds for accurate date comparison
-  submissionDate.setHours(0, 0, 0, 0)
-  const start = new Date(dateRange.start)
-  start.setHours(0, 0, 0, 0)
-  const end = new Date(dateRange.end)
-  end.setHours(23, 59, 59, 999)
-
-  return submissionDate >= start && submissionDate <= end
-}
-
-function updatePagination(totalUsers) {
-  const paginationElement = document.getElementById('pagination')
-  if (!paginationElement) {
-    console.error('Pagination element not found')
-    return
-  }
-
-  const totalPages = Math.ceil(totalUsers / usersPerPage)
-
-  paginationElement.innerHTML = `
-    <button id="prevPage" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
+  const totalPages = Math.ceil(totalCount / usersPerPage)
+  paginationEl.innerHTML = `
+    <button id="prevPage" ${currentPage === 1 ? 'disabled' : ''}>Prev</button>
     <span>Page ${currentPage} of ${totalPages}</span>
-    <button id="nextPage" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
+    <button id="nextPage" ${
+      currentPage === totalPages ? 'disabled' : ''
+    }>Next</button>
   `
 
-  const prevButton = document.getElementById('prevPage')
-  const nextButton = document.getElementById('nextPage')
-
-  if (prevButton) {
-    prevButton.addEventListener('click', () => changePage(-1))
+  const prevBtn = document.getElementById('prevPage')
+  const nextBtn = document.getElementById('nextPage')
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => changePage(-1))
   }
-  if (nextButton) {
-    nextButton.addEventListener('click', () => changePage(1))
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => changePage(1))
   }
 }
 
 function changePage(direction) {
-  const filteredUsers = filterUsers()
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage)
+  const filtered = filterUsers()
+  const totalPages = Math.ceil(filtered.length / usersPerPage)
   currentPage = Math.min(Math.max(1, currentPage + direction), totalPages)
   renderTable()
 }
 
-function applyDateFilter() {
-  currentPage = 1
-  renderTable()
-}
+/* 
+  updateVisualization:
+   1) If exactly one user is selected, show that user's T1/T2/T3 as 1,2,3 bars.
+   2) If multiple users are selected, use the *last selected user* for the chart.
+   3) If no user is selected, do nothing or show an empty chart.
 
-function showError(message) {
-  const errorContainer = document.getElementById('errorMessage')
-  if (errorContainer) {
-    errorContainer.textContent = message
-    errorContainer.style.display = 'block'
-    setTimeout(() => {
-      errorContainer.style.display = 'none'
-    }, 5000)
-  } else {
-    console.error(message)
-  }
-}
-
+  We'll rely on userDoc's t1Scores, t2Scores, t3Scores, which correspond to 
+  userDoc.initialScores, userDoc.updatedScores, userDoc.followUpScores.
+*/
 function updateVisualization() {
   const canvas = document.getElementById('visualization')
   if (!canvas) return
-
   const ctx = canvas.getContext('2d')
-  
-  // Calculate averages
-  const categories = {
-    'Suchen': { initialScore: 0, latestScore: 0, color: colorMap['Suchen'] },
-    'Kommunizieren': { initialScore: 0, latestScore: 0, color: colorMap['Kommunizieren'] },
-    'Produzieren': { initialScore: 0, latestScore: 0, color: colorMap['Produzieren'] },
-    'Schützen': { initialScore: 0, latestScore: 0, color: colorMap['Schützen'] },
-    'Problemlösen': { initialScore: 0, latestScore: 0, color: colorMap['Problemlösen'] },
-    'Analysieren': { initialScore: 0, latestScore: 0, color: colorMap['Analysieren'] }
-  }
-  
-  let userCount = 0
 
-  users.forEach(user => {
-    if (user.initialScores && user.updatedScores) {
-      Object.entries(labelMap).forEach(([fullName, shortName]) => {
-        if (user.initialScores[fullName] !== undefined) {
-          categories[shortName].initialScore += user.initialScores[fullName] || 0
-          categories[shortName].latestScore += user.updatedScores[fullName] || 0
-        }
-      })
-      userCount++
+  const checked = Array.from(document.querySelectorAll('.user-select:checked'))
+  if (checked.length < 1) {
+    // No user selected => clear chart or do nothing
+    if (window.myChart) window.myChart.destroy()
+    return
+  }
+
+  // If multiple, we pick the last user
+  const lastCheckbox = checked[checked.length - 1]
+  const row = lastCheckbox.closest('tr')
+  const codeCell = row?.querySelector('td:nth-child(2)')
+  if (!codeCell) {
+    if (window.myChart) window.myChart.destroy()
+    return
+  }
+  const userCode = codeCell.textContent.trim()
+  const user = users.find((u) => u.userCode === userCode)
+  if (!user) {
+    if (window.myChart) window.myChart.destroy()
+    return
+  }
+
+  // Build up to 3 "score sets": T1, T2, T3
+  const categories = Object.values(labelMap) // ["Suchen", "Kommunizieren", ...]
+  const t1Data = []
+  const t2Data = []
+  const t3Data = []
+  let hasT1 = false
+  let hasT2 = false
+  let hasT3 = false
+
+  categories.forEach((shortName) => {
+    // We find the full name from labelMap by flipping the object
+    const fullNameEntry = Object.entries(labelMap).find(
+      ([key, val]) => val === shortName
+    )
+    if (!fullNameEntry) {
+      t1Data.push(0)
+      t2Data.push(0)
+      t3Data.push(0)
+      return
+    }
+    const [fullName] = fullNameEntry
+
+    const s1 = user.t1Scores?.[fullName]
+    const s2 = user.t2Scores?.[fullName]
+    const s3 = user.t3Scores?.[fullName]
+
+    if (s1 !== undefined && s1 !== null) {
+      hasT1 = true
+      t1Data.push(s1)
+    } else {
+      t1Data.push(0)
+    }
+
+    if (s2 !== undefined && s2 !== null) {
+      hasT2 = true
+      t2Data.push(s2)
+    } else {
+      t2Data.push(0)
+    }
+
+    if (s3 !== undefined && s3 !== null) {
+      hasT3 = true
+      t3Data.push(s3)
+    } else {
+      t3Data.push(0)
     }
   })
 
-  // Calculate averages
-  Object.values(categories).forEach(data => {
-    data.initialScore = userCount ? Math.round(data.initialScore / userCount) : 0
-    data.latestScore = userCount ? Math.round(data.latestScore / userCount) : 0
-  })
+  // We'll build datasets dynamically
+  const datasets = []
+  if (hasT1) {
+    datasets.push({
+      label: 'T1 Score',
+      data: t1Data,
+      backgroundColor: categories.map((c) => colorMap[c] + '80'),
+      borderColor: categories.map((c) => colorMap[c]),
+      borderWidth: 1,
+    })
+  }
+  if (hasT2) {
+    datasets.push({
+      label: 'T2 Score',
+      data: t2Data,
+      backgroundColor: categories.map((c) => colorMap[c]),
+      borderColor: categories.map((c) => colorMap[c]),
+      borderWidth: 1,
+    })
+  }
+  if (hasT3) {
+    datasets.push({
+      label: 'T3 Score',
+      data: t3Data,
+      backgroundColor: categories.map((c) => colorMap[c] + 'A0'),
+      borderColor: categories.map((c) => colorMap[c]),
+      borderWidth: 1,
+    })
+  }
 
-  // Destroy existing chart if it exists
   if (window.myChart) {
     window.myChart.destroy()
   }
 
-  // Create new chart
   window.myChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: Object.keys(categories),
-      datasets: [
-        {
-          label: 'Initial Scores (T1)',
-          data: Object.values(categories).map(data => data.initialScore),
-          backgroundColor: Object.values(categories).map(data => data.color + '80'), // 50% opacity
-          borderColor: Object.values(categories).map(data => data.color),
-          borderWidth: 1
-        },
-        {
-          label: 'Latest Scores (T2)',
-          data: Object.values(categories).map(data => data.latestScore),
-          backgroundColor: Object.values(categories).map(data => data.color),
-          borderColor: Object.values(categories).map(data => data.color),
-          borderWidth: 1
-        }
-      ]
+      labels: categories,
+      datasets: datasets,
     },
     options: {
       responsive: true,
@@ -512,44 +541,49 @@ function updateVisualization() {
           max: 100,
           title: {
             display: true,
-            text: 'Score (%)'
-          }
-        }
+            text: 'Score (%)',
+          },
+        },
       },
       plugins: {
         title: {
           display: true,
-          text: `Average Scores Comparison (${userCount} users)`,
+          text: `Kompetenz-Diagramm für ${user.userCode}`,
           font: {
-            size: 16
-          }
+            size: 16,
+          },
         },
         legend: {
-          position: 'top'
-        }
-      }
-    }
+          position: 'top',
+        },
+      },
+    },
   })
 }
 
+/* 
+  CSV Export:
+    We export T1, T2, T3 columns for each question.
+*/
 function exportSelectedData() {
-  const selectedUsers = [];
-  document.querySelectorAll('.user-select:checked').forEach((checkbox) => {
-    const row = checkbox.closest('tr');
-    const userCode = row.querySelector('td:nth-child(2)').textContent;
-    const user = users.find(u => u.userCode === userCode);
-    if (user) {
-      selectedUsers.push(user);
-    }
-  });
-
-  if (selectedUsers.length === 0) {
-    showError('Please select at least one user to export data.');
-    return;
+  const checked = document.querySelectorAll('.user-select:checked')
+  if (!checked.length) {
+    showError('Please select at least one user to export data.')
+    return
   }
+  const selectedUsers = []
+  checked.forEach((box) => {
+    const row = box.closest('tr')
+    const codeCell = row.querySelector('td:nth-child(2)')
+    if (!codeCell) return
+    const userCode = codeCell.textContent.trim()
+    const user = users.find((u) => u.userCode === userCode)
+    if (user) {
+      selectedUsers.push(user)
+    }
+  })
 
-  // Prepare CSV data
-  const csvData = [];
+  const csvRows = []
   const headers = [
     'Code',
     'Versuch',
@@ -564,70 +598,59 @@ function exportSelectedData() {
     'Feedback',
     'Strategie',
     'Reflexion',
-    'Erste Abgabe',
-    'Letzte Abgabe',
-    ...questionIds.flatMap(id => [`${id} (T1)`, `${id} (T2)`])
-  ];
-  csvData.push(headers);
+    'T1 Zeitpunkt',
+    'T2 Zeitpunkt',
+    'T3 Zeitpunkt',
+    ...questionIds.flatMap((id) => [`${id} (T1)`, `${id} (T2)`, `${id} (T3)`]),
+  ]
+  csvRows.push(headers)
 
-  // Add data for each selected user
-  selectedUsers.forEach(user => {
+  selectedUsers.forEach((u) => {
     const row = [
-      user.userCode,
-      user.attemptNumber || '',
-      user.data?.responses?.q0_0 || '',  // Gender
-      user.data?.responses?.q0_1 || '',  // Birth year
-      user.data?.responses?.q0_2 || '',  // Teaching student
-      user.data?.responses?.q0_3 || '',  // Teaching type
-      user.data?.responses?.q0_4 || '',  // Teaching subjects
-      user.data?.responses?.q0_5 || '',  // Non-teaching study
-      user.data?.responses?.q0_6 || '',  // Semester
-      (user.courses || []).join(';'),
-      user.openEndedResponses?.course_feedback || '',
-      user.openEndedResponses?.t1_strategy || '',
-      user.openEndedResponses?.t2_reflection || '',
-      user.firstSubmissionTime ? new Date(user.firstSubmissionTime).toLocaleString() : '',
-      user.latestSubmissionTime ? new Date(user.latestSubmissionTime).toLocaleString() : '',
-      ...questionIds.flatMap(id => [
-        user.initialResponses?.[id] || '',
-        user.updatedResponses?.[id] || ''
-      ])
-    ];
-    csvData.push(row);
-  });
+      u.userCode,
+      u.attemptNumber || '',
+      u.data?.q0_0 || '',
+      u.data?.q0_1 || '',
+      u.data?.q0_2 || '',
+      u.data?.q0_3 || '',
+      u.data?.q0_4 || '',
+      u.data?.q0_5 || '',
+      u.data?.q0_6 || '',
+      (u.courses || []).join(';'),
+      u.openEndedResponses?.attempt2_course_feedback || '',
+      u.openEndedResponses?.t1_strategy || '',
+      u.openEndedResponses?.t2_reflection || '',
+      u.t1SubmissionTime ? new Date(u.t1SubmissionTime).toLocaleString() : '',
+      u.t2SubmissionTime ? new Date(u.t2SubmissionTime).toLocaleString() : '',
+      u.t3SubmissionTime ? new Date(u.t3SubmissionTime).toLocaleString() : '',
+      ...questionIds.flatMap((id) => [
+        u.initialResponses?.[id] || '',
+        u.updatedResponses?.[id] || '',
+        u.followUpResponses?.[id] || '',
+      ]),
+    ]
+    csvRows.push(row)
+  })
 
-  // Convert to CSV string
-  const csvString = csvData.map(row => 
-    row.map(cell => 
-      typeof cell === 'string' && cell.includes(',') 
-        ? `"${cell}"` 
-        : cell
-    ).join(',')
-  ).join('\n');
+  const csvString = csvRows
+    .map((rowArr) =>
+      rowArr
+        .map((cell) => {
+          if (typeof cell === 'string' && cell.includes(',')) {
+            return `"${cell}"`
+          }
+          return cell
+        })
+        .join(',')
+    )
+    .join('\n')
 
-  // Create and trigger download
-  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  if (navigator.msSaveBlob) { // IE 10+
-    navigator.msSaveBlob(blob, 'survey_data.csv');
-  } else {
-    link.href = URL.createObjectURL(blob);
-    link.download = 'survey_data.csv';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = 'survey_data.csv'
+  link.style.display = 'none'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
-
-document.getElementById('applyDateFilter').addEventListener('click', function() {
-  renderTable()
-})
-
-document.getElementById('clearDateFilter').addEventListener('click', function() {
-  const dateRangePicker = document.getElementById('dateRange')
-  if (dateRangePicker && dateRangePicker._flatpickr) {
-    dateRangePicker._flatpickr.clear()
-    renderTable()
-  }
-})
