@@ -112,6 +112,28 @@
       >
         Klicken Sie hier, um einen neuen Code zu generieren
       </button>
+
+      <!-- NEW SEPARATE BLOCK FOR "VIEW RESULTS" -->
+      <fieldset class="form-group">
+        <legend>Möchten Sie Ihre bisherigen Ergebnisse ansehen?</legend>
+        <p>
+          Geben Sie hier bitte Ihren Code ein, um Ihre bisherigen Ergebnisse (T1, T2, T3)
+          anzeigen zu lassen.
+        </p>
+        <div class="input-group">
+          <label for="resultsCode">Persönlicher Code</label>
+          <input
+            type="text"
+            id="resultsCode"
+            name="resultsCode"
+            placeholder="GW-SI-06-KE"
+            autocomplete="off"
+          />
+        </div>
+        <button type="button" id="viewResultsButton" class="primary-button">
+          Ergebnisse anzeigen
+        </button>
+      </fieldset>
     </div>
     <script src="js/survey-data.min.js"></script>
     <script src="js/script.min.js"></script>
