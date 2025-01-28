@@ -25,18 +25,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-      /* Simple tooltip styling for info icons */
+      /* Tooltip styling for info icons */
       .info-icon {
         position: relative;
         cursor: help;
-        margin-left: 3px;
+        margin-left: 4px;
         color: #666;
         font-size: 0.9em;
       }
       .info-icon:hover::after {
         content: attr(data-tooltip);
         position: absolute;
-        bottom: -30px; /* or top, depending on how you want it to appear */
+        bottom: -30px; /* or top, etc. */
         left: 0;
         background: rgba(0, 0, 0, 0.8);
         color: #fff;
@@ -44,7 +44,35 @@
         border-radius: 4px;
         white-space: nowrap;
         font-size: 0.85rem;
-        z-index: 9999;
+        z-index: 999;
+      }
+
+      /* The overlay and visualization sidebar, if you want them */
+      .overlay {
+        display: none; /* Controlled by JS */
+      }
+      .overlay.active {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+      }
+      .visualization-sidebar {
+        display: none; /* Controlled by JS */
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 400px;
+        height: 100%;
+        background: #fff;
+        z-index: 1100;
+        overflow-y: auto;
+        box-shadow: -2px 0 6px rgba(0,0,0,0.2);
+        padding: 1rem;
+      }
+      .visualization-sidebar.active {
+        display: block;
       }
     </style>
   </head>
@@ -111,13 +139,17 @@
       </div>
     </div>
 
-    <!-- Big table with T1, T2, T3 columns -->
+    <!-- The wide table with T1, T2, T3 columns for all questions -->
     <div class="table-responsive">
       <table id="userTable" class="table table-bordered">
         <thead>
-          <tr><!-- Inserted dynamically by dashboard.js --></tr>
+          <tr>
+            <!-- We'll fill HEAD dynamically in dashboard.js -->
+          </tr>
         </thead>
-        <tbody><!-- Inserted dynamically by dashboard.js --></tbody>
+        <tbody>
+          <!-- We'll fill ROWS dynamically in dashboard.js -->
+        </tbody>
       </table>
     </div>
 
