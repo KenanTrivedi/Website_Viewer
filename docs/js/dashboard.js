@@ -113,6 +113,16 @@ document.addEventListener('DOMContentLoaded', async function () {
       })
     }
 
+    function escapeHtml(str) {
+      if (!str) return ''
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+    }
+
     // Visualization toggling
     const toggleVisualizationButton = document.getElementById(
       'toggleVisualization'

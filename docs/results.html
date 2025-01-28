@@ -89,8 +89,8 @@
       <div class="results-container">
         <h1>Ihre bisherigen Ergebnisse</h1>
         <p>
-          Willkommen! Hier sehen Sie Ihre Kompetenzstände für T1, T2 und T3,
-          sofern vorhanden.
+          Willkommen! Hier sehen Sie Ihre Kompetenzstände für die Erste, Zweite und
+          Dritte Befragung, (sofern vorhanden)
         </p>
 
         <!-- Show code from sessionStorage if available -->
@@ -189,6 +189,15 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
     <script>
+      /************************************************
+       * Example new labels to avoid T1, T2, T3
+       ************************************************/
+      const surveyLabels = {
+        t1: 'Erste Befragung',
+        t2: 'Zweite Befragung',
+        t3: 'Dritte Befragung',
+      }
+
       const colorMap = {
         'Suchen, Verarbeiten und Aufbewahren': '#00BF63',
         'Kommunikation und Kollaborieren': '#0CC0DF',
@@ -287,9 +296,10 @@
           const ctx = document.getElementById('resultsChart').getContext('2d')
           const dataSets = []
 
+          // "Erste Befragung"
           if (Object.keys(initialScores).length > 0) {
             dataSets.push({
-              label: 'T1',
+              label: surveyLabels.t1,
               data: t1Data,
               backgroundColor: categories.map((c) =>
                 lightenColor(colorMap[c] || '#999', 0.4)
@@ -298,18 +308,22 @@
               borderWidth: 1,
             })
           }
+
+          // "Zweite Befragung"
           if (Object.keys(updatedScores).length > 0) {
             dataSets.push({
-              label: 'T2',
+              label: surveyLabels.t2,
               data: t2Data,
               backgroundColor: categories.map((c) => colorMap[c] || '#999'),
               borderColor: categories.map((c) => colorMap[c] || '#999'),
               borderWidth: 1,
             })
           }
+
+          // "Dritte Befragung"
           if (Object.keys(followUpScores).length > 0) {
             dataSets.push({
-              label: 'T3',
+              label: surveyLabels.t3,
               data: t3Data,
               backgroundColor: categories.map((c) =>
                 darkenColor(colorMap[c] || '#999', 0.3)
