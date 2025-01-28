@@ -68,6 +68,16 @@ const colorMap = {
   Analysieren: '#FFD473',
 }
 
+function escapeHtml(str) {
+  if (!str) return ''
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
 document.addEventListener('DOMContentLoaded', async function () {
   try {
     // Initialize Flatpickr for date range
@@ -111,16 +121,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         })
         exportSelectedData()
       })
-    }
-
-    function escapeHtml(str) {
-      if (!str) return ''
-      return str
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
     }
 
     // Visualization toggling
@@ -249,8 +249,24 @@ function renderTable() {
 
   // We'll add T1, T2, T3 columns specifically
   thead.innerHTML = `
-    <th>Select</th>
-    <th>Code</th>
+    <th>
+      Select 
+      <span class="info-icon" data-tooltip="Wählen Sie mehrere Nutzer aus...">
+        <i class="fas fa-info-circle"></i>
+      </span>
+    </th>
+    <th>
+      Details
+      <span class="info-icon" data-tooltip="Klicken Sie, um T1/T2/T3 anzuzeigen">
+        <i class="fas fa-info-circle"></i>
+      </span>
+    </th>
+    <th>
+      Code 
+      <span class="info-icon" data-tooltip="Eindeutiger Nutzercode">
+        <i class="fas fa-info-circle"></i>
+      </span>
+    </th>
     <th>Versuch</th>
     <th>Geschlecht</th>
     <th>Geburtsjahr</th>
@@ -263,18 +279,6 @@ function renderTable() {
     <th>Feedback</th>
     <th>Strategie</th>
     <th>Reflexion</th>
-    <th>T1 Zeitpunkt</th>
-    <th>T2 Zeitpunkt</th>
-    <th>T3 Zeitpunkt</th>
-    ${questionIds
-      .map(
-        (id) => `
-        <th>${id} (T1)</th>
-        <th>${id} (T2)</th>
-        <th>${id} (T3)</th>
-      `
-      )
-      .join('')}
   `
 
   tbody.innerHTML = ''
@@ -282,6 +286,11 @@ function renderTable() {
     const row = document.createElement('tr')
     row.innerHTML = `
       <td><input type="checkbox" class="user-select" /></td>
+      <td>
+        <button class="btn btn-sm btn-link toggle-details">
+          <i class="fas fa-plus-circle"></i> Show
+        </button>
+      </td>
       <td>${escapeHtml(u.userCode || '')}</td>
       <td>${u.attemptNumber || ''}</td>
       <td>${escapeHtml(u.data?.q0_0 || '')}</td>
@@ -297,26 +306,48 @@ function renderTable() {
       )}</td>
       <td>${escapeHtml(u.openEndedResponses?.t1_strategy || '')}</td>
       <td>${escapeHtml(u.openEndedResponses?.t2_reflection || '')}</td>
-      <td>${
-        u.t1SubmissionTime ? new Date(u.t1SubmissionTime).toLocaleString() : ''
-      }</td>
-      <td>${
-        u.t2SubmissionTime ? new Date(u.t2SubmissionTime).toLocaleString() : ''
-      }</td>
-      <td>${
-        u.t3SubmissionTime ? new Date(u.t3SubmissionTime).toLocaleString() : ''
-      }</td>
-      ${questionIds
-        .map((id) => {
-          return `
-            <td>${escapeHtml(u.initialResponses?.[id] || '')}</td>
-            <td>${escapeHtml(u.updatedResponses?.[id] || '')}</td>
-            <td>${escapeHtml(u.followUpResponses?.[id] || '')}</td>
-          `
-        })
-        .join('')}
     `
     tbody.appendChild(row)
+
+    const detailsRow = document.createElement('tr')
+    detailsRow.className = 'details-row'
+    detailsRow.innerHTML = `
+      <td colspan="15">
+        <div style="padding: 1rem;">
+          <strong>T1 Zeitpunkt:</strong> ${
+            u.t1SubmissionTime
+              ? new Date(u.t1SubmissionTime).toLocaleString()
+              : 'N/A'
+          }<br/>
+          <strong>T2 Zeitpunkt:</strong> ${
+            u.t2SubmissionTime
+              ? new Date(u.t2SubmissionTime).toLocaleString()
+              : 'N/A'
+          }<br/>
+          <strong>T3 Zeitpunkt:</strong> ${
+            u.t3SubmissionTime
+              ? new Date(u.t3SubmissionTime).toLocaleString()
+              : 'N/A'
+          }<br/>
+          <hr/>
+          <strong>T1 Responses:</strong> ${escapeHtml(JSON.stringify(u.initialResponses))}<br/>
+          <strong>T2 Responses:</strong> ${escapeHtml(JSON.stringify(u.updatedResponses))}<br/>
+          <strong>T3 Responses:</strong> ${escapeHtml(JSON.stringify(u.followUpResponses))}
+        </div>
+      </td>
+    `
+    tbody.appendChild(detailsRow)
+
+    const toggleBtn = row.querySelector('.toggle-details')
+    toggleBtn.addEventListener('click', () => {
+      if (detailsRow.style.display === 'table-row') {
+        detailsRow.style.display = 'none'
+        toggleBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Show'
+      } else {
+        detailsRow.style.display = 'table-row'
+        toggleBtn.innerHTML = '<i class="fas fa-minus-circle"></i> Hide'
+      }
+    })
   })
 
   updatePagination(filtered.length)
