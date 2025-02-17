@@ -23,58 +23,6 @@
     <link rel="stylesheet" href="/css/dashboard.css" />
     <!-- Chart.js for visualization -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>
-      /* Tooltip styling for info icons */
-      .info-icon {
-        position: relative;
-        cursor: help;
-        margin-left: 4px;
-        color: #666;
-        font-size: 0.9em;
-      }
-      .info-icon:hover::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        bottom: -30px; /* or top, etc. */
-        left: 0;
-        background: rgba(0, 0, 0, 0.8);
-        color: #fff;
-        padding: 4px 8px;
-        border-radius: 4px;
-        white-space: nowrap;
-        font-size: 0.85rem;
-        z-index: 999;
-      }
-
-      /* The overlay and visualization sidebar, if you want them */
-      .overlay {
-        display: none; /* Controlled by JS */
-      }
-      .overlay.active {
-        display: block;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-      }
-      .visualization-sidebar {
-        display: none; /* Controlled by JS */
-        position: fixed;
-        top: 0;
-        right: 0;
-        width: 400px;
-        height: 100%;
-        background: #fff;
-        z-index: 1100;
-        overflow-y: auto;
-        box-shadow: -2px 0 6px rgba(0,0,0,0.2);
-        padding: 1rem;
-      }
-      .visualization-sidebar.active {
-        display: block;
-      }
-    </style>
   </head>
   <body class="container-fluid">
     <h1 class="my-4 text-center">Survey Dashboard</h1>
@@ -129,12 +77,6 @@
             class="form-control date-range-picker"
             placeholder="Select date range"
           />
-          <button id="applyDateFilter" class="btn btn-primary">
-            <i class="fas fa-check me-2"></i>Apply
-          </button>
-          <button id="clearDateFilter" class="btn btn-secondary">
-            <i class="fas fa-times me-2"></i>Clear
-          </button>
         </div>
       </div>
     </div>
@@ -142,6 +84,9 @@
     <!-- The wide table with T1, T2, T3 columns for all questions -->
     <div class="table-responsive">
       <table id="userTable" class="table table-bordered">
+        <caption>
+          Survey User Data
+        </caption>
         <thead>
           <tr>
             <!-- We'll fill HEAD dynamically in dashboard.js -->
@@ -175,6 +120,7 @@
       </div>
       <div class="visualization-content p-2">
         <canvas id="visualization"></canvas>
+        <div id="visualizationDescription"></div>
       </div>
     </aside>
 

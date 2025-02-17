@@ -1,4 +1,3 @@
-<!-- codeConfirmation.html -->
 <!DOCTYPE html>
 <html lang="de">
   <head>
@@ -29,29 +28,31 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   </head>
   <body>
-    <div class="login-container">
-      <h1>Ihr Persönlicher Code</h1>
-      <div id="personalCodeDisplay" class="code-display">
-        <span id="codeText">GW-SI-06-KE</span>
+    <main>
+      <div class="login-container">
+        <h1>Ihr Persönlicher Code</h1>
+        <div id="personalCodeDisplay" class="code-display">
+          <span id="codeText">GW-SI-06-KE</span>
+        </div>
+        <button
+          id="copyCodeButton"
+          class="primary-button"
+          aria-label="Code in die Zwischenablage kopieren"
+          title="Code kopieren"
+        >
+          📋 In die Zwischenablage kopieren
+        </button>
+        <p>
+          Vielen Dank, dass Sie Ihren persönlichen Zugangscode erstellt haben.
+          Sie sollten sich diesen merken bzw. aufschreiben, da Sie ihn für eine
+          spätere Teilnahme wieder brauchen. Eine Möglichkeit wäre, den Code in
+          Ihrem Smartphone zu speichern oder im Notizbuch zu notieren.
+        </p>
+        <button id="startSurveyButton" class="primary-button">
+          Mit der Befragung beginnen
+        </button>
       </div>
-      <button
-        id="copyCodeButton"
-        class="primary-button"
-        aria-label="Code in die Zwischenablage kopieren"
-        title="Code kopieren"
-      >
-        📋 In die Zwischenablage kopieren
-      </button>
-      <p>
-        Vielen Dank, dass Sie Ihren persönlichen Zugangscode erstellt haben. Sie
-        sollten sich diesen merken bzw. aufschreiben, da Sie ihn für eine
-        spätere Teilnahme wieder brauchen. Eine Möglichkeit wäre, den Code in
-        Ihrem Smartphone zu speichern oder im Notizbuch zu notieren.
-      </p>
-      <button id="startSurveyButton" class="primary-button">
-        Mit der Befragung beginnen
-      </button>
-    </div>
+    </main>
     <script src="js/survey-data.min.js"></script>
     <script src="js/script.min.js"></script>
   </body>

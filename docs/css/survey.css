@@ -1,12 +1,14 @@
 /* survey.css */
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f0f4f8;
-  color: #333;
-  margin: 0;
-  padding: 0;
-  line-height: 1.6;
+:root {
+  --primary-color: #004a99;
+  --secondary-color: #003366;
+  --light-background: #e0f0ff;
+  --font-family: 'Roboto', sans-serif;
+  --text-color: #333;
+  --background-color: #ffffff;
+  --link-hover-color: #007bff;
 }
+/* --- General Styles --- */
 
 html {
   scroll-behavior: smooth;
@@ -21,15 +23,10 @@ html {
   border-radius: 8px;
 }
 
-header {
-  background-color: #ffffff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
+/* --- Header Styles --- */
 
 .header-content {
+  /* Removed styles - these are handled in styles.css */
   display: flex;
   justify-content: space-between;
   max-width: 1200px;
@@ -39,6 +36,7 @@ header {
 }
 
 .logo-link {
+  /* Removed styles - these are handled in styles.css */
   display: flex;
   align-items: center;
   position: absolute;
@@ -46,13 +44,14 @@ header {
 }
 
 .logo {
+  /* Removed styles - these are handled in styles.css */
   height: 40px;
   width: auto;
 }
 
 h1,
 h2 {
-  color: #004a99;
+  color: var(--primary-color);
   margin: 0;
 }
 
@@ -78,6 +77,8 @@ h2 {
   background-color: #e0e0e0;
 }
 
+/* --- Progress Bar --- */
+
 .progress-container {
   margin-bottom: 30px;
   margin-top: 20px;
@@ -94,7 +95,7 @@ h2 {
 #progressFill {
   width: 0;
   height: 100%;
-  background-color: #004a99;
+  background-color: var(--primary-color);
   transition: width 0.3s ease;
 }
 
@@ -102,235 +103,19 @@ h2 {
   text-align: center;
   margin-top: 10px;
   font-weight: bold;
-  color: #004a99;
+  color: var(--primary-color);
 }
 
-/* Add these missing styles */
-.scale-button:hover {
-  background-color: #e0e0e0;
-}
+/* --- Form and Question Styles --- */
 
-input[type='text']:focus,
-select:focus,
-textarea:focus {
-  outline: none;
-  border-color: #004a99;
-  box-shadow: 0 0 5px rgba(0, 74, 153, 0.5);
-}
-
-input[type='date'][readonly] {
-  background-color: #e9ecef;
-  cursor: not-allowed;
-}
-.prefilled-field {
-  position: relative;
-  display: inline-block;
-  width: 100%;
-}
-
-.edit-icon {
-  position: absolute;
-  right: 10px;
-  padding: 2px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: #004a99;
-  background: white;
-  border-radius: 3px;
-}
-
-input[readonly] {
-  background-color: #f8f9fa;
-  border-color: #dee2e6;
-}
-
-.conditional-question input[type='text'] {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-}
-.conditional-question input[readonly] {
-  background-color: #f8f9fa;
-  padding-right: 35px; /* Space for edit icon */
-}
-
-.radio-option input[type='radio']:disabled + label {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-/* Add to survey.css */
-#standardNavigation {
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.locked-field {
-  position: relative;
-  background-color: #f8f9fa;
-  border-color: #dee2e6;
-}
-
-.conditional-field {
-  margin: 15px 0;
-  padding: 10px;
-  border-left: 3px solid #004a99;
-  background: #f8f9fa;
-}
-
-.radio-option {
-  margin: 10px 0;
-}
-
-.edit-icon {
-  cursor: pointer;
-  margin-left: 10px;
-  color: #004a99;
-}
-input:invalid {
-  border-color: red;
-  animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-}
-input[type='number'] {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  width: 200px;
-  margin: 5px 0;
-}
-@keyframes shake {
-  10%,
-  90% {
-    transform: translateX(-1px);
-  }
-  20%,
-  80% {
-    transform: translateX(2px);
-  }
-  30%,
-  50%,
-  70% {
-    transform: translateX(-4px);
-  }
-  40%,
-  60% {
-    transform: translateX(4px);
-  }
-}
-
-/* T2 Specific Styles */
-.t2-prefilled {
-  position: relative;
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 8px 35px 8px 12px;
-}
-
-.t2-prefilled::after {
-  content: 'T1-Daten';
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.75em;
-  color: #6c757d;
-  background: #e9ecef;
-  padding: 2px 5px;
-  border-radius: 3px;
-}
-
-.t2-radio-group {
-  padding: 10px;
-  background: #f8f9fa;
-  border-radius: 4px;
-  margin: 10px 0;
-}
-
-.t2-radio-value {
-  color: #004a99;
-  font-weight: 500;
-  margin-left: 8px;
-}
-
-.edit-icon:hover {
-  color: #002d5c;
-  transform: scale(1.1);
-  transition: all 0.2s ease;
-}
-
-/* Locked field states */
-input[readonly].t2-locked {
-  cursor: not-allowed;
-  background-color: #f8f9fa !important;
-}
-
-select[disabled].t2-disabled {
-  opacity: 1; /* Maintain full opacity for disabled selects */
-  background-image: none;
-  padding-right: 10px;
-}
-.question input[readonly] {
-  background-color: #f0f0f0;
-}
-[data-dependent] {
-  transition: all 0.3s ease;
-}
-.locked-field::after {
-  content: 'T1-Daten';
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.8em;
-  color: #6c757d;
-}
-/* In your CSS file */
-.datenschutz-nav {
-  margin-top: 2rem;
-  justify-content: center;
-}
-.description-content {
-  transition: all 0.3s ease;
-  margin: 1rem 0;
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 4px;
-}
 .section {
   background: white;
   padding: 1rem;
-}
-/* Add to survey.css */
-#standardNavigation.datenschutz-nav {
-  justify-content: center; /* Center the single button */
-  margin-top: 30px;
-  border-top: none;
-  padding: 0;
-}
-
-#standardNavigation.datenschutz-nav #nextButton {
-  width: 200px; /* Give the button a proper size */
-  justify-content: center;
-}
-.datenschutz-section .final-inputs {
-  margin-bottom: 30px;
-}
-.user-menu i {
-  margin-right: 10px;
-  color: #004a99;
-}
-
-.btn-primary:hover {
-  background-color: #003366;
-}
-
-.btn-secondary:hover {
-  background-color: #5a6268;
+  /* Removed margin-bottom, handled by .question spacing */
 }
 
 .section h2 {
-  border-bottom: 2px solid #004a99;
+  border-bottom: 2px solid var(--primary-color);
   padding-bottom: 10px;
   margin-bottom: 20px;
 }
@@ -339,8 +124,9 @@ select[disabled].t2-disabled {
   background-color: #f9f9f9;
   padding: 20px;
   border-radius: 8px;
-  margin-bottom: 20px;
+  margin-bottom: 20px; /* Consistent spacing between questions */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease; /* Smooth transition for validation */
 }
 
 .question p {
@@ -348,13 +134,122 @@ select[disabled].t2-disabled {
   margin-bottom: 15px;
 }
 
+/* --- Radio Button Styles --- */
+
+.radio-group {
+  /* Removed background and padding, handled by .question */
+  /* Removed border-radius, handled by .question */
+  margin: 10px 0; /* Add some vertical spacing */
+  display: flex; /* Use flexbox for layout */
+  flex-direction: column; /* Stack radio options vertically */
+}
+
+.radio-option {
+  margin: 5px 0; /* Spacing between radio options */
+}
+
+.radio-option label {
+  display: flex; /* Use flexbox to align radio button and label */
+  align-items: center; /* Vertically center */
+  cursor: pointer; /* Change cursor on hover */
+}
+
+.radio-option input[type='radio'] {
+  margin-right: 10px; /* Space between radio button and label */
+  appearance: none; /* Remove default styling */
+  -webkit-appearance: none; /* For Safari/Chrome */
+  -moz-appearance: none; /* For Firefox */
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--primary-color);
+  border-radius: 50%; /* Make it round */
+  outline: none; /* Remove outline on focus */
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  /* ADD THIS LINE */
+  position: absolute;
+  left: -9999px;
+}
+
+/* Checked state */
+.radio-option input[type='radio']:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Focus state */
+.radio-option input[type='radio']:focus + .radio-checkmark {
+  outline: 2px solid var(--primary-color); /* Consistent focus style */
+  outline-offset: 2px;
+}
+
+/* Disabled state */
+.radio-option input[type='radio']:disabled + .radio-checkmark {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.radio-checkmark {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--primary-color);
+  margin-right: 8px;
+  position: relative;
+}
+
+.radio-option input[type='radio']:checked + .radio-checkmark::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+}
+
+/* --- Scale Rating Styles --- */
+
 .rating-scale {
   display: flex;
   justify-content: space-between;
   margin: 15px 0;
+  gap: 5px; /* Ensure consistent spacing */
 }
 
-/* Add to survey.css */
+.scale-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center number */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  margin: 0 2px; /* Minor spacing adjustment */
+}
+
+.scale-button:hover {
+  background-color: #e0e0e0;
+}
+
+.scale-label input[type='radio'] {
+  position: absolute;
+  opacity: 0;
+  height: 0;
+  width: 0;
+}
+
+.scale-label input[type='radio']:checked + .scale-button {
+  background-color: var(--primary-color);
+  color: white;
+}
+
 .scale-labels {
   display: flex;
   justify-content: space-between;
@@ -373,36 +268,48 @@ select[disabled].t2-disabled {
   margin-right: 2px;
 }
 
-/* Ensure proper spacing for scale buttons */
-.rating-scale {
-  margin: 15px -5px; /* Compensate for button margins */
+/* --- Input Field Styles --- */
+
+input[type='text'],
+input[type='number'],
+input[type='date'],
+select,
+textarea {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 16px;
 }
 
-.scale-button {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #f0f0f0;
-  display: flex;
-  align-items: center;
-  justify-content: center; /* Center number */
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-weight: bold;
-  margin: 0 2px; /* Minor spacing adjustment */
+/* Style for disabled select */
+select:disabled {
+  opacity: 1;
+  background-image: none;
+  padding-right: 10px;
+  background-color: #f0f0f0; /* Consistent with other disabled fields */
+  cursor: not-allowed;
 }
 
-.scale-label input[type='radio'] {
-  position: absolute;
-  opacity: 0;
-  height: 0;
-  width: 0;
+select {
+  appearance: none;
+  background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+  background-repeat: no-repeat;
+  background-position: 98% 50%;
 }
 
-input[type='radio']:checked + .scale-button {
-  background-color: #004a99;
-  color: white;
+/* --- Conditional Field Styles --- */
+
+.conditional-field {
+  margin: 15px 0;
+  padding: 10px;
+  border-left: 3px solid var(--primary-color);
+  background: #f8f9fa;
 }
+
+/* --- Navigation Buttons --- */
 
 .navigation-buttons {
   display: flex;
@@ -429,60 +336,10 @@ input[type='radio']:checked + .scale-button {
   margin-left: auto; /* Pushes to far right */
 }
 
-.btn {
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 180px;
-  flex-shrink: 0;
-}
-
-.btn-primary {
-  background: #004a99;
-  color: white;
-  border: none;
-}
-
-.btn-secondary {
-  background: #6c757d;
-  color: white;
-}
-
 .datenschutz-section .navigation-buttons {
   justify-content: flex-end;
   padding: 20px 0 0 0;
   border-top: none;
-}
-
-.unanswered {
-  border: 2px solid #dc3545 !important;
-  animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-  position: relative;
-  background-color: #fff5f5;
-}
-
-.unanswered::after {
-  content: '⚠️ Bitte beantworten';
-  color: #dc3545;
-  font-size: 0.9em;
-  position: absolute;
-  bottom: -25px;
-  left: 0;
-}
-
-/* Enhanced validation states */
-input:invalid,
-textarea:invalid,
-select:invalid {
-  border-color: #dc3545;
-  background-color: #fff5f5;
-}
-
-input:invalid:focus,
-textarea:invalid:focus,
-select:invalid:focus {
-  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
 }
 
 #nextButton:disabled {
@@ -496,58 +353,22 @@ select:invalid:focus {
   background-color: #6c757d;
 }
 
-/* Real-time validation feedback */
-.question {
-  transition: all 0.3s ease;
-}
+/* --- Validation Styles --- */
 
-.question.valid {
-  border-left: 4px solid #28a745;
-}
-
-.question.invalid {
-  border-left: 4px solid #dc3545;
-}
-
-@keyframes shake {
-  10%,
-  90% {
-    transform: translate3d(-1px, 0, 0);
-  }
-  20%,
-  80% {
-    transform: translate3d(2px, 0, 0);
-  }
-  30%,
-  50%,
-  70% {
-    transform: translate3d(-4px, 0, 0);
-  }
-  40%,
-  60% {
-    transform: translate3d(4px, 0, 0);
-  }
-}
-
-select,
-input[type='text'],
-input[type='date'],
-textarea {
-  width: 100%;
-  padding: 10px;
-  margin-top: 5px;
-  border: 1px solid #ccc;
+.unanswered {
+  border: 2px solid #ff4444 !important;
   border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 16px;
+  padding: 5px;
+  background-color: rgba(255, 68, 68, 0.05);
 }
 
-select {
-  appearance: none;
-  background-image: url('data:image/svg+xml;utf8,<svg fill="black" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-  background-repeat: no-repeat;
-  background-position: 98% 50%;
+.unanswered-message {
+  color: #dc3545;
+  font-size: 0.9em;
+  margin-top: 4px; /* Add some space above the message */
+  display: block; /* Make it a block-level element */
 }
+/* --- Datenschutzerklärung Styles --- */
 
 .datenschutz-section {
   margin-bottom: 40px;
@@ -561,11 +382,63 @@ select {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
+.datenschutz-inputs .question {
+  background: none; /* Remove the question background */
+  box-shadow: none;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.agreement-questions .agreement label {
+  display: flex;
+  align-items: center; /* Vertically center checkbox and text */
+  cursor: pointer;
+  margin-bottom: 0.5rem; /* Spacing between agreements */
+}
+
+.agreement-questions .agreement input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none; /* Safari/Chrome */
+  -moz-appearance: none; /* Firefox */
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--primary-color);
+  border-radius: 4px; /* Square checkboxes */
+  margin-right: 8px;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.agreement-questions .agreement input[type='checkbox']:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.agreement-questions .agreement input[type='checkbox']:checked::before {
+  content: '✓'; /* Use a checkmark character */
+  display: block;
+  color: white;
+  font-size: 14px;
+  text-align: center;
+  line-height: 18px; /* Center the checkmark vertically */
+}
+
 .final-inputs {
   background-color: #f9f9f9;
   padding: 20px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Results Section Styles --- */
+
+.results-section {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .attention-box {
@@ -578,34 +451,9 @@ select {
   display: flex;
   align-items: center;
   font-size: 16px;
-  animation: fadeIn 1s ease-in-out;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-#iliasLinks {
-  margin: 20px 0;
-  padding: 15px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-/* Results section styling */
-.results-section {
-  margin-top: 2rem;
-  padding: 2rem;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
+/* --- Course Links Styles --- */
 
 .course-links {
   margin-top: 2rem;
@@ -626,79 +474,43 @@ select {
   border-radius: 6px;
   border: 1px solid #dee2e6;
   transition: transform 0.2s ease;
+  color: var(--primary-color); /* Use variable for link color */
+  text-decoration: none; /* Remove underlines */
 }
 
 .course-links li a:hover {
   transform: translateY(-2px);
-  background: #004a99;
+  background: var(--primary-color);
   color: white;
-  text-decoration: none;
+  text-decoration: none; /* Remove underlines */
 }
 
-#iliasLinks a {
-  display: block;
-  padding: 8px 12px;
-  margin: 5px 0;
-  background: #fff;
-  border-radius: 4px;
-  color: #004a99;
-  text-decoration: none;
-  transition: background 0.2s ease;
-}
-
-#iliasLinks a:hover {
-  background: #e9ecef;
-}
+/* --- Responsive Adjustments --- */
 
 @media (max-width: 768px) {
   .container {
     margin: 20px;
     padding: 20px;
   }
-  .rating-scale {
-    display: flex;
-    justify-content: space-between;
-    margin: 15px 0;
-    gap: 5px; /* Ensure consistent spacing */
-  }
   .navigation-buttons {
     flex-direction: column;
   }
 }
 
-/* Validation styling */
-.unanswered {
-  border: 2px solid #ff4444 !important;
-  border-radius: 4px;
-  padding: 5px;
-  background-color: rgba(255, 68, 68, 0.05);
-}
-
-.unanswered input[type='checkbox'] {
-  outline: 2px solid #ff4444;
-}
-
-.unanswered input[type='text'],
-.unanswered input[type='email'],
-.unanswered input[type='number'],
-.unanswered textarea,
-.unanswered select {
-  border-color: #ff4444 !important;
-  background-color: rgba(255, 68, 68, 0.05);
-}
-
-.unanswered .radio-group {
-  border: 2px solid #ff4444;
-  border-radius: 4px;
-  padding: 5px;
-  background-color: rgba(255, 68, 68, 0.05);
-}
-
-/* SweetAlert2 customization */
-.swal2-popup {
-  font-size: 1rem !important;
-}
-
-.swal2-html-container {
-  text-align: left !important;
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  75% {
+    transform: translateX(-5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }

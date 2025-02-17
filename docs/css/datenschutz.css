@@ -1,51 +1,59 @@
 /* datenschutz.css */
-
+:root {
+  --primary-color: #004a99;
+  --secondary-color: #003366;
+  --light-background: #e0f0ff;
+  --font-family: 'Roboto', sans-serif;
+  --text-color: #333;
+  --background-color: #ffffff;
+  --link-hover-color: #007bff;
+}
 /* Main Content Styling */
 main {
-    max-width: 800px;
-    margin: 100px auto 60px;
-    padding: 0 20px;
+  max-width: 800px;
+  margin: 100px auto 60px; /* Account for fixed header */
+  padding: 0 20px;
 }
 
 h3 {
-    color: var(--primary-color);
-    margin-bottom: 30px;
-    font-size: 2em;
-    font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 30px;
+  font-size: 2em;
+  font-weight: 600;
 }
 
 section {
-    margin-bottom: 40px;
+  margin-bottom: 40px;
 }
 
 h2 {
-    color: var(--primary-color);
-    margin-bottom: 20px;
-    font-size: 1.75em;
-    font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+  font-size: 1.75em;
+  font-weight: 600;
 }
 
 p,
 li,
 address {
-    line-height: 1.8;
-    margin-bottom: 15px;
-    color: var(--text-color);
-    font-size: 1em;
+  line-height: 1.8;
+  margin-bottom: 15px;
+  color: var(--text-color);
+  font-size: 1em;
 }
 
 ol {
-    padding-left: 20px;
+  padding-left: 20px; /* Consistent with other lists */
 }
 
 address {
-    font-style: normal;
+  font-style: normal;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    main {
-        margin: 100px 10px 60px;
-        padding: 0;
-    }
+  main {
+    margin: 100px 10px 60px; /* Adjust margins for smaller screens */
+    padding: 0;
+  }
 }

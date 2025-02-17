@@ -1,437 +1,317 @@
+/* courses.css */
+
 /* Root Variables */
 :root {
-    --primary-color: #004a99;
-    --secondary-color: #003366;
-    --light-background: #e0f0ff;
-    --text-color: #333;
-    --font-family: 'Roboto', sans-serif;
-    --background-color: #ffffff;
-    --link-hover-color: #007bff;
-    --card-shadow: 0 4px 6px rgba(0, 74, 153, 0.1);
-    --card-hover-shadow: 0 8px 15px rgba(0, 74, 153, 0.2);
-    --card-bg-color: #ffffff;
-    --primary-color-rgb: 0, 74, 153;
+  --primary-color: #004a99;
+  --secondary-color: #003366;
+  --light-background: #e0f0ff;
+  --text-color: #333;
+  --font-family: 'Roboto', sans-serif;
+  --background-color: #ffffff;
+  --link-hover-color: #007bff;
+  --card-shadow: 0 4px 6px rgba(0, 74, 153, 0.1);
+  --card-hover-shadow: 0 8px 15px rgba(0, 74, 153, 0.2);
+  --card-bg-color: #ffffff;
+  --primary-color-rgb: 0, 74, 153; /* For rgba() use */
+  --line-color: var(--primary-color); /* Easier to change line color */
+  --line-thickness: 2px;
 }
 
 /* Reset and Base Styles */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-html, body {
-    height: 100%;
-    font-family: var(--font-family);
-    color: var(--text-color);
-    background: var(--background-color);
+html,
+body {
+  height: 100%;
+  font-family: var(--font-family);
+  color: var(--text-color);
+  background: var(--background-color);
 }
 
 html {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
 }
 
 body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 main {
-    flex: 1;
-    padding: 100px 20px 40px 20px;
-    max-width: 1400px;
-    margin: 0 auto;
+  flex: 1;
+  padding: 20px; /* Reduced padding, will be handled more specifically below */
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%; /* Ensure main takes full width */
 }
 
-/* Header Styles */
-header {
-    background: var(--background-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    border-bottom: 2px solid var(--primary-color);
-}
+/* Header Styles (Assuming these are defined in styles.css and are consistent) */
 
-header .logo {
-    height: 50px;
-    width: auto;
-}
-
-nav {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-}
-
-nav a {
-    color: var(--primary-color);
-    text-decoration: none;
-    font-weight: 500;
-    padding: 10px;
-    transition: color 0.3s;
-}
-
-nav a:hover {
-    color: var(--link-hover-color);
-}
-
-nav a.active {
-    border-bottom: 2px solid var(--primary-color);
-}
-
-/* Get Started Button */
-.get-started-button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 500;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.get-started-button:hover {
-    background-color: var(--secondary-color);
-}
-
-/* Main Layout */
-.competency-title-container {
-    text-align: center;
-    margin-bottom: 2.5rem;
-    position: relative;
-    z-index: 3; /* Ensure title container is above other elements */
-}
-
-.competency-title-container h1 {
-    color: var(--primary-color);
-    font-size: 2.5rem;
-    margin-bottom: 2rem;
-}
-
-.subtitles {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 2rem;
-    margin-top: 1rem;
-}
-
-.left-subtitle, .right-subtitle {
-    color: var(--primary-color);
-    font-size: 1.5rem;
-    font-weight: 500;
-}
-
+/* Main Title */
 .main-title {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: #ffffff !important;
-    padding: 15px 40px;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0, 74, 153, 0.25);
-    display: inline-block;
-    margin: 30px auto 45px;
-    position: relative;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    font-weight: 500;
-    font-size: 1.5rem;
-    z-index: 2;
-}
-
-.main-title:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 74, 153, 0.3);
-    color: #ffffff !important;
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
+  color: #ffffff !important;
+  padding: 15px 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 74, 153, 0.25);
+  display: inline-block; /* Important for centering */
+  margin: 25px 0px 45px 490px; /* Centering with auto margins */
+  font-weight: 500;
+  font-size: 1.8rem; /* Slightly reduced size */
+  text-align: center; /* Ensure text is centered */
 }
 
 /* Introduction Section */
 .introduction-section {
-    max-width: 900px;
-    margin: 0 auto 3.5rem;
-    padding: 2.5rem;
-    background-color: var(--light-background);
-    border-radius: 15px;
-    box-shadow: var(--card-shadow);
-    text-align: center;
+  max-width: 900px;
+  margin: 120px auto 3.5rem;
+  padding: 2.5rem;
+  background-color: var(--light-background);
+  border-radius: 15px;
+  box-shadow: var(--card-shadow);
+  text-align: center;
 }
 
 .introduction-section h2 {
-    color: var(--primary-color);
-    margin-bottom: 1.5rem;
-    font-size: 1.8rem;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
 }
 
 .introduction-section p {
-    line-height: 1.6;
-    margin-bottom: 1rem;
-    color: var(--text-color);
-}
-
-.introduction-section p:last-child {
-    margin-bottom: 0;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  color: var(--text-color);
 }
 
 /* Section Titles */
 .section-titles {
-    display: grid;
-    grid-template-columns: 1fr 450px 1fr;
-    gap: 2rem;
-    max-width: 1400px;
-    margin: 0 auto 3rem;
-    padding: 0 2rem;
-    position: relative;
-    z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Two columns */
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto 1rem; /* Reduced bottom margin */
+  padding: 0 2rem;
+  text-align: center;
 }
 
 .section-titles h2 {
-    background-color: var(--light-background);
-    color: var(--primary-color);
-    font-size: 1rem; /* Reduced font size */
-    padding: 1rem; /* Adjusted padding */
-    border: 2px solid var(--primary-color);
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(var(--primary-color-rgb), 0.1);
-    font-weight: 600;
-    width: fit-content;
-    margin: 0 auto;
-    text-align: center;
-    line-height: 1.4;
-    white-space: nowrap; /* Prevents text wrapping */
+  background-color: var(--light-background);
+  color: var(--primary-color);
+  font-size: 1.1rem; /* Further reduced font size */
+  padding: 0.8rem; /* Adjusted padding */
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(var(--primary-color-rgb), 0.1);
+  font-weight: 600;
+  width: fit-content; /* Fit to content */
+  margin: 0 auto; /* Center horizontally */
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
-.section-titles h2:first-child {
-    grid-column: 1;
-    justify-self: end;
-}
-
-.section-titles h2:last-child {
-    grid-column: 3;
-    justify-self: start;
-}
-
+/* Competencies Container */
 .competencies-container {
-    display: grid;
-    grid-template-columns: 1fr 450px 1fr;
-    gap: 2rem;
-    position: relative;
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr; /* Adjusted for description column */
+  gap: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  align-items: start; /* Align items to the top */
+  position: relative; /* Needed for absolute positioning of lines */
 }
 
+/*Added connection lines*/
+.competencies-container::before,
+.competencies-container::after {
+  content: '';
+  position: absolute;
+  background-color: var(--line-color);
+  z-index: 1; /* Behind the cards, but above the container background */
+}
+
+/* Vertical Line */
+.competencies-container::before {
+  top: -115px; /* Position relative to the container.  Adjust as needed. */
+  left: 50%;
+  transform: translateX(-50%);
+  width: var(--line-thickness);
+  height: 4.6rem; /* Extend to top and bottom */
+}
+
+/* Horizontal Line */
+.competencies-container::after {
+  top: -41.2px; /* Position relative to section titles. Adjust as needed */
+  left: 493px; /* Start at the left edge of the center column. +1px to account for line thickness*/
+  width: 347px; /* Span the center column */
+  height: var(--line-thickness);
+}
+
+/* Competency Sections */
 .competency-section {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    align-content: start;
-    margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(250px, 1fr)
+  ); /* Responsive grid */
+  gap: 1.5rem;
+  justify-items: center; /* Center cards horizontally */
+  position: relative;
+  z-index: 2;
 }
 
-/* Connection Lines */
-.connection-lines-container {
-    position: absolute;
-    top: 546px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    pointer-events: none;
-    z-index: 1;
+.competency-section:first-child {
+  margin-top: 0rem; /*Remove margin top*/
 }
 
-.vertical-line {
-    position: absolute;
-    top: -20px; /* Adjusted position */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 2px;
-    height: 127px; /* Adjusted height */
-    background-color: var(--primary-color);
-}
-
-.horizontal-line {
-    position: absolute;
-    top: 107px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
-    height: 2px;
-    background-color: var(--primary-color);
-}
-
-/* Description column */
+/* Description Column */
 .description-column {
-    position: sticky;
-    top: 5rem;
-    width: 100%;
-    max-width: 500px;
-    margin: 0 auto;
-    padding: 2rem;
-    background: white;
-    overflow-y: auto;
-    max-height: 90vh;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    height: fit-content;
+  position: sticky;
+  top: 5rem; /* Adjust as needed */
+  width: 100%;
+  max-width: 500px;
+  margin: 2rem auto; /* Added top margin */
+  padding: 2rem;
+  background: white;
+  overflow-y: auto;
+  max-height: calc(100vh - 10rem); /* Adjust based on header/footer height */
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  grid-column: 2; /* Always in the second column */
+  grid-row: 1; /* Span all rows */
+  z-index: 3;
 }
 
 .description-column h2 {
-    color: var(--primary-color);
-    margin-bottom: 1.5rem;
-    font-size: 1.5rem;
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 0.5rem;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
 }
 
 .description-column h3 {
-    color: var(--secondary-color);
-    margin: 1.5rem 0 0.75rem 0;
-    font-size: 1.2rem;
+  color: var(--secondary-color);
+  margin: 1.5rem 0 0.75rem 0;
+  font-size: 1.2rem;
 }
 
 .description-column p {
-    line-height: 1.6;
-    color: var(--text-color);
-    margin-bottom: 1rem;
+  line-height: 1.6;
+  color: var(--text-color);
+  margin-bottom: 1rem;
 }
 
 .description-content {
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 8px;
-    padding: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  padding: 1rem;
 }
 
-#competencyExample {
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
+/* Competency Card */
 .competency-card {
-    width: 300px;
-    background: linear-gradient(145deg, #ffffff, var(--card-bg-color));
-    border-radius: 12px;
-    padding: 1.5rem;  
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    border: 2px solid transparent;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    min-height: 200px;  
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;  
-    margin: 0.5rem 0;
-}
-
-.competency-card img {
-    width: 150px;  
-    height: 150px;  
-    margin-bottom: 0.5rem;  
-    transition: transform 0.3s ease;
-    object-fit: contain;  
+  width: 100%; /* Use full width available */
+  max-width: 300px; /* But don't exceed 300px */
+  background: linear-gradient(145deg, #ffffff, var(--card-bg-color));
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  position: relative;
+  border: 2px solid transparent;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; /* Center content vertically */
+  gap: 1rem;
 }
 
 .competency-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
-}
-
-.competency-card:hover img {
-    transform: scale(1.1);
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 }
 
 .competency-card h3 {
-    font-size: 1.2rem;  
-    line-height: 1.4;
-    margin: 0;
-    color: var(--text-color);
-    font-weight: 500;  
+  font-size: 1.1rem; /* Slightly smaller font size */
+  line-height: 1.4;
+  margin: 0;
+  color: var(--text-color);
+  font-weight: 500;
 }
 
-.competency-section:first-child .competency-card {
-    margin-left: auto;
-    margin-right: 3rem;
+.card-bg {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
 }
 
-.competency-section:last-child .competency-card {
-    margin-right: auto;
-    margin-left: 3rem;
+.card-bg img {
+  width: 100%; /* Use percentage for responsiveness */
+  max-width: 150px; /* But don't exceed original size */
+  height: auto; /* Maintain aspect ratio */
+  object-fit: contain;
+  transition: transform 0.3s ease; /* Add transition for hover effect */
 }
 
-.section-title {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 1rem 2rem;
-    background-color: var(--light-background);
-    border: 2px solid var(--primary-color);
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(var(--primary-color-rgb), 0.1);
-    font-weight: 600;
-    margin-bottom: 3rem;
-    width: 300px;
-    min-height: 60px;
-    margin-left: auto;
-    margin-right: auto;
+.competency-card:hover .card-bg img {
+  transform: scale(1.1); /* Enlarge image on hover */
+}
+.card-content {
+  width: 100%;
 }
 
-.section-title span {
-    width: 100%;
-    text-align: center;
+.card-content h3 {
+  font-size: 1.2rem;
+  color: var(--primary-color);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Active Card Style */
+.competency-card.active-card {
+  border-color: var(--primary-color);
+  box-shadow: 0 8px 15px rgba(var(--primary-color-rgb), 0.2);
 }
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-    .competencies-container {
-        grid-template-columns: 1fr;
-        padding: 20px;
-    }
-    
-    .section-titles {
-        grid-template-columns: 1fr;
-        gap: 20px;
-        padding: 0 20px;
-    }
+  .competencies-container {
+    grid-template-columns: 1fr; /* Stack on smaller screens */
+    padding: 20px;
+  }
+
+  .description-column {
+    grid-column: 1;
+  }
+
+  /* Adjust line positions for single column */
+  .competencies-container::before,
+  .competencies-container::after {
+    display: none; /* Hide lines on smaller screens */
+  }
 }
 
 @media (max-width: 768px) {
-    .competency-column {
-        grid-template-columns: 1fr;
-    }
-
-    .card-content h3 {
-        font-size: 1rem;
-    }
-}
-
-.card-bg {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.card-bg img {
-    width: 150px;  
-    height: 150px;  
-    object-fit: contain;
-    filter: drop-shadow(0 4px 6px rgba(0, 74, 153, 0.2));
-}
-
-.card-content {
-    width: 100%;
-}
-
-.card-content h3 {
-    font-size: 1.2rem;
-    color: var(--primary-color);
-    margin: 0;
-    line-height: 1.4;
+  .section-titles {
+    grid-template-columns: 1fr; /* Single column on smaller screens */
+  }
+  .section-titles h2:first-child,
+  .section-titles h2:last-child {
+    justify-self: center; /* Center the headings */
+  }
 }
