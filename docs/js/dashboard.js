@@ -513,104 +513,105 @@ function escapeCsvValue(value) {
 }
 
 function exportSelectedData() {
-  const checked = document.querySelectorAll('.user-select:checked')
-  if (!checked.length) {
-    showError('Please select at least one user to export data.')
+  // Get selected users
+  const selectedCheckboxes = document.querySelectorAll('.user-select:checked')
+  const selectedUsers = []
+
+  selectedCheckboxes.forEach((checkbox) => {
+    const row = checkbox.closest('tr')
+    if (row) {
+      const userCode = row.cells[1].innerText.trim()
+      const user = users.find((u) => u.userCode === userCode)
+      if (user) {
+        selectedUsers.push(user)
+      }
+    }
+  })
+
+  if (selectedUsers.length === 0) {
+    alert('Please select at least one user.')
     return
   }
 
-  const selectedUsers = []
-  checked.forEach((box) => {
-    const row = box.closest('tr')
-    const codeCell = row.querySelector('td:nth-child(2)') // Code is in 2nd column
-    if (!codeCell) return
-    const userCode = codeCell.textContent.trim()
-    const user = users.find((u) => u.userCode === userCode)
-    if (user) selectedUsers.push(user)
-  })
-
-  const csvRows = []
-
-  // Define the headers for the CSV file, including timestamps
+  // Define CSV headers
   const headers = [
     'Code',
     'Attempt',
-    'Datenschutz Accepted',
+    'Datenschutz accepted?',
     'Gender',
     'Birth Year',
-    'Studies Teaching?',
-    'Teaching Type/Subject',
+    'Studien Sie Lehramt?',
+    'Lehramt / Studiengang',
     'Semester',
-    'T1 Strategy',
+    'Strategy (T1)',
     'Courses',
-    'T2 Course Feedback',
-    'T2 Reflection',
-    'T3 Reflection',
-    'T1 Timestamp', // Add timestamp headers
+    'Course Feedback (T2)',
+    'Reflection (T2)',
+    'Reflection (T3)',
+    'T1 Timestamp',
     'T2 Timestamp',
     'T3 Timestamp',
-    ...questionIds.flatMap((id) => [`${id} (T1)`, `${id} (T2)`, `${id} (T3)`]),
   ]
 
-  csvRows.push(headers.map(escapeCsvValue).join(',')) // Add headers, escaping values
+  // Filter and add question IDs to headers
+  const filteredQuestionIds = questionIds.filter((id) => !id.startsWith('q0_'))
+  filteredQuestionIds.forEach((id) => {
+    headers.push(`${id} (T1)`)
+    headers.push(`${id} (T2)`)
+    headers.push(`${id} (T3)`)
+  })
 
-  selectedUsers.forEach((user) => {
-    // Determine the correct source for personal data based on attemptNumber
-    const attemptNumber = user.attemptNumber || 1
-    let personalData = {}
-    let courses = []
-    let t1Strategy = ''
-    let t2CourseFeedback = ''
-    let t2Reflection = ''
-    let t3Reflection = ''
+  // Initialize CSV with headers
+  const csvRows = [headers.join(',')]
 
-    if (attemptNumber === 1) {
-      personalData = user.initialResponses || {}
-      courses = user.courses || []
-      t1Strategy = safeAccess(user, 'openEndedResponses.t1_strategy') || ''
-    } else if (attemptNumber === 2) {
-      personalData = user.updatedResponses || {}
-      // Fallback to initialResponses
-      for (const key in user.initialResponses) {
-        if (!(key in personalData)) {
-          personalData[key] = user.initialResponses[key]
-        }
-      }
-      courses = safeAccess(user, 'openEndedResponses.t2_course_list')
-        ? safeAccess(user, 'openEndedResponses.t2_course_list')
-            .split(';')
-            .map((c) => c.trim())
-        : []
-      t2CourseFeedback =
-        safeAccess(user, 'openEndedResponses.t2_course_feedback') || ''
-      t2Reflection = safeAccess(user, 'openEndedResponses.t2_reflection') || ''
-    } else {
-      // attemptNumber === 3
-      personalData = user.followUpResponses || {}
-      // Fallback to updated/initial
-      for (const key in user.updatedResponses) {
-        if (!(key in personalData)) {
-          personalData[key] = user.updatedResponses[key]
-        }
-      }
-      for (const key in user.initialResponses) {
-        if (!(key in personalData)) {
-          personalData[key] = user.initialResponses[key]
-        }
-      }
-      courses = user.courses || []
-      t3Reflection = safeAccess(user, 'openEndedResponses.t3_reflection') || ''
+  // Helper function to escape CSV values
+  function escapeCSV(value) {
+    if (value == null) return ''
+    const stringValue = value.toString()
+    if (
+      stringValue.includes(',') ||
+      stringValue.includes('"') ||
+      stringValue.includes('\n')
+    ) {
+      return `"${stringValue.replace(/"/g, '""')}"`
     }
-    // Extract personal data fields, handling potential null/undefined values
-    const gender = personalData.q0_0 || ''
-    const birthYear = personalData.q0_1 || ''
-    const studiesTeaching = personalData.q0_2 || ''
-    const teachingType = personalData.q0_6 || '' // Corrected: q0_6 for Lehramt type
-    const subjects = personalData.q0_7 || '' // Corrected: q0_7 for subjects
-    const otherStudies = personalData.q0_8 || '' // Corrected: q0_8 for other studies
-    const semester = personalData.q0_3 || '' // Corrected: q0_3 for semester
+    return stringValue
+  }
 
-    // Determine "Lehramt/Studiengang" based on "Studieren Sie Lehramt?"
+  // Helper function to format dates
+  function formatDate(dateString) {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    return date.toLocaleDateString('de-DE', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+  }
+
+  // Process each selected user
+  selectedUsers.forEach((user) => {
+    const personalData = Object.assign(
+      {},
+      user.initialResponses,
+      user.updatedResponses,
+      user.followUpResponses
+    )
+
+    // Extract personal information
+    const gender = personalData['q0_0'] || ''
+    const birthYear = personalData['q0_1'] || ''
+    const studiesTeaching = personalData['q0_2'] || ''
+    const teachingType = personalData['q0_6'] || ''
+    const subjects = personalData['q0_7'] || ''
+    const otherStudies = personalData['q0_8'] || ''
+    const semester = personalData['q0_3'] || ''
+
+    // Format teaching information
     let teachingInfo = ''
     if (studiesTeaching === 'Ja') {
       teachingInfo = `Lehramt: ${teachingType}, Fächer: ${subjects}`
@@ -618,15 +619,23 @@ function exportSelectedData() {
       teachingInfo = `Studiengang: ${otherStudies}`
     }
 
-    // Access responses using the correct attempt-specific objects
-    const t1 = user.responses?.t1 || {}
-    const t2 = user.responses?.t2 || {}
-    const t3 = user.responses?.t3 || {}
+    // Get additional responses
+    const t1Strategy = user.openEndedResponses?.t1_strategy || ''
+    const t2CourseList = user.openEndedResponses?.t2_course_list || ''
+    const courses = t2CourseList
+      ? t2CourseList
+          .split(',')
+          .map((c) => c.trim())
+          .join('; ')
+      : ''
+    const t2CourseFeedback = user.updatedResponses?.t2_course_feedback || ''
+    const t2Reflection = user.openEndedResponses?.t2_reflection || ''
+    const t3Reflection = user.openEndedResponses?.t3_reflection || ''
 
-    // Build the CSV row for the current user, including formatted timestamps
-    const row = [
-      user.userCode,
-      user.attemptNumber || 1, // Ensure attemptNumber is included
+    // Compile row data
+    const rowData = [
+      user.userCode || '',
+      user.attemptNumber || 1,
       user.datenschutzConsent ? 'Yes' : 'No',
       gender,
       birthYear,
@@ -634,31 +643,33 @@ function exportSelectedData() {
       teachingInfo,
       semester,
       t1Strategy,
-      (courses || []).join('; '), // Corrected courses handling
+      courses,
       t2CourseFeedback,
       t2Reflection,
       t3Reflection,
-      user.timeStamps?.t1 ? new Date(user.timeStamps.t1).toISOString() : '', // Keep ISO format for export
-      user.timeStamps?.t2 ? new Date(user.timeStamps.t2).toISOString() : '',
-      user.timeStamps?.t3 ? new Date(user.timeStamps.t3).toISOString() : '',
-      ...questionIds.flatMap((id) => [
-        t1[id] || '',
-        t2[id] || '',
-        t3[id] || '',
-      ]),
+      formatDate(user.timeStamps?.t1),
+      formatDate(user.timeStamps?.t2),
+      formatDate(user.timeStamps?.t3),
     ]
-    csvRows.push(row.map(escapeCsvValue).join(',')) // Add row, escaping all values
+
+    // Add question responses
+    filteredQuestionIds.forEach((id) => {
+      rowData.push(user.initialResponses?.[id] || '')
+      rowData.push(user.updatedResponses?.[id] || '')
+      rowData.push(user.followUpResponses?.[id] || '')
+    })
+
+    csvRows.push(rowData.map(escapeCSV).join(','))
   })
 
-  // Combine rows into a single CSV string
-  const csvContent = csvRows.join('\n')
-
-  // Create a Blob and trigger a download
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
+  // Create and download CSV file
+  const csvString = csvRows.join('\n')
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
   const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+
   link.setAttribute('href', url)
-  link.setAttribute('download', 'survey_data.csv')
+  link.setAttribute('download', 'exported_survey_data.csv')
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
