@@ -258,8 +258,9 @@ h1 {
 /* Chart Styles */
 #visualization {
   width: 100% !important;
-  height: 100% !important;
-  max-height: 600px;
+  height: auto !important; /* Changed from fixed height to auto */
+  max-height: 400px; /* Added max-height to limit vertical size */
+  aspect-ratio: 16 / 12; /* Optional: set aspect ratio for a wider chart */
 }
 
 /* Tooltip styling for info icons */

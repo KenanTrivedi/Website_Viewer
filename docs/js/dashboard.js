@@ -2,15 +2,17 @@ let users = []
 let questionIds = [] // This will be set from the server
 let currentPage = 1
 const usersPerPage = 50
+let surveyData = null // Add this line to store surveyData
 
+// Corrected escapeHtml function
 function escapeHtml(str) {
   if (!str) return ''
   return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
+    .replace(/&/g, '&')
+    .replace(/</g, '<')
+    .replace(/>/g, '>')
+    .replace(/"/g, '"')
+    .replace(/'/g, "'")
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -70,8 +72,15 @@ function getAuthToken() {
   return localStorage.getItem('dashboardToken') || ''
 }
 
+// Modified fetchData function
 async function fetchData() {
   try {
+    // Fetch surveyData FIRST
+    const surveyRes = await fetch('/api/survey-data')
+    if (!surveyRes.ok)
+      throw new Error('Failed to fetch survey data: ' + surveyRes.status)
+    surveyData = await surveyRes.json() // Store it in the global variable
+
     const res = await fetch('/api/dashboard-data', {
       headers: { Authorization: `Bearer ${getAuthToken()}` },
     })
@@ -79,8 +88,18 @@ async function fetchData() {
     const data = await res.json()
     if (!Array.isArray(data.users) || !Array.isArray(data.questionIds))
       throw new Error('Invalid data structure from server')
-    questionIds = data.questionIds
+    // questionIds = data.questionIds //This line was causing the issue
     // Ensure userCode is available, using userId as a fallback
+
+    // --- CORRECT QUESTION ID GENERATION ---
+    questionIds = [] // Reset the array
+    surveyData.forEach((section, sectionIndex) => {
+      section.questions.forEach((_, questionIndex) => {
+        questionIds.push(`q${sectionIndex}_${questionIndex}`)
+      })
+    })
+    // --- END OF CORRECT QUESTION ID GENERATION ---
+
     users = data.users.map((u) => ({ ...u, userCode: u.userCode || u.userId }))
     renderTable()
   } catch (err) {
@@ -99,92 +118,145 @@ function renderTable() {
   const endIndex = startIndex + usersPerPage
   const displaySet = filtered.slice(startIndex, endIndex)
 
-  // Dynamically create table headers based on attemptNumber
-  theadRow.innerHTML = `
-        <th>Select</th>
-        <th>Code</th>
-        <th>Attempt</th>
-        <th>Datenschutz accepted?</th>
-        <th>Gender</th>
-        <th>Birth Year</th>
-        <th>Studieren Sie Lehramt?</th>
-        <th>Lehramt / Studiengang</th>
-        <th>Semester</th>
-        <th>Courses</th>
-        <th>Course Feedback</th>
-        <th>Strategy (T1)</th>
-        <th>Reflection (T2)</th>
-        <th>Reflection (T3)</th>
-        ${questionIds
-          .map(
-            (id) => `<th>${id} (T1)</th><th>${id} (T2)</th><th>${id} (T3)</th>`
-          )
-          .join('')}
-    `
+  let headerHTML = `
+    <th>Select</th>
+    <th>Code</th>
+    <th>Attempt</th>
+    <th>Datenschutz accepted?</th>
+    <th>Gender</th>
+    <th>Birth Year</th>
+    <th>Studieren Sie Lehramt?</th>
+    <th>Lehramt / Studiengang</th>
+    <th>Semester</th>
+    <th>Strategy (T1)</th>
+    <th>Courses</th>
+    <th>Course Feedback (T2)</th>
+    <th>Reflection (T2)</th>
+    <th>Reflection (T3)</th>
+    <th>T1 Timestamp</th>
+    <th>T2 Timestamp</th>
+    <th>T3 Timestamp</th>
+  `
 
-  tbody.innerHTML = '' // Clear existing rows
+  const questionIdsToDisplay = questionIds.filter((id) => !id.startsWith('q0_'))
+  headerHTML += questionIdsToDisplay
+    .map((id) => `<th>${id} (T1)</th><th>${id} (T2)</th><th>${id} (T3)</th>`)
+    .join('')
+  theadRow.innerHTML = headerHTML
+  tbody.innerHTML = ''
 
   displaySet.forEach((user) => {
-    // Helper function to safely access nested properties
-    function safeAccess(obj, path) {
-      return path
-        .split('.')
-        .reduce((acc, part) => (acc && acc[part] ? acc[part] : ''), obj)
-    }
+    try {
+      // Merge personal data from all attempts
+      let personalData = {}
+      Object.assign(
+        personalData,
+        user.initialResponses,
+        user.updatedResponses,
+        user.followUpResponses
+      )
 
-    // Prepare personal data, handling potential null/undefined values
-    const personalData = user.personalData || {}
-    const gender = personalData.q0_0 || ''
-    const birthYear = personalData.q0_1 || ''
-    const studiesTeaching = personalData.q0_2 || ''
-    const teachingType = personalData.q0_3 || ''
-    const subjects = personalData.q0_4 || ''
-    const otherStudies = personalData.q0_5 || ''
-    const semester = personalData.q0_6 || ''
+      const t1Strategy =
+        safeAccess(user, 'openEndedResponses.t1_strategy') || ''
+      const t2CourseList =
+        safeAccess(user, 'openEndedResponses.t2_course_list') || ''
+      const courses = t2CourseList
+        ? t2CourseList.split(',').map((c) => c.trim())
+        : []
+      const t2CourseFeedback =
+        safeAccess(user, 'updatedResponses.t2_course_feedback') || ''
+      const t2Reflection =
+        safeAccess(user, 'openEndedResponses.t2_reflection') || ''
+      const t3Reflection =
+        safeAccess(user, 'openEndedResponses.t3_reflection') || ''
 
-    // Determine "Lehramt/Studiengang" based on "Studieren Sie Lehramt?"
-    let teachingInfo = ''
-    if (studiesTeaching === 'Ja') {
-      teachingInfo = `Lehramt: ${teachingType}, Fächer: ${subjects}`
-    } else if (studiesTeaching === 'Nein') {
-      teachingInfo = `Studiengang: ${otherStudies}`
-    }
+      const gender = safeAccess(personalData, 'q0_0') || ''
+      const birthYear = safeAccess(personalData, 'q0_1') || ''
+      const studiesTeaching = safeAccess(personalData, 'q0_2') || ''
+      const teachingType = safeAccess(personalData, 'q0_6') || ''
+      const subjects = safeAccess(personalData, 'q0_7') || ''
+      const otherStudies = safeAccess(personalData, 'q0_8') || ''
+      const semester = safeAccess(personalData, 'q0_3') || ''
 
-    const t1 = user.responses?.t1 || {}
-    const t2 = user.responses?.t2 || {}
-    const t3 = user.responses?.t3 || {}
+      let teachingInfo = ''
+      if (studiesTeaching === 'Ja') {
+        teachingInfo =
+          'Lehramt: ' +
+          escapeHtml(teachingType) +
+          ', Fächer: ' +
+          escapeHtml(subjects)
+      } else if (studiesTeaching === 'Nein') {
+        teachingInfo = 'Studiengang: ' + escapeHtml(otherStudies)
+      }
 
-    const row = document.createElement('tr')
-    row.innerHTML = `
-            <td><input type="checkbox" class="user-select" /></td>
-            <td>${escapeHtml(user.userCode)}</td>
-            <td>${escapeHtml(String(user.attemptNumber || ''))}</td>
-            <td>${user.datenschutzConsent ? 'Yes' : 'No'}</td>
-            <td>${escapeHtml(gender)}</td>
-            <td>${escapeHtml(birthYear)}</td>
-            <td>${escapeHtml(studiesTeaching)}</td>
-            <td>${escapeHtml(teachingInfo)}</td>
-            <td>${escapeHtml(semester)}</td>
-            <td>${escapeHtml((user.courses || []).join('; '))}</td>
+      function formatDate(dateString) {
+        if (!dateString) return ''
+        try {
+          const date = new Date(dateString)
+          return date.toLocaleDateString('de-DE', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+          })
+        } catch (error) {
+          return 'Invalid Date'
+        }
+      }
+
+      const row = document.createElement('tr')
+      row.innerHTML = `
+        <td><input type="checkbox" class="user-select" /></td>
+        <td>${escapeHtml(user.userCode)}</td>
+        <td>${user.attemptNumber || 1}</td>
+        <td>${user.datenschutzConsent ? 'Yes' : 'No'}</td>
+        <td>${escapeHtml(gender)}</td>
+        <td>${escapeHtml(birthYear)}</td>
+        <td>${escapeHtml(studiesTeaching)}</td>
+        <td>${escapeHtml(teachingInfo)}</td>
+        <td>${escapeHtml(semester)}</td>
+        <td>${escapeHtml(t1Strategy)}</td>
+        <td>${escapeHtml(courses.join('; '))}</td>
+        <td>${escapeHtml(t2CourseFeedback)}</td>
+        <td>${escapeHtml(t2Reflection)}</td>
+        <td>${escapeHtml(t3Reflection)}</td>
+        <td>${formatDate(safeAccess(user, 'timeStamps.t1'))}</td>
+        <td>${formatDate(safeAccess(user, 'timeStamps.t2'))}</td>
+        <td>${formatDate(safeAccess(user, 'timeStamps.t3'))}</td>
+        ${questionIdsToDisplay
+          .map(
+            (id) => `
             <td>${escapeHtml(
-              user.openEndedResponses?.t2_course_feedback || ''
+              safeAccess(user, 'initialResponses.' + id) || ''
             )}</td>
-            <td>${escapeHtml(user.openEndedResponses?.t1_strategy || '')}</td>
-            <td>${escapeHtml(user.openEndedResponses?.t2_reflection || '')}</td>
-            <td>${escapeHtml(user.openEndedResponses?.t3_reflection || '')}</td>
-            ${questionIds
-              .map(
-                (id) => `
-                <td>${escapeHtml(t1[id] || '')}</td>
-                <td>${escapeHtml(t2[id] || '')}</td>
-                <td>${escapeHtml(t3[id] || '')}</td>
-            `
-              )
-              .join('')}
-        `
-    tbody.appendChild(row)
+            <td>${escapeHtml(
+              safeAccess(user, 'updatedResponses.' + id) || ''
+            )}</td>
+            <td>${escapeHtml(
+              safeAccess(user, 'followUpResponses.' + id) || ''
+            )}</td>
+          `
+          )
+          .join('')}
+      `
+      tbody.appendChild(row)
+    } catch (error) {
+      const row = document.createElement('tr')
+      row.innerHTML =
+        '<td colspan="20">Error displaying data for this user. Check</td>'
+      tbody.appendChild(row)
+    }
   })
-  updatePagination(filtered.length)
+}
+
+// Add safeAccess function
+function safeAccess(obj, path) {
+  return path
+    .split('.')
+    .reduce((acc, part) => (acc && acc[part] ? acc[part] : ''), obj)
 }
 
 function filterUsers() {
@@ -308,6 +380,11 @@ function openVisualization() {
   toggleBtn.innerHTML =
     '<i class="fas fa-chart-line me-2"></i>Hide Visualization'
   updateVisualization()
+
+  const downloadButton = document.getElementById('downloadVisualization')
+  if (downloadButton) {
+    downloadButton.addEventListener('click', downloadVisualizationChart)
+  }
 }
 
 function closeVisualization() {
@@ -324,8 +401,8 @@ function closeVisualization() {
 function updateVisualization() {
   const canvas = document.getElementById('visualization')
   if (!canvas) return
-  const checked = [...document.querySelectorAll('.user-select:checked')]
 
+  const checked = [...document.querySelectorAll('.user-select:checked')]
   if (!checked.length) {
     if (window.myChart) {
       window.myChart.destroy()
@@ -334,8 +411,8 @@ function updateVisualization() {
     return
   }
 
-  const last = checked[checked.length - 1]
-  const codeCell = last.closest('tr')?.querySelector('td:nth-child(2)')
+  const lastChecked = checked[checked.length - 1] // Get the *last* checked box
+  const codeCell = lastChecked.closest('tr')?.querySelector('td:nth-child(2)')
 
   if (!codeCell) {
     if (window.myChart) {
@@ -344,8 +421,10 @@ function updateVisualization() {
     }
     return
   }
+
   const userCode = codeCell.textContent.trim()
   const user = users.find((u) => u.userCode === userCode)
+
   if (!user) {
     if (window.myChart) {
       window.myChart.destroy()
@@ -354,9 +433,11 @@ function updateVisualization() {
     return
   }
 
-  const t1 = user.scores?.t1 || {}
-  const t2 = user.scores?.t2 || {}
-  const t3 = user.scores?.t3 || {}
+  // --- MODIFIED DATA EXTRACTION ---
+  const t1 = user.initialScores || {} // Use initialScores
+  const t2 = user.updatedScores || {} // Use updatedScores
+  const t3 = user.followUpScores || {} // Use followUpScores
+  // --- END OF MODIFIED DATA EXTRACTION ---
 
   const allCats = new Set([
     ...Object.keys(t1),
@@ -377,7 +458,8 @@ function updateVisualization() {
     t2Data,
     t3Data,
     'visualization',
-    'visualizationDescription'
+    null, // PASS NULL FOR DESCRIPTION BOX ID HERE
+    userCode // ADD USER CODE ARGUMENT
   )
 
   if (window.myChart) {
@@ -391,6 +473,28 @@ function updateVisualization() {
     const ctx = canvas.getContext('2d')
     window.myChart = new Chart(ctx, chartConfig)
   }
+  // --- ADD USER CODE DISPLAY ---
+  const userCodeSpan = document.getElementById('visualizationUserCode')
+  if (userCodeSpan) {
+    userCodeSpan.textContent = user.userCode
+  }
+  // --- END OF USER CODE DISPLAY ---
+}
+
+function downloadVisualizationChart() {
+  const canvas = document.getElementById('visualization')
+  if (!canvas) {
+    console.error('Canvas element not found.')
+    return
+  }
+
+  const userCodeSpan = document.getElementById('visualizationUserCode')
+  const userCode = userCodeSpan ? userCodeSpan.textContent : 'chart' // Default filename if user code is not available
+
+  const link = document.createElement('a')
+  link.download = `chart_${userCode}.png`
+  link.href = canvas.toDataURL('image/png')
+  link.click()
 }
 
 function escapeCsvValue(value) {
@@ -427,7 +531,7 @@ function exportSelectedData() {
 
   const csvRows = []
 
-  // Define the headers for the CSV file
+  // Define the headers for the CSV file, including timestamps
   const headers = [
     'Code',
     'Attempt',
@@ -437,12 +541,12 @@ function exportSelectedData() {
     'Studies Teaching?',
     'Teaching Type/Subject',
     'Semester',
+    'T1 Strategy',
     'Courses',
     'T2 Course Feedback',
-    'T1 Strategy',
     'T2 Reflection',
     'T3 Reflection',
-    'T1 Timestamp',
+    'T1 Timestamp', // Add timestamp headers
     'T2 Timestamp',
     'T3 Timestamp',
     ...questionIds.flatMap((id) => [`${id} (T1)`, `${id} (T2)`, `${id} (T3)`]),
@@ -454,21 +558,36 @@ function exportSelectedData() {
     // Determine the correct source for personal data based on attemptNumber
     const attemptNumber = user.attemptNumber || 1
     let personalData = {}
+    let courses = []
+    let t1Strategy = ''
+    let t2CourseFeedback = ''
+    let t2Reflection = ''
+    let t3Reflection = ''
 
     if (attemptNumber === 1) {
       personalData = user.initialResponses || {}
+      courses = user.courses || []
+      t1Strategy = safeAccess(user, 'openEndedResponses.t1_strategy') || ''
     } else if (attemptNumber === 2) {
       personalData = user.updatedResponses || {}
-      // Fallback to initialResponses if a field is missing in updatedResponses
+      // Fallback to initialResponses
       for (const key in user.initialResponses) {
         if (!(key in personalData)) {
           personalData[key] = user.initialResponses[key]
         }
       }
+      courses = safeAccess(user, 'openEndedResponses.t2_course_list')
+        ? safeAccess(user, 'openEndedResponses.t2_course_list')
+            .split(';')
+            .map((c) => c.trim())
+        : []
+      t2CourseFeedback =
+        safeAccess(user, 'openEndedResponses.t2_course_feedback') || ''
+      t2Reflection = safeAccess(user, 'openEndedResponses.t2_reflection') || ''
     } else {
       // attemptNumber === 3
       personalData = user.followUpResponses || {}
-      // Fallback to updatedResponses, then initialResponses
+      // Fallback to updated/initial
       for (const key in user.updatedResponses) {
         if (!(key in personalData)) {
           personalData[key] = user.updatedResponses[key]
@@ -479,8 +598,9 @@ function exportSelectedData() {
           personalData[key] = user.initialResponses[key]
         }
       }
+      courses = user.courses || []
+      t3Reflection = safeAccess(user, 'openEndedResponses.t3_reflection') || ''
     }
-
     // Extract personal data fields, handling potential null/undefined values
     const gender = personalData.q0_0 || ''
     const birthYear = personalData.q0_1 || ''
@@ -503,22 +623,22 @@ function exportSelectedData() {
     const t2 = user.responses?.t2 || {}
     const t3 = user.responses?.t3 || {}
 
-    // Build the CSV row for the current user
+    // Build the CSV row for the current user, including formatted timestamps
     const row = [
       user.userCode,
-      user.attemptNumber || '',
+      user.attemptNumber || 1, // Ensure attemptNumber is included
       user.datenschutzConsent ? 'Yes' : 'No',
       gender,
       birthYear,
       studiesTeaching,
       teachingInfo,
       semester,
-      (user.courses || []).join('; '),
-      user.openEndedResponses?.t2_course_feedback || '',
-      user.openEndedResponses?.t1_strategy || '',
-      user.openEndedResponses?.t2_reflection || '',
-      user.openEndedResponses?.t3_reflection || '',
-      user.timeStamps?.t1 ? new Date(user.timeStamps.t1).toISOString() : '',
+      t1Strategy,
+      (courses || []).join('; '), // Corrected courses handling
+      t2CourseFeedback,
+      t2Reflection,
+      t3Reflection,
+      user.timeStamps?.t1 ? new Date(user.timeStamps.t1).toISOString() : '', // Keep ISO format for export
       user.timeStamps?.t2 ? new Date(user.timeStamps.t2).toISOString() : '',
       user.timeStamps?.t3 ? new Date(user.timeStamps.t3).toISOString() : '',
       ...questionIds.flatMap((id) => [
@@ -527,7 +647,6 @@ function exportSelectedData() {
         t3[id] || '',
       ]),
     ]
-
     csvRows.push(row.map(escapeCsvValue).join(',')) // Add row, escaping all values
   })
 
