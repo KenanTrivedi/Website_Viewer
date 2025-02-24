@@ -75,11 +75,10 @@ function getAuthToken() {
 // Modified fetchData function
 async function fetchData() {
   try {
-    // Fetch surveyData FIRST
     const surveyRes = await fetch('/api/survey-data')
     if (!surveyRes.ok)
       throw new Error('Failed to fetch survey data: ' + surveyRes.status)
-    surveyData = await surveyRes.json() // Store it in the global variable
+    surveyData = await surveyRes.json()
 
     const res = await fetch('/api/dashboard-data', {
       headers: { Authorization: `Bearer ${getAuthToken()}` },
@@ -88,19 +87,19 @@ async function fetchData() {
     const data = await res.json()
     if (!Array.isArray(data.users) || !Array.isArray(data.questionIds))
       throw new Error('Invalid data structure from server')
-    // questionIds = data.questionIds //This line was causing the issue
-    // Ensure userCode is available, using userId as a fallback
 
-    // --- CORRECT QUESTION ID GENERATION ---
-    questionIds = [] // Reset the array
+    questionIds = []
     surveyData.forEach((section, sectionIndex) => {
       section.questions.forEach((_, questionIndex) => {
         questionIds.push(`q${sectionIndex}_${questionIndex}`)
       })
     })
-    // --- END OF CORRECT QUESTION ID GENERATION ---
 
-    users = data.users.map((u) => ({ ...u, userCode: u.userCode || u.userId }))
+    users = data.users.map((u) => ({
+      ...u,
+      userCode: u.userCode || u.userId,
+      preSurveyResponses: u.preSurveyResponses || {},
+    }))
     renderTable()
   } catch (err) {
     console.error('Error fetching data:', err)
@@ -122,6 +121,8 @@ function renderTable() {
     <th>Select</th>
     <th>Code</th>
     <th>Attempt</th>
+    <th>Forschungsteilnahme</th>
+    <th>Gruppe</th>
     <th>Datenschutz accepted?</th>
     <th>Gender</th>
     <th>Birth Year</th>
@@ -147,7 +148,6 @@ function renderTable() {
 
   displaySet.forEach((user) => {
     try {
-      // Merge personal data from all attempts
       let personalData = {}
       Object.assign(
         personalData,
@@ -169,6 +169,8 @@ function renderTable() {
         safeAccess(user, 'openEndedResponses.t2_reflection') || ''
       const t3Reflection =
         safeAccess(user, 'openEndedResponses.t3_reflection') || ''
+      const participation = safeAccess(user, 'preSurveyResponses.q-2_0') || ''
+      const group = safeAccess(user, 'preSurveyResponses.q-2_1') || 'Gruppe A' // Default to Gruppe A if not set
 
       const gender = safeAccess(personalData, 'q0_0') || ''
       const birthYear = safeAccess(personalData, 'q0_1') || ''
@@ -212,6 +214,8 @@ function renderTable() {
         <td><input type="checkbox" class="user-select" /></td>
         <td>${escapeHtml(user.userCode)}</td>
         <td>${user.attemptNumber || 1}</td>
+        <td>${escapeHtml(participation)}</td>
+        <td>${escapeHtml(group)}</td>
         <td>${user.datenschutzConsent ? 'Yes' : 'No'}</td>
         <td>${escapeHtml(gender)}</td>
         <td>${escapeHtml(birthYear)}</td>
