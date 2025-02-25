@@ -113,28 +113,23 @@
         Klicken Sie hier, um einen neuen Code zu generieren
       </button>
 
-      <!-- NEW SEPARATE BLOCK FOR "VIEW RESULTS" -->
       <div id="resultsSection" style="display: none">
-        <fieldset class="form-group">
-          <legend>Möchten Sie Ihre bisherigen Ergebnisse ansehen?</legend>
-          <p>
+        <div class="input-group">
+          <label for="resultsCode">
             Geben Sie hier bitte Ihren Code ein, um Ihre bisherigen Ergebnisse
             (Erste, Zweite und Dritte) anzeigen zu lassen.
-          </p>
-          <div class="input-group">
-            <label for="resultsCode">Persönlicher Code</label>
-            <input
-              type="text"
-              id="resultsCode"
-              name="resultsCode"
-              placeholder="GW-SI-06-KE"
-              autocomplete="off"
-            />
-          </div>
-          <button type="button" id="viewResultsButton" class="primary-button">
-            Ergebnisse anzeigen
-          </button>
-        </fieldset>
+          </label>
+          <input
+            type="text"
+            id="resultsCode"
+            name="resultsCode"
+            placeholder="GW-SI-06-KE"
+            autocomplete="off"
+          />
+        </div>
+        <button type="button" id="viewResultsButton" class="primary-button">
+          Ergebnisse anzeigen
+        </button>
       </div>
     </div>
     <script src="js/survey-data.min.js"></script>
