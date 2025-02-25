@@ -72,7 +72,6 @@ function getAuthToken() {
   return localStorage.getItem('dashboardToken') || ''
 }
 
-// Modified fetchData function
 async function fetchData() {
   try {
     const surveyRes = await fetch('/api/survey-data')
@@ -99,6 +98,8 @@ async function fetchData() {
       ...u,
       userCode: u.userCode || u.userId,
       preSurveyResponses: u.preSurveyResponses || {},
+      openEndedResponses: u.openEndedResponses || {},
+      timeStamps: u.timeStamps || {},
     }))
     renderTable()
   } catch (err) {
@@ -124,6 +125,7 @@ function renderTable() {
     <th>Forschungsteilnahme</th>
     <th>Gruppe</th>
     <th>Datenschutz accepted?</th>
+    <th>Unterschrift</th>
     <th>Gender</th>
     <th>Birth Year</th>
     <th>Studieren Sie Lehramt?</th>
@@ -151,34 +153,33 @@ function renderTable() {
       let personalData = {}
       Object.assign(
         personalData,
-        user.initialResponses,
-        user.updatedResponses,
-        user.followUpResponses
+        user.initialResponses || {},
+        user.updatedResponses || {},
+        user.followUpResponses || {}
       )
 
-      const t1Strategy =
-        safeAccess(user, 'openEndedResponses.t1_strategy') || ''
-      const t2CourseList =
-        safeAccess(user, 'openEndedResponses.t2_course_list') || ''
+      const t1Strategy = user.openEndedResponses?.t1_strategy || ''
+      const t2CourseList = user.openEndedResponses?.t2_course_list || ''
       const courses = t2CourseList
         ? t2CourseList.split(',').map((c) => c.trim())
         : []
-      const t2CourseFeedback =
-        safeAccess(user, 'updatedResponses.t2_course_feedback') || ''
-      const t2Reflection =
-        safeAccess(user, 'openEndedResponses.t2_reflection') || ''
-      const t3Reflection =
-        safeAccess(user, 'openEndedResponses.t3_reflection') || ''
-      const participation = safeAccess(user, 'preSurveyResponses.q-2_0') || ''
-      const group = safeAccess(user, 'preSurveyResponses.q-2_1') || 'Gruppe A' // Default to Gruppe A if not set
+      const t2CourseFeedback = user.openEndedResponses?.t2_course_feedback || ''
+      const t2Reflection = user.openEndedResponses?.t2_reflection || ''
+      const t3Reflection = user.openEndedResponses?.t3_reflection || ''
+      const participation = user.preSurveyResponses?.['q-2_0'] || ''
+      const group =
+        participation === 'Nein'
+          ? 'Gruppe A'
+          : user.preSurveyResponses?.['q-2_1'] || 'Gruppe A'
+      const unterschrift = user.unterschrift || ''
 
-      const gender = safeAccess(personalData, 'q0_0') || ''
-      const birthYear = safeAccess(personalData, 'q0_1') || ''
-      const studiesTeaching = safeAccess(personalData, 'q0_2') || ''
-      const teachingType = safeAccess(personalData, 'q0_6') || ''
-      const subjects = safeAccess(personalData, 'q0_7') || ''
-      const otherStudies = safeAccess(personalData, 'q0_8') || ''
-      const semester = safeAccess(personalData, 'q0_3') || ''
+      const gender = personalData['q0_0'] || ''
+      const birthYear = personalData['q0_1'] || ''
+      const studiesTeaching = personalData['q0_2'] || ''
+      const teachingType = personalData['q0_6'] || ''
+      const subjects = personalData['q0_7'] || ''
+      const otherStudies = personalData['q0_8'] || ''
+      const semester = personalData['q0_3'] || ''
 
       let teachingInfo = ''
       if (studiesTeaching === 'Ja') {
@@ -217,6 +218,7 @@ function renderTable() {
         <td>${escapeHtml(participation)}</td>
         <td>${escapeHtml(group)}</td>
         <td>${user.datenschutzConsent ? 'Yes' : 'No'}</td>
+        <td>${escapeHtml(unterschrift)}</td>
         <td>${escapeHtml(gender)}</td>
         <td>${escapeHtml(birthYear)}</td>
         <td>${escapeHtml(studiesTeaching)}</td>
@@ -227,21 +229,15 @@ function renderTable() {
         <td>${escapeHtml(t2CourseFeedback)}</td>
         <td>${escapeHtml(t2Reflection)}</td>
         <td>${escapeHtml(t3Reflection)}</td>
-        <td>${formatDate(safeAccess(user, 'timeStamps.t1'))}</td>
-        <td>${formatDate(safeAccess(user, 'timeStamps.t2'))}</td>
-        <td>${formatDate(safeAccess(user, 'timeStamps.t3'))}</td>
+        <td>${formatDate(user.timeStamps?.t1)}</td>
+        <td>${formatDate(user.timeStamps?.t2)}</td>
+        <td>${formatDate(user.timeStamps?.t3)}</td>
         ${questionIdsToDisplay
           .map(
             (id) => `
-            <td>${escapeHtml(
-              safeAccess(user, 'initialResponses.' + id) || ''
-            )}</td>
-            <td>${escapeHtml(
-              safeAccess(user, 'updatedResponses.' + id) || ''
-            )}</td>
-            <td>${escapeHtml(
-              safeAccess(user, 'followUpResponses.' + id) || ''
-            )}</td>
+            <td>${escapeHtml(user.initialResponses?.[id] || '')}</td>
+            <td>${escapeHtml(user.updatedResponses?.[id] || '')}</td>
+            <td>${escapeHtml(user.followUpResponses?.[id] || '')}</td>
           `
           )
           .join('')}
@@ -250,7 +246,7 @@ function renderTable() {
     } catch (error) {
       const row = document.createElement('tr')
       row.innerHTML =
-        '<td colspan="20">Error displaying data for this user. Check</td>'
+        '<td colspan="20">Error displaying data for this user.</td>'
       tbody.appendChild(row)
     }
   })
@@ -274,18 +270,17 @@ function filterUsers() {
   if (dateRange && dateRange.selectedDates.length === 2) {
     start = dateRange.selectedDates[0]
     end = dateRange.selectedDates[1]
-    start.setHours(0, 0, 0, 0) // Start of day
-    end.setHours(23, 59, 59, 999) // End of day
+    start.setHours(0, 0, 0, 0)
+    end.setHours(23, 59, 59, 999)
   }
 
   return users.filter((user) => {
-    // Date filtering
     if (start && end) {
       const t1Timestamp = user.timeStamps?.t1
         ? new Date(user.timeStamps.t1)
         : null
       if (!t1Timestamp || t1Timestamp < start || t1Timestamp > end) {
-        return false // Exclude if outside date range
+        return false
       }
     }
 
@@ -317,14 +312,14 @@ function filterUsers() {
       })
 
       // Add the question responses
-      for (const id of questionIds) {
-        if (user.responses?.t1?.[id]?.toLowerCase().includes(searchTerm))
-          return true
-        if (user.responses?.t2?.[id]?.toLowerCase().includes(searchTerm))
-          return true
-        if (user.responses?.t3?.[id]?.toLowerCase().includes(searchTerm))
-          return true
-      }
+      // for (const id of questionIds) {
+      //   if (user.responses?.t1?.[id]?.toLowerCase().includes(searchTerm))
+      //     return true
+      //   if (user.responses?.t2?.[id]?.toLowerCase().includes(searchTerm))
+      //     return true
+      //   if (user.responses?.t3?.[id]?.toLowerCase().includes(searchTerm))
+      //     return true
+      // }
 
       if (!foundInFields) {
         return false // Exclude if search term not found
@@ -517,7 +512,6 @@ function escapeCsvValue(value) {
 }
 
 function exportSelectedData() {
-  // Get selected users
   const selectedCheckboxes = document.querySelectorAll('.user-select:checked')
   const selectedUsers = []
 
@@ -526,9 +520,7 @@ function exportSelectedData() {
     if (row) {
       const userCode = row.cells[1].innerText.trim()
       const user = users.find((u) => u.userCode === userCode)
-      if (user) {
-        selectedUsers.push(user)
-      }
+      if (user) selectedUsers.push(user)
     }
   })
 
@@ -537,14 +529,16 @@ function exportSelectedData() {
     return
   }
 
-  // Define CSV headers
   const headers = [
     'Code',
     'Attempt',
+    'Forschungsteilnahme',
+    'Gruppe',
     'Datenschutz accepted?',
+    'Unterschrift',
     'Gender',
     'Birth Year',
-    'Studien Sie Lehramt?',
+    'Studieren Sie Lehramt?',
     'Lehramt / Studiengang',
     'Semester',
     'Strategy (T1)',
@@ -557,7 +551,6 @@ function exportSelectedData() {
     'T3 Timestamp',
   ]
 
-  // Filter and add question IDs to headers
   const filteredQuestionIds = questionIds.filter((id) => !id.startsWith('q0_'))
   filteredQuestionIds.forEach((id) => {
     headers.push(`${id} (T1)`)
@@ -565,7 +558,6 @@ function exportSelectedData() {
     headers.push(`${id} (T3)`)
   })
 
-  // Initialize CSV with headers
   const csvRows = [headers.join(',')]
 
   // Helper function to escape CSV values
@@ -632,7 +624,7 @@ function exportSelectedData() {
           .map((c) => c.trim())
           .join('; ')
       : ''
-    const t2CourseFeedback = user.updatedResponses?.t2_course_feedback || ''
+    const t2CourseFeedback = user.openEndedResponses?.t2_course_feedback || ''
     const t2Reflection = user.openEndedResponses?.t2_reflection || ''
     const t3Reflection = user.openEndedResponses?.t3_reflection || ''
 
