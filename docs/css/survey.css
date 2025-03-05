@@ -154,6 +154,44 @@ h2 {
   cursor: pointer; /* Change cursor on hover */
 }
 
+/* Competency Areas Overview Styling */
+.competency-areas-overview {
+  margin: 20px 0 30px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.competency-areas-overview h3 {
+  color: var(--primary-color);
+  margin-bottom: 15px;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 8px;
+}
+
+.competency-area {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: white;
+  border-left: 4px solid var(--primary-color);
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.competency-area h4 {
+  color: var(--primary-color);
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.competency-area p {
+  margin: 0;
+  line-height: 1.5;
+  color: #333;
+}
+
 .radio-option input[type='radio'] {
   margin-right: 10px; /* Space between radio button and label */
   appearance: none; /* Remove default styling */
