@@ -157,6 +157,7 @@ h2 {
 /* Competency Areas Overview Styling */
 .competency-areas-overview {
   margin: 20px 0 30px;
+  margin-bottom: 40px;
   padding: 15px;
   background-color: #f9f9f9;
   border-radius: 8px;
