@@ -251,6 +251,9 @@
           const t2Data = categories.map((cat) => updatedScores[cat] || 0)
           const t3Data = categories.map((cat) => followUpScores[cat] || 0)
 
+          // Retrieve userCode from sessionStorage or use 'Unknown' as default value if not found
+          const userCode = userData.userCode || 'Unknown'
+
           // Create the chart using the shared configuration function
           const chartConfig = createCompetencyChartConfig(
             categories,
@@ -258,7 +261,8 @@
             t2Data,
             t3Data,
             'resultsChart',
-            'resultsDescriptionBox'
+            'resultsDescriptionBox',
+            userCode
           )
           new Chart(
             document.getElementById('resultsChart').getContext('2d'),
